@@ -22,6 +22,7 @@ def creatquestion(question,group):
     #print(tempdict)
     file=open(filename,'w',encoding='utf-8-sig')
     file.write(str(tempdict))
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"/n问题已记录")
     file.close()
 
 def creatanswer(question,answer,group):
@@ -43,6 +44,7 @@ def creatanswer(question,answer,group):
     tempdict[question]=questiondict
     file=open(filename,'w',encoding='utf-8-sig')
     file.write(str(tempdict))
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"/n答案已记录")
     file.close()
 
 def extractmessage(data,tempdict):
@@ -65,10 +67,9 @@ def extractmessage(data,tempdict):
 
 def listening(data):
     textdict={}
-    signtime=0
     sign={}
     while 1:
-        print(sign)
+        #print(sign)
         textdict={}
         textdict=extractmessage(data,textdict)
         #print(textdict)
@@ -98,7 +99,7 @@ def listening(data):
                     messagesign["befor"]=messagechain
                 sign[i]=messagesign
 
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 
