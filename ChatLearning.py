@@ -19,10 +19,10 @@ def creatquestion(question,group):
         questiondict["time"]=questiontime
         questiondict["answer"]=answerlist
         tempdict[question]=questiondict
+        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"\n问题已记录",filename)
     #print(tempdict)
     file=open(filename,'w',encoding='utf-8-sig')
     file.write(str(tempdict))
-    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"/n问题已记录")
     file.close()
 
 def creatanswer(question,answer,group):
@@ -44,7 +44,7 @@ def creatanswer(question,answer,group):
     tempdict[question]=questiondict
     file=open(filename,'w',encoding='utf-8-sig')
     file.write(str(tempdict))
-    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"/n答案已记录")
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),"\n答案已记录",filename)
     file.close()
 
 def extractmessage(data,tempdict):
@@ -84,7 +84,7 @@ def listening(data):
                 messagechain=k
                 messageinfo=messagechain[0]
                 messagechain.pop(0)
-                if messageinfo['time']-messagesign["signtime"]>5:
+                if messageinfo['time']-messagesign["signtime"]>1800:
                     #print(messageinfo['time'])
                     #os.system("pause")
                     messagesign["id"]=messageinfo['id']
