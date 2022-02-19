@@ -3,12 +3,26 @@ import simuse
 import random
 import time
 
+def getconfig(choice):
+    file=open('config.txt','r',encoding='utf-8-sig')
+    config=file.read()
+    config=eval(config)
+    if choice==1:
+        grouplist=config['grouplist']
+        grouptuple=tuple(grouplist)
+        return grouptuple
+    elif choice==2:
+        sendmode=config['sendmode']
+        return sendmode
+
 def getanswer(group,question): # 从词库中获取答案
     for i in question: # 去除作为问题中的变动因素“url”
         try:
             i.pop('url')
         except:
             continue    
+    if getconfig(2)==1:
+        group='Merge'
     question=str(question)
     filename=str(group)+'.cl' # 读取已缓存的词库
     file=open(filename,'r',encoding='utf-8-sig')
@@ -54,6 +68,10 @@ def listening(data):
         for i in message :
             if i['type']=='GroupMessage': # 判断监听到的消息是否为群消息
                 group=i['group'] # 记录群号
+                try:
+                    getconfig(1).index(group)
+                except:
+                    continue
                 messagechain=i['messagechain'] 
                 messagechain.pop(0)
                 question=messagechain

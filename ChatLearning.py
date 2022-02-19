@@ -3,6 +3,18 @@ import simuse
 import time
 import os
 import copy
+
+
+
+def getconfig():
+    file=open('config.txt','r',encoding='utf-8-sig')
+    config=file.read()
+    config=eval(config)
+    interval=config['interval']
+    interval=int(interval)
+    return interval
+
+
 def creatquestion(question,group):  # 记录问题      
     #print("old")
     tempquestion=copy.deepcopy(question)  #作为问题，不需要“url”标签，所以对消息链(list)进行深拷贝备用
@@ -80,6 +92,7 @@ def extractmessage(data,tempdict): # 将消息链转化为字典格式（key为�
     return tempdict
 
 def listening(data):
+    global interval
     textdict={}
     sign={}  # 创建一个字典，用来标记第一个记录的问题，即标记“1”
     while 1:
@@ -98,7 +111,7 @@ def listening(data):
                 messagechain=k
                 messageinfo=messagechain[0]  # 获取消息链的信息属性（消息id和时间戳）
                 messagechain.pop(0)
-                if messageinfo['time']-messagesign["signtime"]>900: # 若相同群，收集到的两个消息的间隔大于900秒，则新的消息重新标记“1”
+                if messageinfo['time']-messagesign["signtime"]>interval: # 若相同群，收集到的两个消息的间隔大于900秒，则新的消息重新标记“1”
                     #print(messageinfo['time'])
                     #os.system("pause")
                     messagesign["id"]=messageinfo['id']  # 将该消息重新标记“1”
@@ -126,6 +139,7 @@ def main():
     data=simuse.Get_Session(data)
     listening(data)
 
+interval=getconfig()
 main()
 
 
