@@ -1,4 +1,5 @@
 # Demo阶段
+from re import I
 import simuse
 import time
 import os
@@ -65,8 +66,41 @@ def creatanswer(question,answer,group): # 记录答案
     answerdict={"answertext":"","time":""}
     answerdict["answertext"]=answer
     answerdict["time"]=answertime
-    questiondict=tempdict[question]  #找到问题，将答案添加进“answer”属性
-    questiondict["answer"].append(answerdict.copy())
+    tempanswerdict=copy.deepcopy(answerdict) 
+    tempanswerdict['answertext']=eval(tempanswerdict['answertext'])
+    questiondict=tempdict[question]  # 找到问题，将答案添加进“answer”属性
+    #print(questiondict["answer"])
+    if str(questiondict["answer"])!='[]':  # 判断答案列表是否为空
+        for i in questiondict["answer"]:  # 答案列表不为空则寻找相同的答案，有相同则记录相同次数'same'，无相同则记录新答案
+            tempi=copy.deepcopy(i)
+            tempi['answertext']=eval(tempi['answertext'])
+            for k in tempanswerdict['answertext']:  # 去除作为答案中的变动因素"url"
+                #print(k)
+                try:
+                    k.pop('url')
+                except:
+                    continue
+            for k in tempi['answertext']: # 去除作为答案中的变动因素"url"
+                #print(k)
+                try:
+                    k.pop('url')
+                except:
+                    continue
+            #print(tempi['answertext'])
+            #print(tempanswerdict['answertext'])
+            if tempi['answertext']==tempanswerdict['answertext']: # 判断答案是否相同
+                i['time']=answerdict['time'] 
+                if not('same' in i.keys()):  # 检测是否记录过相同次数，有则+1，无则记录相同次数为1
+                    i['same']=1
+                else:
+                    i['same']+=1
+                print('检测到答案重复，重复次数已记录',end='')
+                break
+            else:
+                questiondict["answer"].append(answerdict.copy())
+                break
+    else:
+        questiondict["answer"].append(answerdict.copy())
     tempdict[question]=questiondict
     file=open(filename,'w',encoding='utf-8-sig')
     file.write(str(tempdict))
