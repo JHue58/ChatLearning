@@ -71,9 +71,11 @@ def creatanswer(question,answer,group): # 记录答案
     questiondict=tempdict[question]  # 找到问题，将答案添加进“answer”属性
     #print(questiondict["answer"])
     if str(questiondict["answer"])!='[]':  # 判断答案列表是否为空
+        isbreak=0
         for i in questiondict["answer"]:  # 答案列表不为空则寻找相同的答案，有相同则记录相同次数'same'，无相同则记录新答案
             tempi=copy.deepcopy(i)
             tempi['answertext']=eval(tempi['answertext'])
+            #print(tempi)
             for k in tempanswerdict['answertext']:  # 去除作为答案中的变动因素"url"
                 #print(k)
                 try:
@@ -94,12 +96,12 @@ def creatanswer(question,answer,group): # 记录答案
                     i['same']=1
                 else:
                     i['same']+=1
-                print('检测到答案重复，重复次数已记录',end='')
+                print('检测到答案重复，重复次数已记录',end='')  # 相同则记录相同，然后结束循环，将循环结束判断符置1
+                isbreak=1
                 break
-            else:
-                questiondict["answer"].append(answerdict.copy())
-                break
-    else:
+        if isbreak==0: # 只有遍历完整个答案list无相同，才会记录
+            questiondict["answer"].append(answerdict.copy())
+    else:  # 答案列表为空时一定是新答案，所以直接记录
         questiondict["answer"].append(answerdict.copy())
     tempdict[question]=questiondict
     file=open(filename,'w',encoding='utf-8-sig')
