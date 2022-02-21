@@ -4,8 +4,9 @@ import random
 import time
 
 def getconfig(choice):
-    file=open('config.txt','r',encoding='utf-8-sig')
+    file=open('config.clc','r',encoding='utf-8-sig')
     config=file.read()
+    file.close()
     config=eval(config)
     if choice==1:
         grouplist=config['grouplist']
@@ -14,6 +15,9 @@ def getconfig(choice):
     elif choice==2:
         sendmode=config['sendmode']
         return sendmode
+    elif choice==3:
+        reply=config['reply']
+        return reply
 
 def getanswer(group,question): # 从词库中获取答案
     for i in question: # 去除作为问题中的变动因素“url”
@@ -29,12 +33,12 @@ def getanswer(group,question): # 从词库中获取答案
     tempdict=file.read()
     tempdict=eval(tempdict)
     try: # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
-        print(question)
+        #print(question)
         questiondict=tempdict[question]
         answerlist=questiondict['answer']
     except:
         return -1
-    print(answerlist)
+    #print(answerlist)
     return answerlist
     
         
@@ -44,8 +48,9 @@ def replyanswer(data,group,answer): # 发送答案
         answer=answer['answertext']
     except:
         print('无答案，不给予回复')
+        print('->',end='')
         return None
-    print(answer)
+    print(answer,end='')
     try:
         answer=eval(answer)
     except:
@@ -58,9 +63,12 @@ def replyanswer(data,group,answer): # 发送答案
     number=simuse.Send_Message_Chain(data,group,1,answer) # 让bot发送随机抽取中的答案
     if number != None:
         print('答案已发送',number)
+        print('->',end='')
 
 def listening(data):
     while 1 :
+        if getconfig(3)==0:
+            return None
         message=simuse.Fetch_Message(data) # 监听消息链
         if type(message)==type(0):
             time.sleep(0.5)
@@ -86,7 +94,7 @@ def main():
     data=simuse.Get_Session(data)
     listening(data)
 
-main()
+#main()
 
 
 

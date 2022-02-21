@@ -1,6 +1,13 @@
 import os
 import time
 
+def getconfig():
+    file=open('config.clc','r',encoding='utf-8-sig')
+    config=file.read()
+    file.close()
+    config=eval(config)
+    return config['merge']
+
 def Merge(Mergedict,filename):
     repeatquestion_num=0
     file=open(filename,'r',encoding='utf-8-sig')
@@ -28,14 +35,14 @@ def Merge(Mergedict,filename):
     return Mergedict
 
 
-def main():
+def getfile():
     filelist=os.listdir()
     cllist=[]
     for i in filelist:
         if i[-3:]=='.cl':
-            print(i)
+            #print(i)
             cllist.append(i)
-    print(cllist)
+    #print(cllist)
     Mergedict={}
     for i in cllist:
         if i=='Merge.cl':
@@ -45,8 +52,16 @@ def main():
     file.write(str(Mergedict))
     file.close()
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),'词库合并完成')
+    print('->',end='')
     #os.system('pause')
 
-while 1:
-    main()
-    time.sleep(3600)
+def main():
+    while 1:
+        if getconfig()==0:
+            return None
+        config=open('config.clc','r',encoding='utf-8-sig')
+        waittime=config.read()
+        waittime=eval(waittime)
+        config.close()
+        getfile()
+        time.sleep(waittime['mergetime'])

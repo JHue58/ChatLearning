@@ -21,13 +21,15 @@ def clcheck(filename):
     group=filename[:-3]
     print('群',group,'收集到问题',question_num,'个',' 答案',answer_num,'个')
 
-filelist=os.listdir()
-cllist=[]
-for i in filelist:
-    if i[-3:]=='.cl':
-        print(i)
-        cllist.append(i)
-print(cllist)
-for i in cllist:
-    clcheck(i)
-os.system('pause')
+
+def main():
+    filelist=os.listdir()
+    cllist=[]
+    for i in filelist:
+        if i[-3:]=='.cl':
+            #print(i)
+            cllist.append(i)
+    #print(cllist)
+    for i in cllist:
+        clcheck(i)
+    #os.system('pause')

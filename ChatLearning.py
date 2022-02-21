@@ -8,12 +8,15 @@ import copy
 
 
 def getconfig():
-    file=open('config.txt','r',encoding='utf-8-sig')
+    file=open('config.clc','r',encoding='utf-8-sig')
     config=file.read()
+    file.close()
     config=eval(config)
+    learning=config['learning']
     interval=config['interval']
     interval=int(interval)
-    return interval
+    learning=int(learning)
+    return interval,learning
 
 
 def creatquestion(question,group):  # 记录问题      
@@ -128,10 +131,13 @@ def extractmessage(data,tempdict): # 将消息链转化为字典格式（key为�
     return tempdict
 
 def listening(data):
-    global interval
     textdict={}
     sign={}  # 创建一个字典，用来标记第一个记录的问题，即标记“1”
     while 1:
+        config=getconfig()
+        interval=config[0]
+        if config[1]==0:
+            return None
         #print(sign)
         textdict={}
         textdict=extractmessage(data,textdict) # 不同群的消息链对应存储
@@ -153,6 +159,7 @@ def listening(data):
                     messagesign["id"]=messageinfo['id']  # 将该消息重新标记“1”
                 if messageinfo['id']==messagesign["id"]:  # 将标记“1”的消息，记录为问题              
                     creatquestion(messagechain,i) # 记录问题
+                    print('->',end='')
                     messagesign["signtime"]=messageinfo['time']
                     messagesign["befor"]=messagechain # 将该消息标记为“上一个问题”
                 else:  # 剩下的问题，记录为上一个问题的答案和新的问题
@@ -160,6 +167,7 @@ def listening(data):
                     messagechain=creatquestion(messagechain,i) # 记录问题
                     #print(messagechain)
                     creatanswer(messagesign["befor"],messagechain,i) # 记录答案
+                    print('->',end='')
                     messagesign["signtime"]=messageinfo['time'] # 更新消息的时间戳
                     messagesign["befor"]=messagechain # 将该消息标记为“上一个问题”
                 sign[i]=messagesign
@@ -175,8 +183,7 @@ def main():
     data=simuse.Get_Session(data)
     listening(data)
 
-interval=getconfig()
-main()
+#main()
 
 
 
