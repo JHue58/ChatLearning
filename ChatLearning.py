@@ -14,9 +14,10 @@ def getconfig():
     config=eval(config)
     learning=config['learning']
     interval=config['interval']
+    grouplist=config['learninggrouplist']
     interval=int(interval)
     learning=int(learning)
-    return interval,learning
+    return interval,learning,grouplist
 
 
 def creatquestion(question,group):  # 记录问题      
@@ -118,6 +119,11 @@ def extractmessage(data,tempdict): # 将消息链转化为字典格式（key为�
         return tempdict
     for i in message:
         if i['type']=='GroupMessage': # 判断监听到的消息是否为群消息
+            try:
+                if not(i['group'] in getconfig()[2]):
+                    continue
+            except:
+                pass
             if i['group'] in tempdict.keys():
                 #tempdict[i['group']]=[]
                 messagechain=i['messagechain']
@@ -159,7 +165,7 @@ def listening(data):
                     messagesign["id"]=messageinfo['id']  # 将该消息重新标记“1”
                 if messageinfo['id']==messagesign["id"]:  # 将标记“1”的消息，记录为问题              
                     creatquestion(messagechain,i) # 记录问题
-                    print('->',end='')
+                    #print('->',end='')
                     messagesign["signtime"]=messageinfo['time']
                     messagesign["befor"]=messagechain # 将该消息标记为“上一个问题”
                 else:  # 剩下的问题，记录为上一个问题的答案和新的问题
@@ -167,7 +173,7 @@ def listening(data):
                     messagechain=creatquestion(messagechain,i) # 记录问题
                     #print(messagechain)
                     creatanswer(messagesign["befor"],messagechain,i) # 记录答案
-                    print('->',end='')
+                    #print('->',end='')
                     messagesign["signtime"]=messageinfo['time'] # 更新消息的时间戳
                     messagesign["befor"]=messagechain # 将该消息标记为“上一个问题”
                 sign[i]=messagesign

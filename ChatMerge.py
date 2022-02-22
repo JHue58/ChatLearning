@@ -6,7 +6,8 @@ def getconfig():
     config=file.read()
     file.close()
     config=eval(config)
-    return config['merge']
+    #print(config)
+    return config['merge'],config['mergetime'],config['unmergegrouplist']
 
 def Merge(Mergedict,filename):
     repeatquestion_num=0
@@ -47,21 +48,23 @@ def getfile():
     for i in cllist:
         if i=='Merge.cl':
             continue
+        try:
+            if int(i[:-3]) in getconfig()[2]:
+                continue
+        except:
+            pass
         Mergedict=Merge(Mergedict,i)
     file=open('Merge.cl','w',encoding='utf-8-sig')
     file.write(str(Mergedict))
     file.close()
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),'词库合并完成')
-    print('->',end='')
+    #print('->',end='')
     #os.system('pause')
 
 def main():
     while 1:
-        if getconfig()==0:
+        config=getconfig()
+        if config[0]==0:
             return None
-        config=open('config.clc','r',encoding='utf-8-sig')
-        waittime=config.read()
-        waittime=eval(waittime)
-        config.close()
         getfile()
-        time.sleep(waittime['mergetime'])
+        time.sleep(config[1])

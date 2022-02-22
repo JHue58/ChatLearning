@@ -3,13 +3,23 @@ import simuse
 import random
 import time
 
+def runchance(replychance):
+    list=[]
+    for i in range(replychance):
+        list.append(1)
+    for i in range(100-replychance):
+        list.append(0)
+    chance=random.choice(list)
+    return chance
+
+
 def getconfig(choice):
     file=open('config.clc','r',encoding='utf-8-sig')
     config=file.read()
     file.close()
     config=eval(config)
     if choice==1:
-        grouplist=config['grouplist']
+        grouplist=config['replygrouplist']
         grouptuple=tuple(grouplist)
         return grouptuple
     elif choice==2:
@@ -18,6 +28,9 @@ def getconfig(choice):
     elif choice==3:
         reply=config['reply']
         return reply
+    elif choice==4:
+        replychance=config['replychance']
+        return replychance
 
 def getanswer(group,question): # 从词库中获取答案
     for i in question: # 去除作为问题中的变动因素“url”
@@ -43,12 +56,15 @@ def getanswer(group,question): # 从词库中获取答案
     
         
 def replyanswer(data,group,answer): # 发送答案
+    if runchance(getconfig(4))==0:
+        print('已获取答案，但不发送')
+        return None
     try:
         answer=random.choice(answer) # 尝试从答案列表中随机抽取一个答案，若答案列表为空，则不回复
         answer=answer['answertext']
     except:
         print('无答案，不给予回复')
-        print('->',end='')
+        #print('->',end='')
         return None
     print(answer,end='')
     try:
@@ -56,14 +72,18 @@ def replyanswer(data,group,answer): # 发送答案
     except:
         pass
     for i in answer: # 去除答案中的imageId，不去除mirai api http会无法回复
+        #print(i)
         try:
             i.pop('imageId')
         except:
             continue
+    #print(answer)
     number=simuse.Send_Message_Chain(data,group,1,answer) # 让bot发送随机抽取中的答案
     if number != None:
         print('答案已发送',number)
-        print('->',end='')
+        #print('->',end='')
+    else:
+        print('答案发送失败')
 
 def listening(data):
     while 1 :
