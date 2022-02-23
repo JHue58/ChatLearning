@@ -95,6 +95,10 @@ def getanswer(data,sender,group,question): # 从词库中获取答案
             loop2=asyncio.new_event_loop()
             asyncio.set_event_loop(loop2)
             try:
+                loop2.close()
+            except:
+                pass
+            try:
                 loop2.run_until_complete(getnode(tempdict,answerlist,group))
             except:
                 loop2.close()

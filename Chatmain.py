@@ -11,7 +11,7 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 nest_asyncio.apply()
-version='1.0.0'
+version='1.0.2'
 
 class commandclass():
     command=''
