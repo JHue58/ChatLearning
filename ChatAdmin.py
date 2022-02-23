@@ -118,7 +118,7 @@ def replyanswer(data, sender, answer):  # 发送答案
         except:
             continue
     print('找到', len(answer), '个答案', flush=True)
-    tips = '若显示的答案不完整，则可在ChatLearning控制台中查看'
+    tips = '若显示的答案不完整，或未成功发送，则可在ChatLearning控制台中查看'
     simuse.Send_Message(data, sender, 2,
                         '找到' + str(len(answer)) + '个答案' + '\n' + tips, 1)
     nodedict = {
@@ -130,6 +130,12 @@ def replyanswer(data, sender, answer):  # 发送答案
     #messagechain_c=nodedict['messageChain']
     for i in answer:
         #time.sleep(1)
+        tempdict=i[0]
+        try:
+            if tempdict['type']=='At':
+                tempdict={'type':'Plain','text':'该答案为@消息'}
+        except:
+            pass
         index = {'type': 'Plain', 'text': ''}
         index['text'] = '\n标记:' + str(answer.index(i))
         messagechain = copy.deepcopy(eval(i['answertext']))
