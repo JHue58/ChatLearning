@@ -1,4 +1,3 @@
-from winreg import FlushKey
 import simuse
 import time
 import copy
