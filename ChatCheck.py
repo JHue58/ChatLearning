@@ -1,7 +1,10 @@
 import os
+import time
+
+import simuse
 
 
-def clcheck(filename):
+def clcheck(filename, data, fromchat):
     question_num = 0
     answer_num = 0
     allanswerlist = []
@@ -21,16 +24,41 @@ def clcheck(filename):
         pass
     group = filename[:-3]
     print('群', group, '收集到问题', question_num, '个', ' 答案', answer_num, '个')
+    if fromchat != 0:
+        nodedict = {
+            'senderId': data['qq'],
+            'time': int(time.time()),
+            'senderName': 'ChatLearning',
+            'messageChain': [{
+                'type': 'Plain',
+                'text': ''
+            }]
+        }
+        messagechain = nodedict['messageChain']
+        messagedict = messagechain[0]
+        messagedict['text'] = '群' + str(group) + '收集到问题' + str(
+            question_num) + '个' + ' 答案' + str(answer_num) + '个'
+        return nodedict
+        #simuse.Send_Message(data, fromchat, 2, '群'+str(group)+'收集到问题'+str(question_num)+'个'+' 答案'+str(answer_num)+'个', 1)
+        #time.sleep(1)
 
 
-def main():
+def main(data, fromchat):
     filelist = os.listdir()
     cllist = []
+    nodelist = []
     for i in filelist:
         if i[-3:] == '.cl':
             #print(i)
             cllist.append(i)
     #print(cllist)
     for i in cllist:
-        clcheck(i)
+        nodedict = clcheck(i, data, fromchat)
+        nodelist.append(nodedict.copy())
+    if fromchat != 0:
+        sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
+        sendmessagedict = sendmessagechain[0]
+        sendmessagedict['nodeList'] = nodelist
+        simuse.Send_Message_Chain(data, fromchat, 2, sendmessagechain)
+
     #os.system('pause')

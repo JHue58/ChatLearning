@@ -13,29 +13,88 @@ import simuse
 nest_asyncio.apply()
 
 
-async def getnode(tempdict, answerlist, group, waittime):
-    await asyncio.sleep(waittime)
-    session2 = PromptSession()
-    with patch_stdout():
-        node = await session2.prompt_async('请输入需删除的答案标记(输入-1可取消)：')
-    try:
-        node = int(node)
-    except:
-        print('参数错误')
-        return None
-    if node == -1:
+def exitadmin(getadminsign=0):
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    file.close()
+    config = eval(config)
+    if getadminsign == 1:
+        return config['admin']
+    config['admin'] = 0
+    file = open('config.clc', 'w', encoding='utf-8-sig')
+    file.write(str(config))
+    file.close()
+
+
+def getnode(data, tempdict, answerlist, group, sender):
+    #await asyncio.sleep(waittime)
+    simuse.Send_Message(data, sender, 2, '请输入需删除的答案标记(输入-1可取消，多个用,隔开)：', 1)
+    print('请在聊天窗口发送需删除的答案标记(发送-1可取消，多个用,隔开)')
+    while 1:
+        node = None
+        message = simuse.Fetch_Message(data)
+        if type(message) == type(0):
+            time.sleep(0.5)
+            continue
+        for i in message:
+            if i['type'] == 'FriendMessage' and i[
+                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                command = messagechain[1]
+                if command['type'] == 'Plain':
+                    node = command['text']
+                    break
+        if node != None:
+            break
+    if node == str(-1):
+        simuse.Send_Message(data, sender, 2, '取消删除', 1)
         print('取消删除')
         return None
     try:
-        answerlist.pop(node)
-        filename = str(group) + '.cl'  # 读取已缓存的词库
-        file = open(filename, 'w', encoding='utf-8-sig')
-        file.write(str(tempdict))
-        file.close()
-        print('删除成功！')
+        node = node.replace('，', ',')
+        node = node.replace(' ', ',')
     except:
-        print('删除失败，答案不存在')
-    return None
+        pass
+    nodelist = '[{}]'.format(node)
+    try:
+        nodelist = eval(nodelist)
+        if type(nodelist) != type([]):
+            print('参数错误')
+            simuse.Send_Message(data, sender, 2, '参数错误', 1)
+            return None
+    except:
+        print('参数错误')
+        simuse.Send_Message(data, sender, 2, '参数错误', 1)
+        return None
+    simuse.Send_Message(data, sender, 2, '正在执行操作，请稍等', 1)
+    templist = []
+    sendtext = ''
+    for i in nodelist:
+        time.sleep(1)
+        try:
+            templist.append(answerlist[i])
+        except:
+            print('标记为', i, '的答案不存在')
+            sendtext = sendtext + str(i) + ' '
+    #simuse.Send_Message(data, sender, 2, '标记为'+sendtext+'的答案不存在', 1)
+    for i in templist:
+        #print(i)
+        answerlist.remove(i)
+    filename = str(group) + '.cl'  # 读取已缓存的词库
+    file = open(filename, 'w', encoding='utf-8-sig')
+    file.write(str(tempdict))
+    file.close()
+    if templist != []:
+        simuse.Send_Message(
+            data, sender, 2, '标记为' + sendtext + '的答案不存在' + '\n' + '删除' +
+            str(len(templist)) + '个答案成功！', 1)
+        print('删除', str(len(templist)), '个答案成功！')
+        return None
+    else:
+        simuse.Send_Message(data, sender, 2,
+                            '标记为' + sendtext + '的答案不存在' + '\n' + '删除失败', 1)
+        print('删除失败')
+        return None
 
 
 def getconfig(adminnum=0):
@@ -51,6 +110,7 @@ def getconfig(adminnum=0):
 
 
 def replyanswer(data, sender, answer):  # 发送答案
+    nodelist = []
     #answer=eval(answer)
     for i in answer:  # 去除答案中的imageId，不去除mirai api http会无法回复
         try:
@@ -58,25 +118,34 @@ def replyanswer(data, sender, answer):  # 发送答案
         except:
             continue
     print('找到', len(answer), '个答案', flush=True)
+    tips = '若显示的答案不完整，则可在ChatLearning控制台中查看'
+    simuse.Send_Message(data, sender, 2,
+                        '找到' + str(len(answer)) + '个答案' + '\n' + tips, 1)
+    nodedict = {
+        'senderId': data['qq'],
+        'time': int(time.time()),
+        'senderName': 'ChatLearning',
+        'messageChain': []
+    }
+    #messagechain_c=nodedict['messageChain']
     for i in answer:
-        time.sleep(1)
+        #time.sleep(1)
         index = {'type': 'Plain', 'text': ''}
         index['text'] = '\n标记:' + str(answer.index(i))
         messagechain = copy.deepcopy(eval(i['answertext']))
         messagechain.append(index.copy())
         #print(messagechain)
         print(i['answertext'], '标记:', answer.index(i), flush=True)
-        messagesign = simuse.Send_Message_Chain(data, sender, 2, messagechain)
+        #messagesign = simuse.Send_Message_Chain(data, sender, 2, messagechain)
+        nodedict['messageChain'] = messagechain
+        nodelist.append(nodedict.copy())
         #print(messagesign)
-        if str(messagesign) == 'None':
-            messagechain_0 = [{
-                'type': 'Plain',
-                'text': '该答案发送失败，请在ChatLearning控制台中查看'
-            }]
-            messagechain_0.append(index.copy())
-            simuse.Send_Message_Chain(data, sender, 2, messagechain_0)
+    sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
+    sendmessagedict = sendmessagechain[0]
+    sendmessagedict['nodeList'] = nodelist
+    simuse.Send_Message_Chain(data, sender, 2, sendmessagechain)
     time.sleep(0.7)
-    simuse.Send_Message(data, sender, 2, '发送完毕，请在ChatLearning控制台中继续操作', 1)
+    #simuse.Send_Message(data, sender, 2, '发送完毕，请在ChatLearning控制台中继续操作', 1)
     print('请稍等，程序正在处理……')
     return len(answer)
 
@@ -101,15 +170,12 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
         answerlist = -1
     if answerlist != -1:
         if answerlist != []:
-            waittime = replyanswer(data, sender, answerlist)
-            loop2 = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop2)
-            try:
-                loop2.run_until_complete(
-                    getnode(tempdict, answerlist, group, waittime))
-            except:
-                loop2.close()
-                return None
+            replyanswer(data, sender, answerlist)
+            #loop2 = asyncio.new_event_loop()
+            #asyncio.set_event_loop(loop2)
+
+            getnode(data, tempdict, answerlist, group, sender)
+
         else:
             print('该问题无答案')
             simuse.Send_Message(data, sender, 2, '该问题无答案', 1)
@@ -120,46 +186,39 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
     return None
 
 
-def listening(data, sender, group):
+def listening(data, adminlist, group):
     while 1:
         if getconfig() == 0:
-            return None
+            break
         message = simuse.Fetch_Message(data)  # 监听消息链
         if type(message) == type(0):
             time.sleep(0.5)
             continue
         for i in message:
-            if i['type'] == 'FriendMessage' and i[
-                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+            if i['type'] == 'FriendMessage' and (
+                    i['sender'] in adminlist):  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
                 messagechain.pop(0)
+                command = messagechain[0]
+                if command['type'] == 'Plain' and command['text'] == 'admin':
+                    exitadmin()
+                    simuse.Send_Message(data, i['sender'], 2, '退出管理模式', 1)
+                    break
                 question = messagechain
-                getanswer(data, sender, group, question)  # 获取答案
+                getanswer(data, i['sender'], group, question)  # 获取答案
         time.sleep(0.5)
 
 
-async def tui(data, sender, group):
-    session = PromptSession()
-    listen = threading.Thread(target=listening, args=(data, sender, group))
+def tui(data, adminlist, group):
+    listen = threading.Thread(target=listening, args=(data, adminlist, group))
     listen.start()
+    print('当前处于管理模式')
     while 1:
-        with patch_stdout():
-            command = await session.prompt_async('\nChatLearning(管理模式) ->')
-            command = command.lower()
-        if command == 'admin':
-            file = open('config.clc', 'r', encoding='utf-8-sig')
-            config = file.read()
-            file.close()
-            config = eval(config)
-            config['admin'] = 0
-            file = open('config.clc', 'w', encoding='utf-8-sig')
-            file.write(str(config))
-            file.close()
-            print('<-退出管理模式')
-            break
-        else:
-            print('请先输入admin退出管理模式！')
-    return None
+        time.sleep(1)
+        if exitadmin(1) == 0:
+            print('退出管理模式')
+            return None
+    #return None
 
 
 def getfilelist():
@@ -169,23 +228,29 @@ def getfilelist():
         if i[-3:] == '.cl':
             #print(i)
             cllist.append(i)
-    cllist.remove('Merge.cl')
+    try:
+        cllist.remove('Merge.cl')
+    except:
+        pass
     grouplist = []
     for i in cllist:
         grouplist.append(int(i[:-3]))
     return grouplist
 
 
-def main(sender, group):
+def main(data, adminlist, group, fromchat):
     #print(getfilelist())
     if not (group in getfilelist()):
         print('<-群定位失败，未找到群', group)
         print('<-退出管理模式')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2,
+                                '群定位失败，未找到群' + str(group) + '\n' + '退出管理模式', 1)
         return None
     print('<-定位到群', group)
+    if fromchat != 0:
+        tips = '定位到群' + str(group) + '\n' + '请发送“问题”，发送admin可退出管理模式'
+        simuse.Send_Message(data, fromchat, 2, tips, 1)
     print('请使用管理员QQ', getconfig(1), '向bot发送消息')
-    data = simuse.Get_data()
-    data = simuse.Get_Session(data)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(tui(data, sender, group))
+    tui(data, adminlist, group)
     return None
