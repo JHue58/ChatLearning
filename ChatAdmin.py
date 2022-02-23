@@ -129,16 +129,42 @@ def replyanswer(data, sender, answer):  # 发送答案
     }
     #messagechain_c=nodedict['messageChain']
     for i in answer:
+        changelist=[]
         #time.sleep(1)
-        tempdict=i[0]
-        try:
-            if tempdict['type']=='At':
-                tempdict={'type':'Plain','text':'该答案为@消息'}
-        except:
-            pass
+        #print(i)
+        num=answer.index(i)
+        temp=answer[num]
+        templist=eval(temp['answertext'])
+        for k in templist:
+        #print(type(templist),type(tempdict))
+        #print(templist)
+        #print(tempdict)
+        #print(tempdict)
+            try:
+                if k['type']=='At':
+                    changelist=[{'type':'Plain','text':'该答案为@消息，要显示完整请在ChatLearning控制台查看'}]
+                    #print(k)
+                    #print('-',changelist)
+                elif k['type']=='Quote':
+                    changelist=[{'type':'Plain','text':'该答案为回复类消息，要显示完整请在ChatLearning控制台查看'}]
+                    #print(k)
+                    #print('-',changelist)
+                elif k['type']=='AtAll':
+                    changelist=[{'type':'Plain','text':'该答案为@全员消息，要显示完整请在ChatLearning控制台查看'}]
+                    #print(k)
+                    #print('-',changelist)
+            except:
+                #print('error')
+                pass
+            #print(i)
         index = {'type': 'Plain', 'text': ''}
         index['text'] = '\n标记:' + str(answer.index(i))
-        messagechain = copy.deepcopy(eval(i['answertext']))
+        if changelist!=[]:
+            #print(changelist)
+            messagechain=copy.deepcopy(changelist)
+            #print(messagechain)
+        else:
+            messagechain = copy.deepcopy(eval(i['answertext']))
         messagechain.append(index.copy())
         #print(messagechain)
         print(i['answertext'], '标记:', answer.index(i), flush=True)
