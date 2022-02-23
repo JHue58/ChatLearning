@@ -66,6 +66,7 @@ def replyanswer(data,sender,answer): # 发送答案
             messagechain_0=[{'type':'Plain','text':'该答案发送失败，请在ChatLearning控制台中查看'}]
             messagechain_0.append(index.copy())
             simuse.Send_Message_Chain(data,sender,2,messagechain_0)
+    time.sleep(0.7)
     simuse.Send_Message(data,sender,2,'发送完毕，请在ChatLearning控制台中继续操作',1)
     return None
 
@@ -91,12 +92,18 @@ def getanswer(data,sender,group,question): # 从词库中获取答案
     if answerlist!=-1:
         if answerlist!=[]:
             replyanswer(data,sender,answerlist)
-            loop=asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(getnode(tempdict,answerlist,group))
+            loop2=asyncio.new_event_loop()
+            asyncio.set_event_loop(loop2)
+            try:
+                loop2.run_until_complete(getnode(tempdict,answerlist,group))
+            except:
+                loop2.close()
+                return None
+            
         else:
             print('该问题无答案')
             simuse.Send_Message(data,sender,2,'该问题无答案',1)
+            return None
     else:
         print('未找到该问题')
         simuse.Send_Message(data,sender,2,'未找到该问题',1)
