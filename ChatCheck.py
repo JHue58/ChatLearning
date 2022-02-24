@@ -4,6 +4,14 @@ import time
 import simuse
 
 
+def getallconfig():
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    file.close()
+    config = eval(config)
+    return config
+
+
 def clcheck(filename, data, fromchat):
     question_num = 0
     answer_num = 0
@@ -58,10 +66,43 @@ def main(data, fromchat):
             nodelist.append(nodedict.copy())
         except:
             pass
+    config = getallconfig()
+    learningtip = '记录功能：{}'
+    if config['learning'] == 1:
+        learningtip = learningtip.format('开启')
+    else:
+        learningtip = learningtip.format('关闭')
+    replytip = '回复功能：{}'
+    if config['reply'] == 1:
+        replytip = replytip.format('开启')
+    else:
+        replytip = replytip.format('关闭')
+    golbetip = '全局模式：{}'
+    if config['sendmode'] == 1:
+        golbetip = golbetip.format('开启')
+    else:
+        golbetip = golbetip.format('关闭')
+    replychancetip = '回复触发概率：{}%'.format(config['replychance'])
+    mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
+    intervaltip = '词库链间隔：{}秒'.format(config['interval'])
+    situation = learningtip + '\n' + replytip + '\n' + golbetip + '\n' + replychancetip + '\n' + mergetimetip + '\n' + intervaltip
+    situationchain = [{'type': 'Plain', 'text': situation}]
+    situationnodedict = {
+        'senderId': data['qq'],
+        'time': int(time.time()),
+        'senderName': 'ChatLearning',
+        'messageChain': [{
+            'type': 'Plain',
+            'text': ''
+        }]
+    }
+    situationnodedict['messageChain'] = situationchain
+    nodelist.append(situationnodedict.copy())
     if fromchat != 0:
         sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
         sendmessagedict = sendmessagechain[0]
         sendmessagedict['nodeList'] = nodelist
         simuse.Send_Message_Chain(data, fromchat, 2, sendmessagechain)
+    print(situation)
 
     #os.system('pause')

@@ -26,16 +26,17 @@ class commandclass():
     commandtips['learning *'] = '#设定词库链间隔时间，*的单位为秒'
     commandtips['reply *'] = '#设定回复的触发几率'
     commandtips['merge *'] = '#设定总词库更新时间，*的单位为秒'
-    commandtips['add learning *'] = '#添加开启记录的群，有多个用,隔开'
-    commandtips['add reply *'] = '#添加开启回复的群，有多个用,隔开'
-    commandtips['add unmerge *'] = '#添加不录入总词库的群，有多个用,隔开'
-    commandtips['remove learning *'] = '#移除开启记录的群，有多个用,隔开'
-    commandtips['remove reply *'] = '#移除开启回复的群，有多个用,隔开'
-    commandtips['remove unmerge *'] = '#移除不录入总词库的群，有多个用,隔开'
+    commandtips['add learning *'] = '#添加开启记录的群，有多个用空格隔开'
+    commandtips['add learnings *'] = '#同时添加开启记录和回复的群，有多个用空格隔开'
+    commandtips['add reply *'] = '#添加开启回复的群，有多个用空格隔开'
+    commandtips['add unmerge *'] = '#添加不录入总词库的群，有多个用空格隔开'
+    commandtips['remove learning *'] = '#移除开启记录的群，有多个用空格隔开'
+    commandtips['remove reply *'] = '#移除开启回复的群，有多个用空格隔开'
+    commandtips['remove unmerge *'] = '#移除不录入总词库的群，有多个用空格隔开'
     commandtips['check'] = '#查看词库的问答个数'
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
-    commandtips['setadmin *'] = '#设置管理员QQ号，有多个用,隔开'
+    commandtips['setadmin *'] = '#设置管理员QQ号，有多个用空格隔开'
     commandtips['admin'] = '#进入管理模式'
 
     def __init__(self, input):
@@ -325,8 +326,11 @@ def replychance(chance, fromchat=0):
 
 def addgroup(args, fromchat=0):
     global data
-    if args[:9] == 'learning ':
-        grouplist = '[{}]'.format(args[9:])
+    if args[:9] == 'learning ' or args[:10] == 'learnings ':
+        if args[:10] == 'learnings ':
+            grouplist = '[{}]'.format(args[10:])
+        else:
+            grouplist = '[{}]'.format(args[9:])
         try:
             grouplist = grouplist.replace('，', ',')
             grouplist = grouplist.replace(' ', ',')
@@ -350,12 +354,20 @@ def addgroup(args, fromchat=0):
         config = eval(config)
         config['learninggrouplist'].extend(grouplist)
         config['learninggrouplist'] = list(set(config['learninggrouplist']))
+        if args[:10] == 'learnings ':
+            config['replygrouplist'].extend(grouplist)
+            config['replygrouplist'] = list(set(config['replygrouplist']))
         file = open('config.clc', 'w', encoding='utf-8-sig')
         file.write(str(config))
         file.close()
-        print('<-添加完毕')
-        if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
+        if args[:10] == 'learnings ':
+            print('<-添加完毕 已同时加入回复列表')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '添加完毕 已同时加入回复列表', 1)
+        else:
+            print('<-添加完毕')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
         pass
     elif args[:6] == 'reply ':
         grouplist = '[{}]'.format(args[6:])
