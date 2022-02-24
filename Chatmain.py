@@ -190,6 +190,9 @@ def setadmin(adminnum, fromchat=0):
 
 def admin(adminsign, fromchat=0):
     global adminsendmode
+    if fromchat == 0:
+        print('请在聊天环境中执行该指令')
+        return adminsign
     if adminsign == 0:
         print('<-进入管理模式')
         print('请不要操作控制台！！！')
