@@ -1,7 +1,7 @@
 import os
 import re
-import time
 import tkinter
+import time
 from tkinter import filedialog
 
 
@@ -17,52 +17,62 @@ def getcl():
 
 
 def restore(path):
-    file = open(path, 'r', encoding='utf-8-sig')
-    data = file.readline()
-    data = re.findall('(\d+)', data)
+    try:
+        file = open(path, 'r', encoding='utf-8-sig')
+        data = file.readline()
+        data = re.findall('(\d+)', data)
+    except:
+        print('转换失败\n首行标记不正确')
+        return None
     questionnum = 0
     answernnum = 0
     #print(data)
     questiondict = {}
+    linesign = 0
     with file:
         for line in file:
-            line = line.strip('\n')
-            #print(line)
-            qindex = line.find('问')
-            aindex = line.find('答')
-            signindex = line.find('：')
-            #print(qindex)
-            if qindex != -1 and qindex < signindex:
-                questionsign = line[:qindex]
-                #print('1')
-                questionnum += 1
-                question = line[qindex + 2:line.rfind('|')]
-                questiondict[question] = {
-                    'answer': [],
-                    'time': int(line[line.rfind('|') + 1:])
-                }
-                #print(question)
-                #os.system('pause')
-                tempdict = questiondict[question]
-                answerlist = tempdict['answer']
-                #print(tempdict)
-                #os.system('pause')
+            linesign += 1
+            try:
+                line = line.strip('\n')
+                #print(line)
+                qindex = line.find('问')
+                aindex = line.find('答')
+                signindex = line.find('：')
+                #print(qindex)
+                if qindex != -1 and qindex < signindex:
+                    questionsign = line[:qindex]
+                    #print('1')
+                    questionnum += 1
+                    question = line[qindex + 2:line.rfind('|')]
+                    questiondict[question] = {
+                        'answer': [],
+                        'time': int(line[line.rfind('|') + 1:])
+                    }
+                    #print(question)
+                    #os.system('pause')
+                    tempdict = questiondict[question]
+                    answerlist = tempdict['answer']
+                    #print(tempdict)
+                    #os.system('pause')
 
-            elif aindex != -1 and aindex < signindex:
-                answersion = line[:aindex]
-                if questionsign != answersion:
+                elif aindex != -1 and aindex < signindex:
+                    answersion = line[:aindex]
+                    if questionsign != answersion:
+                        continue
+                    answernnum += 1
+                    answerdict = {'answertext': '', 'time': ''}
+                    answerdict['answertext'] = line[line.find('：') +
+                                                    1:line.rfind('|')]
+                    answerdict['time'] = int(line[line.rfind('|') + 1:])
+                    #print(answerdict)
+                    answerlist.append(answerdict.copy())
+                    #print(answerlist)
+                    #os.system('pause')
+                else:
                     continue
-                answernnum += 1
-                answerdict = {'answertext': '', 'time': ''}
-                answerdict['answertext'] = line[line.find('：') +
-                                                1:line.rfind('|')]
-                answerdict['time'] = int(line[line.rfind('|') + 1:])
-                #print(answerdict)
-                answerlist.append(answerdict.copy())
-                #print(answerlist)
-                #os.system('pause')
-            else:
-                continue
+            except:
+                print('转换失败\n第{}行格式不匹配'.format(linesign + 1))
+                return None
     file.close()
     questionchange = questionnum - int(data[0])
     answerchange = answernnum - int(data[1])
