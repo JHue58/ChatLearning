@@ -9,6 +9,13 @@ def Get_data():
     data_file = open(r'data.json', 'r', encoding='utf-8-sig')
     data = data_file.read()
     data = json.loads(data)
+    host=data['host']
+    if host.find(':')==-1:
+        data['host']=data['host']+':'+data['port']
+    try:
+        host.strip('：',':')
+    except:
+        pass
     return data
 
 

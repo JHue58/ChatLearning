@@ -26,10 +26,10 @@ def exitadmin(getadminsign=0):
     file.close()
 
 
-def getnode(data, tempdict, answerlist, group, sender):
+def getnode(data, tempdict, answerlist, group, sender,question):
     #await asyncio.sleep(waittime)
-    simuse.Send_Message(data, sender, 2, '请输入需删除的答案标记(输入-1可取消，多个用,隔开)：', 1)
-    print('请在聊天窗口发送需删除的答案标记(发送-1可取消，多个用,隔开)')
+    #simuse.Send_Message(data, sender, 2, '请输入需删除的答案标记'+'\n'+'(输入-1可取消,all清空所有,多个用空格隔开)：', 1)
+    print('请在聊天窗口发送需删除的答案标记(发送-1可取消，多个用空格隔开)')
     while 1:
         node = None
         message = simuse.Fetch_Message(data)
@@ -46,7 +46,15 @@ def getnode(data, tempdict, answerlist, group, sender):
                     break
         if node != None:
             break
-    if node == str(-1):
+    if node == 'all':
+        tempdict.pop(question)
+        filename = str(group) + '.cl'  # 读取已缓存的词库
+        file = open(filename, 'w', encoding='utf-8-sig')
+        file.write(str(tempdict))
+        file.close()
+        simuse.Send_Message(data, sender, 2, '已清空', 1)
+        return None
+    if node == str(-1) or node=='–1':
         simuse.Send_Message(data, sender, 2, '取消删除', 1)
         print('取消删除')
         return None
@@ -67,6 +75,7 @@ def getnode(data, tempdict, answerlist, group, sender):
         simuse.Send_Message(data, sender, 2, '参数错误', 1)
         return None
     simuse.Send_Message(data, sender, 2, '正在执行操作，请稍等', 1)
+    time.sleep(1)
     templist = []
     sendtext = ''
     for i in nodelist:
@@ -80,14 +89,20 @@ def getnode(data, tempdict, answerlist, group, sender):
     for i in templist:
         #print(i)
         answerlist.remove(i)
+    if answerlist==[]:
+        tempdict.pop(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
     file = open(filename, 'w', encoding='utf-8-sig')
     file.write(str(tempdict))
     file.close()
     if templist != []:
-        simuse.Send_Message(
-            data, sender, 2, '标记为' + sendtext + '的答案不存在' + '\n' + '删除' +
-            str(len(templist)) + '个答案成功！', 1)
+        if sendtext != '':
+            simuse.Send_Message(
+                data, sender, 2, '标记为' + sendtext + '的答案不存在' + '\n' + '删除' +
+                str(len(templist)) + '个答案成功！', 1)
+        else:
+            simuse.Send_Message(data, sender, 2,
+                                '删除' + str(len(templist)) + '个答案成功！', 1)
         print('删除', str(len(templist)), '个答案成功！')
         return None
     else:
@@ -109,7 +124,7 @@ def getconfig(adminnum=0):
     return admin
 
 
-def replyanswer(data, sender, answer):  # 发送答案
+def replyanswer(data, sender, answer,questiondict):  # 发送答案
     nodelist = []
     #answer=eval(answer)
     for i in answer:  # 去除答案中的imageId，不去除mirai api http会无法回复
@@ -123,45 +138,66 @@ def replyanswer(data, sender, answer):  # 发送答案
                         '找到' + str(len(answer)) + '个答案' + '\n' + tips, 1)
     nodedict = {
         'senderId': data['qq'],
-        'time': int(time.time()),
+        'time': int(questiondict['time']),
         'senderName': 'ChatLearning',
         'messageChain': []
     }
+    timearray=time.localtime(questiondict['time'])
+    StyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timearray)
+    tipmessageChain=[{'type':'Plain','text':'请输入需删除的答案标记'+'\n'+'(输入-1可取消,all清空所有,多个用空格隔开)：'+'\n问题记录时间\n'+StyleTime}]
+    nodedict['messageChain']=tipmessageChain
+    nodelist.append(nodedict.copy())
     #messagechain_c=nodedict['messageChain']
     for i in answer:
-        changelist=[]
+        changelist = []
         #time.sleep(1)
         #print(i)
-        num=answer.index(i)
-        temp=answer[num]
-        templist=eval(temp['answertext'])
+        #num = answer.index(i)
+        #temp = answer[num]
+        templist = eval(i['answertext'])
         for k in templist:
-        #print(type(templist),type(tempdict))
-        #print(templist)
-        #print(tempdict)
-        #print(tempdict)
+            #print(type(templist),type(tempdict))
+            #print(templist)
+            #print(tempdict)
+            #print(tempdict)
             try:
-                if k['type']=='At':
-                    changelist=[{'type':'Plain','text':'该答案为@消息，要显示完整请在ChatLearning控制台查看'}]
+                if k['type'] == 'At':
+                    changelist = [{
+                        'type': 'Plain',
+                        'text': '该答案为@消息，要显示完整请在ChatLearning控制台查看'
+                    }]
                     #print(k)
                     #print('-',changelist)
-                elif k['type']=='Quote':
-                    changelist=[{'type':'Plain','text':'该答案为回复类消息，要显示完整请在ChatLearning控制台查看'}]
+                elif k['type'] == 'Quote':
+                    changelist = [{
+                        'type': 'Plain',
+                        'text': '该答案为回复类消息，要显示完整请在ChatLearning控制台查看'
+                    }]
                     #print(k)
                     #print('-',changelist)
-                elif k['type']=='AtAll':
-                    changelist=[{'type':'Plain','text':'该答案为@全员消息，要显示完整请在ChatLearning控制台查看'}]
+                elif k['type'] == 'AtAll':
+                    changelist = [{
+                        'type': 'Plain',
+                        'text': '该答案为@全员消息，要显示完整请在ChatLearning控制台查看'
+                    }]
                     #print(k)
                     #print('-',changelist)
+                elif k['type']=='Poke':
+                    changelist = [{
+                        'type': 'Plain',
+                        'text': '该答案为戳一戳类消息，要显示完整请在ChatLearning控制台查看'
+                    }]
             except:
                 #print('error')
                 pass
             #print(i)
         index = {'type': 'Plain', 'text': ''}
-        index['text'] = '\n标记:' + str(answer.index(i))
-        if changelist!=[]:
+        timearray=time.localtime(i['time'])
+        StyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timearray)
+        index['text'] = '\n标记:' + str(answer.index(i))+'\n最后一次记录时间\n'+StyleTime
+        if changelist != []:
             #print(changelist)
-            messagechain=copy.deepcopy(changelist)
+            messagechain = copy.deepcopy(changelist)
             #print(messagechain)
         else:
             messagechain = copy.deepcopy(eval(i['answertext']))
@@ -170,6 +206,7 @@ def replyanswer(data, sender, answer):  # 发送答案
         print(i['answertext'], '标记:', answer.index(i), flush=True)
         #messagesign = simuse.Send_Message_Chain(data, sender, 2, messagechain)
         nodedict['messageChain'] = messagechain
+        #nodedict['time']=i['time']
         nodelist.append(nodedict.copy())
         #print(messagesign)
     sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
@@ -202,11 +239,11 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
         answerlist = -1
     if answerlist != -1:
         if answerlist != []:
-            replyanswer(data, sender, answerlist)
+            replyanswer(data, sender, answerlist,questiondict)
             #loop2 = asyncio.new_event_loop()
             #asyncio.set_event_loop(loop2)
 
-            getnode(data, tempdict, answerlist, group, sender)
+            getnode(data, tempdict, answerlist, group, sender,question)
 
         else:
             print('该问题无答案')

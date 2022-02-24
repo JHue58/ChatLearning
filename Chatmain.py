@@ -15,7 +15,7 @@ import ChatReply
 import simuse
 
 nest_asyncio.apply()
-version = '1.1.0'
+version = '1.1.5'
 
 
 class commandclass():

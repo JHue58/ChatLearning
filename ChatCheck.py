@@ -53,8 +53,11 @@ def main(data, fromchat):
             cllist.append(i)
     #print(cllist)
     for i in cllist:
-        nodedict = clcheck(i, data, fromchat)
-        nodelist.append(nodedict.copy())
+        try:
+            nodedict = clcheck(i, data, fromchat)
+            nodelist.append(nodedict.copy())
+        except:
+            pass
     if fromchat != 0:
         sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
         sendmessagedict = sendmessagechain[0]
