@@ -85,7 +85,8 @@ def main(data, fromchat):
     replychancetip = '回复触发概率：{}%'.format(config['replychance'])
     mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
-    situation = learningtip + '\n' + replytip + '\n' + golbetip + '\n' + replychancetip + '\n' + mergetimetip + '\n' + intervaltip
+    blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
+    situation = learningtip + '\n' + replytip + '\n' + golbetip + '\n' + replychancetip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     situationnodedict = {
         'senderId': data['qq'],

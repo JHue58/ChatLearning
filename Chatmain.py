@@ -9,13 +9,14 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 import ChatAdmin
 import ChatCheck
+import ChatFilter
 import ChatLearning
 import ChatMerge
 import ChatReply
 import simuse
 
 nest_asyncio.apply()
-version = '1.1.5'
+version = '1.2.0'
 
 
 class commandclass():
@@ -37,6 +38,7 @@ class commandclass():
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
     commandtips['setadmin *'] = '#设置管理员QQ号，有多个用空格隔开'
+    commandtips['blackfreq *'] = '#设置黑名单容错次数'
     commandtips['admin'] = '#进入管理模式'
 
     def __init__(self, input):
@@ -118,6 +120,29 @@ def unknowcommand(command):
     pass
 
 
+def blackfreq(num, fromchat=0):
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    file.close()
+    config = eval(config)
+    try:
+        num = int(num)
+    except:
+        print('参数错误')
+        return None
+    if num < 1:
+        print('参数错误')
+        return None
+    config['blackfreq'] = num
+    file = open('config.clc', 'w', encoding='utf-8-sig')
+    file.write(str(config))
+    file.close()
+    print('黑名单容错次数已设置为{}次'.format(num))
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, '黑名单容错次数已设置为{}次'.format(num),
+                            1)
+
+
 def remerge():
     file = open('config.clc', 'r', encoding='utf-8-sig')
     config = file.read()
@@ -191,62 +216,80 @@ def setadmin(adminnum, fromchat=0):
 
 def admin(adminsign, fromchat=0):
     global adminsendmode
+    global learningsign
+    global mergesign
+    global replysign
     if fromchat == 0:
         print('请在聊天环境中执行该指令')
         return adminsign
+    if learningsign == 1:
+        tempsign = learning(learningsign, mergesign, fromchat)
+        learningsign = tempsign[0]
+        mergesign = tempsign[1]
+    if replysign == 1:
+        replysign = reply(replysign, fromchat)
     if adminsign == 0:
         print('<-进入管理模式')
         print('请不要操作控制台！！！')
-        print('拥有词库的群号:')
-        print(ChatAdmin.getfilelist())
-        if fromchat != 0:
-            tips = '进入管理模式' + '\n' + '拥有词库的群号' + '\n' + str(
-                ChatAdmin.getfilelist()) + '\n' + '请发送需要选择的群号'
-            simuse.Send_Message(data, fromchat, 2, tips, 1)
-        print('请使用管理员QQ', ChatAdmin.getconfig(1), '向bot发送需要选择的群号')
-        #adminsendmode=1
-        time.sleep(0.5)
-        #adminsendmode=0
+        #print('拥有词库的群号:')
+        #print(ChatAdmin.getfilelist())
+        tips = '请发送需要操作的序号\n1.全局模式(未实装)\n2.分群模式\n3.过滤设置'
+        simuse.Send_Message(data, fromchat, 2, tips, 1)
         command = getcommand_chat_foradmin()
-        group = command[0]
+        choice = command[0]
         sender = command[1]
-        try:
-            group = int(group)
-        except:
+        if choice == str(1):
+            simuse.Send_Message(data, fromchat, 2, '正在开发中，将在近期版本上线', 1)
+            time.sleep(1)
+            simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
+            print('<-退出管理模式')
+            return adminsign
+        elif choice == str(2):
+            if fromchat != 0:
+                tips = '进入管理模式' + '\n' + '拥有词库的群号' + '\n' + str(
+                    ChatAdmin.getfilelist()) + '\n' + '请发送需要选择的群号'
+                simuse.Send_Message(data, fromchat, 2, tips, 1)
+            print('请使用管理员QQ', ChatAdmin.getconfig(1), '向bot发送需要选择的群号')
+            #adminsendmode=1
+            time.sleep(0.5)
+            #adminsendmode=0
+            command = getcommand_chat_foradmin()
+            group = command[0]
+            sender = command[1]
+            try:
+                group = int(group)
+            except:
+                print('参数错误')
+                print('<-退出管理模式')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
+                return adminsign
+            file = open('config.clc', 'r', encoding='utf-8-sig')
+            config = file.read()
+            file.close()
+            config = eval(config)
+            config['admin'] = 1
+            file = open('config.clc', 'w', encoding='utf-8-sig')
+            file.write(str(config))
+            file.close()
+            ChatAdmin.main(data, config['Administrator'], group, sender)
+            #admin=threading.Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
+            #adminsign=1
+            #admin.join()
+            #listen = threading.Thread(target=getcommand_chat)
+            #listen.start()
+            return adminsign
+        elif choice == str(3):
+            ChatFilter.filtercontrol(data, fromchat)
+            print('<-退出管理模式')
+            simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
+            return adminsign
+        else:
             print('参数错误')
             print('<-退出管理模式')
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
             return adminsign
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = file.read()
-        file.close()
-        config = eval(config)
-        config['admin'] = 1
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        file.write(str(config))
-        file.close()
-        ChatAdmin.main(data, config['Administrator'], group, sender)
-        #admin=threading.Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
-        #adminsign=1
-        #admin.join()
-        #listen = threading.Thread(target=getcommand_chat)
-        #listen.start()
-        return adminsign
-    else:
-        adminsign = 0
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = file.read()
-        file.close()
-        config = eval(config)
-        config['admin'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        file.write(str(config))
-        file.close()
-        print('<-关闭管理模式')
-        if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '关闭管理模式', 1)
-        return adminsign
 
 
 def grouplist(fromchat=0):
@@ -726,8 +769,11 @@ async def getcommand_tui():
         #print('->',end='')
         #command=input()
         #command=prompt('->')
-        with patch_stdout():
-            command = await session.prompt_async('\nChatLearning ->')
+        try:
+            with patch_stdout():
+                command = await session.prompt_async('\nChatLearning ->')
+        except:
+            print('ChatLearning控制台无法加载，可能是置于后台运行')
         commandchoice(command)
 
 
@@ -786,14 +832,11 @@ def commandchoice(command, fromchat=0):
     elif command[:9] == 'setadmin ':
         setadmin(command[9:], fromchat)
     elif command == 'admin':
-        if learningsign == 1:
-            tempsign = learning(learningsign, mergesign, fromchat)
-            learningsign = tempsign[0]
-            mergesign = tempsign[1]
-        if replysign == 1:
-            replysign = reply(replysign, fromchat)
         adminsign = admin(adminsign, fromchat)
         return 'breaksign'
+    elif command[:10] == 'blackfreq ':
+        blackfreq(command[10:])
+
     elif command == 'help' or command == '?' or command == '？':
         commandlist.printhelp(fromchat)
     else:

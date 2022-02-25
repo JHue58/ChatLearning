@@ -1,16 +1,58 @@
-import asyncio
+#import asyncio
 import copy
 import os
 import threading
 import time
 
-import nest_asyncio
+#import nest_asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
+import ChatFilter
 import simuse
 
-nest_asyncio.apply()
+#nest_asyncio.apply()
+
+
+def get_admin_question(data, sender):
+    message = simuse.Fetch_Message(data)
+    if type(message) == type(0):
+        time.sleep(0.5)
+        return None
+    for i in message:
+        if i['type'] == 'FriendMessage' and i[
+                'sender'] == sender:  # 判断监听到的消息是否为群消息
+            messagechain = i['messagechain']
+            messagechain.pop(0)
+            question = messagechain
+            return question
+    return None
+
+
+def get_admin_command(data, adminlist=0, sender=0):
+    message = simuse.Fetch_Message(data)
+    if type(message) == type(0):
+        time.sleep(0.5)
+        return None
+    for i in message:
+        if sender != 0:
+            if i['type'] == 'FriendMessage' and i[
+                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                command = messagechain[1]
+                if command['type'] == 'Plain':
+                    #node = command['text']
+                    return command['text']
+                return None
+        else:
+            if i['type'] == 'FriendMessage' and i[
+                    'sender'] in adminlist:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                command = messagechain[1]
+                if command['type'] == 'Plain':
+                    #node = command['text']
+                    return command['text']
+                return None
 
 
 def exitadmin(getadminsign=0):
@@ -29,24 +71,20 @@ def exitadmin(getadminsign=0):
 def getnode(data, tempdict, answerlist, group, sender, question):
     #await asyncio.sleep(waittime)
     #simuse.Send_Message(data, sender, 2, '请输入需删除的答案标记'+'\n'+'(输入-1可取消,all清空所有,多个用空格隔开)：', 1)
-    print('请在聊天窗口发送需删除的答案标记(发送-1可取消，多个用空格隔开)')
+    print('请在聊天窗口发送需删除的答案标记(发送-1可取消，多个用空格隔开，前加add可同时加入过滤列表)')
     while 1:
-        node = None
-        message = simuse.Fetch_Message(data)
-        if type(message) == type(0):
-            time.sleep(0.5)
-            continue
-        for i in message:
-            if i['type'] == 'FriendMessage' and i[
-                    'sender'] == sender:  # 判断监听到的消息是否为群消息
-                messagechain = i['messagechain']
-                command = messagechain[1]
-                if command['type'] == 'Plain':
-                    node = command['text']
-                    break
+        node = get_admin_command(data, sender=sender)
         if node != None:
             break
+    addfilter = 0
+    if node[:4] == 'add ':
+        node = node[4:]
+        addfilter = 1
     if node == 'all':
+        if addfilter == 1:
+            ChatFilter.creatfilter(answerlist, 1)
+            simuse.Send_Message(data, sender, 2, '已将全部加入过滤列表', 1)
+            time.sleep(0.8)
         tempdict.pop(question)
         filename = str(group) + '.cl'  # 读取已缓存的词库
         file = open(filename, 'w', encoding='utf-8-sig')
@@ -76,6 +114,14 @@ def getnode(data, tempdict, answerlist, group, sender, question):
         return None
     simuse.Send_Message(data, sender, 2, '正在执行操作，请稍等', 1)
     time.sleep(1)
+    if addfilter == 1:
+        addfilterlist = []
+        for i in nodelist:
+            try:
+                addfilterlist.append(answerlist[i])
+            except:
+                pass
+        ChatFilter.creatfilter(addfilterlist, 1)
     templist = []
     sendtext = ''
     for i in nodelist:
@@ -100,10 +146,18 @@ def getnode(data, tempdict, answerlist, group, sender, question):
             simuse.Send_Message(
                 data, sender, 2, '标记为' + sendtext + '的答案不存在' + '\n' + '删除' +
                 str(len(templist)) + '个答案成功！', 1)
+            if addfilter != 0:
+                time.sleep(1)
+                simuse.Send_Message(data, sender, 2, '已添加入过滤列表', 1)
         else:
             simuse.Send_Message(data, sender, 2,
                                 '删除' + str(len(templist)) + '个答案成功！', 1)
+            if addfilter != 0:
+                time.sleep(1)
+                simuse.Send_Message(data, sender, 2, '已添加入过滤列表', 1)
         print('删除', str(len(templist)), '个答案成功！')
+        if addfilter != 0:
+            print('已添加入过滤列表')
         return None
     else:
         simuse.Send_Message(data, sender, 2,
@@ -148,8 +202,8 @@ def replyanswer(data, sender, answer, questiondict):  # 发送答案
         'type':
         'Plain',
         'text':
-        '请输入需删除的答案标记' + '\n' + '(输入-1可取消,all清空所有,多个用空格隔开)：' + '\n问题记录时间\n' +
-        StyleTime
+        '请输入需删除的答案标记' + '\n' + '(输入-1可取消,all清空所有,多个用空格隔开,前加add可同时加入过滤列表)：' +
+        '\n问题记录时间\n' + StyleTime
     }]
     nodedict['messageChain'] = tipmessageChain
     nodelist.append(nodedict.copy())

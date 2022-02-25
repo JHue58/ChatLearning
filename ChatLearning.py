@@ -2,6 +2,7 @@
 import copy
 import os
 import time
+import ChatFilter
 from re import I
 
 import simuse
@@ -29,6 +30,9 @@ def creatquestion(question, group):  # 记录问题
             i.pop('url')
         except:
             continue
+
+
+
     question = str(question)
     filename = str(group) + ".cl"
     try:  # 读取已缓存的词库
@@ -130,6 +134,13 @@ def extractmessage(data, tempdict):  # 将消息链转化为字典格式（key�
                     continue
             except:
                 pass
+            checkmessage=copy.deepcopy(i['messagechain'])
+            checkmessage.pop(0)
+            if ChatFilter.sensitivecheck(checkmessage,i['sender'])==0:
+                continue
+            elif ChatFilter.filtercheck(checkmessage)==0:
+                continue
+
             if i['group'] in tempdict.keys():
                 #tempdict[i['group']]=[]
                 messagechain = i['messagechain']
