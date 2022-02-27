@@ -8,6 +8,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 import ChatAdmin
+import ChatAllfind
 import ChatCheck
 import ChatFilter
 import ChatLearning
@@ -16,7 +17,7 @@ import ChatReply
 import simuse
 
 nest_asyncio.apply()
-version = '1.2.0'
+version = '2.0.0'
 
 
 class commandclass():
@@ -139,8 +140,7 @@ def blackfreq(num, fromchat=0):
     file.close()
     print('黑名单容错次数已设置为{}次'.format(num))
     if fromchat != 0:
-        simuse.Send_Message(data, fromchat, 2, '黑名单容错次数已设置为{}次'.format(num),
-                            1)
+        simuse.Send_Message(data, fromchat, 2, '黑名单容错次数已设置为{}次'.format(num), 1)
 
 
 def remerge():
@@ -233,16 +233,15 @@ def admin(adminsign, fromchat=0):
         print('请不要操作控制台！！！')
         #print('拥有词库的群号:')
         #print(ChatAdmin.getfilelist())
-        tips = '请发送需要操作的序号\n1.全局模式(未实装)\n2.分群模式\n3.过滤设置'
+        tips = '请发送需要操作的序号\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置'
         simuse.Send_Message(data, fromchat, 2, tips, 1)
         command = getcommand_chat_foradmin()
         choice = command[0]
         sender = command[1]
         if choice == str(1):
-            simuse.Send_Message(data, fromchat, 2, '正在开发中，将在近期版本上线', 1)
-            time.sleep(1)
+            ChatAllfind.findallcontrol(data, fromchat)
+            print(('<-退出管理模式'))
             simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-            print('<-退出管理模式')
             return adminsign
         elif choice == str(2):
             if fromchat != 0:
