@@ -32,7 +32,7 @@
 
 本项目所使用的一些Python模块：
 
-<code>asyncio </code>   <code>prompt_toolkit</code>   <code>nest_asyncio</code>   <code>threading</code>
+<code>asyncio </code>   <code>prompt_toolkit</code>   <code>nest_asyncio</code>   <code>threading</code> <code>cos-python-sdk-v5</code>
 
 以上模块**Linux**用户可能会缺少，请使用<code>pip install</code>来安装对应模块
 
@@ -42,11 +42,13 @@
 
 在**ChatLearning 1.2.0**版本后，使用了全新的管理模式
 
-### 	全局模式
+### 	在所有群内搜索
 
-​		该模式下支持模糊搜索所有群的词库，正在开发中，将在近期版本上线
+​		该模式下支持模糊搜索所有群的词库，或者查看指定群的词库，**预览结果不包含无答案词条**（出现找到xx个结果却无显示结果）
 
-### 	分群模式
+​		需删除时请按照提示输入指定行，**注意是行不是ID！**
+
+### 	在指定群内搜索
 
 ​		与**1.2.0**版本之前的管理模式一致，在特定的群词条中删除词库
 
