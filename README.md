@@ -34,7 +34,9 @@
 
 <code>asyncio </code>   <code>prompt_toolkit</code>   <code>nest_asyncio</code>   <code>threading</code> <code>cos-python-sdk-v5</code>
 
-以上模块**Linux**用户可能会缺少，请使用<code>pip install</code>来安装对应模块
+以上模块**Linux**用户可能会缺少，请先用<code>cd</code>切换到所在目录，然后使用<code>pip install -r requirements.txt</code>安装所需依赖
+
+也可自行通过<code>pip install</code>来安装对应模块
 
 
 

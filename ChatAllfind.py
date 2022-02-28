@@ -182,8 +182,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'xxx'
-    secret_key = 'xxx'
+    secret_id = 'xxxxxx'
+    secret_key = 'xxxxxx'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)
