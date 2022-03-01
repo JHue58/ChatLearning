@@ -3,8 +3,8 @@
   <h1>ChatLearning</h1>
  
   ChatLearning基于 Mirai Console 的词库插件
- 
-  <img src="http://sayuri.fumiama.top/cmoe?name=yourname" alt="yourname" />
+
+  <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
  
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total)
