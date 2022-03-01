@@ -1,6 +1,6 @@
-# [ChatLearning](https://github.com/Nana-Miko/ChatLearning)
+# ChatLearning
 
-<div align=center> <a href="#"> <img src="http://sayuri.fumiama.top/cmoe?name=ChatLearning&theme=gb" /> </a> </div>
+<img src="http://sayuri.fumiama.top/cmoe?name=yourname" alt="yourname" />
 
 > 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
 
