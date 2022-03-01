@@ -2,7 +2,6 @@
 > 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
 
 让bot学习你的群聊！
-https://img.shields.io/github/issues//
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning)](https://github.com/Nana-Miko/ChatLearning/releases)
 ------
 
