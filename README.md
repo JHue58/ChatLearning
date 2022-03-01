@@ -10,9 +10,13 @@
 
 ## 开始使用
 
-**ChatLearning**的运行基于<code>mirai-api-http</code>，使用前请先下载[mirai-api-http](https://github.com/project-mirai/mirai-api-http)并完成配置
+**使用前应该查阅的相关文档或项目**
 
-在<code>data.json</code>文件中填入<code>mirai-api-http</code>的配置信息，请使用<code>http adapter</code>，并确保<code>singleMode</code>为<code>false</code>
+* [User Manual](https://github.com/mamoe/mirai/blob/dev/docs/UserManual.md)
+* [Permission Command](https://github.com/mamoe/mirai/blob/dev/mirai-console/docs/BuiltInCommands.md#permissioncommand)
+* [Chat Command](https://github.com/project-mirai/chat-command)
+
+在 `data.json` 文件中填入 `mirai-api-http` 的配置信息，请使用 `http adapter` ，并确保 `singleMode` 为 `false`
 
 ```json
 {
