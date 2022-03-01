@@ -1,18 +1,18 @@
 <div align='center' >
 
   <img src="https://user-images.githubusercontent.com/57851695/156125736-5ffdb3c1-0d08-4501-ab73-571119701e33.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
- 
+
   <h1>ChatLearning</h1>
 
    [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
-  
+
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
 [![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
- 
+
   <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
-  
+
 </div> 
 
  ## 开始使用
@@ -82,9 +82,9 @@
 
 ### 	在所有群内搜索
 
-​		该模式下支持模糊搜索所有群的词库，或者查看指定群的词库，**预览结果不包含无答案词条**（出现找到xx个结果却无显示结果）
+​		该模式下支持模糊搜索所有群的词库，或者查看指定群的词库
 
-​		需删除时请按照提示输入指定行，**注意是行不是ID！**
+​		需删除时请按照提示输入指定行
 
 ### 	在指定群内搜索
 

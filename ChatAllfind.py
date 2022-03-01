@@ -9,7 +9,7 @@ from qcloud_cos import CosConfig, CosS3Client
 import ChatAdmin
 import simuse
 
-version = '2.0.0'
+version = '2.1.0'
 
 
 def getcllist():
@@ -35,20 +35,29 @@ def createxcel(groupcldict):
     sheet.set_vert_split_pos(1)
 
     #创建列宽样式
+    line_text = sheet.col(0)
     question_text = sheet.col(2)
-    answer_text = sheet.col(5)
-    group_text = sheet.col(6)
-    answer_time_text = sheet.col(7)
-    question_time_text = sheet.col(8)
+    answer_text = sheet.col(4)
+    group_text = sheet.col(5)
+    answer_time_text = sheet.col(6)
+    question_time_text = sheet.col(7)
+    line_text.width = 20 * 80
     question_text.width = 20 * 256
     answer_text.width = 20 * 512
-    answer_time_text.width = 20 * 265
-    question_time_text.width = 20 * 265
+    answer_time_text.width = 20 * 312
+    question_time_text.width = 20 * 312
     group_text.width = 20 * 165
 
     #创建样式，字体样式
     style = xlwt.XFStyle()
+    style_2 = xlwt.XFStyle()
     style_text = xlwt.XFStyle()
+    style_text_2 = xlwt.XFStyle()
+    #创建单元格背景样式
+    pattern = xlwt.Pattern()
+    pattern.pattern = xlwt.Pattern.SOLID_PATTERN
+    pattern.pattern = xlwt.Pattern.SOLID_PATTERN
+    pattern.pattern_fore_colour = 41
     font = xlwt.Font()
     font.name = '黑体'
     font.height = 20 * 11
@@ -66,22 +75,31 @@ def createxcel(groupcldict):
     borders.top = 1
     borders.bottom = 1
     style.borders = borders
+    style_2.borders = borders
     style_text.borders = borders
+    style_text_2.borders = borders
     style.alignment = alignment
+    style_2.alignment = alignment
+    style_text_2.alignment = alignment_text
     style_text.alignment = alignment_text
     style.font = font
+    style_2.font = font
     style_text.font = font
-    sheet.write(0, 0, '问题id', style=style)
+    style_text_2.font = font
+    style_2.pattern = pattern
+    style_text_2.pattern = pattern
+    sheet.write(0, 0, '行号', style=style)
     sheet.write(0, 1, '问题类型', style=style)
     sheet.write(0, 2, '详情', style=style)
-    sheet.write(0, 3, '答案id', style=style)
-    sheet.write(0, 4, '答案类型', style=style)
-    sheet.write(0, 5, '详情', style=style)
-    sheet.write(0, 6, '群', style=style)
-    sheet.write(0, 7, '答案记录时间', style=style)
-    sheet.write(0, 8, '问题记录时间', style=style)
+    #sheet.write(0, 3, '答案id', style=style)
+    sheet.write(0, 3, '答案类型', style=style)
+    sheet.write(0, 4, '详情', style=style)
+    sheet.write(0, 5, '群', style=style)
+    sheet.write(0, 6, '答案记录时间', style=style)
+    sheet.write(0, 7, '问题记录时间', style=style)
 
     sheet_line = 1
+    linecolorsign = 1
 
     for groupnum in list(groupcldict.keys()):
         cldict = groupcldict[groupnum]
@@ -89,6 +107,13 @@ def createxcel(groupcldict):
         #print(questionlist)
         #os.system('pause')
         for question in questionlist:
+            linecolorsign += 1
+            if (linecolorsign % 2) == 0:
+                setstyle = style
+                setstyle_text = style_text
+            else:
+                setstyle = style_2
+                setstyle_text = style_text_2
             questiondict = cldict[question]
             question_id = questiondict['node']
             question = eval(question)
@@ -143,26 +168,29 @@ def createxcel(groupcldict):
                 elif answer_plainsign == 1 and answer_imagesign == 1:
                     answer_type = '文字+图片'
                 try:
-                    sheet.write(sheet_line, 0, question_id, style=style)
-                    sheet.write(sheet_line, 1, question_type, style=style)
-                    sheet.write(sheet_line, 2, question_info, style=style_text)
-                    sheet.write(sheet_line, 3, answer_id, style=style)
-                    sheet.write(sheet_line, 4, answer_type, style=style)
+                    sheet.write(sheet_line, 0, sheet_line + 1, style=setstyle)
+                    sheet.write(sheet_line, 1, question_type, style=setstyle)
+                    sheet.write(sheet_line,
+                                2,
+                                question_info,
+                                style=setstyle_text)
+                    #sheet.write(sheet_line, 3, answer_id, style=style)
+                    sheet.write(sheet_line, 3, answer_type, style=setstyle)
                     if answer_imagesign == 1:
                         text = answer_info
                         link = f'HYPERLINK("{url}";"{text}")'
                         sheet.write(sheet_line,
-                                    5,
+                                    4,
                                     xlwt.Formula(link),
-                                    style=style_text)
+                                    style=setstyle_text)
                     else:
                         sheet.write(sheet_line,
-                                    5,
+                                    4,
                                     answer_info,
-                                    style=style_text)
-                    sheet.write(sheet_line, 6, groupnum, style=style)
-                    sheet.write(sheet_line, 7, answer_time, style=style)
-                    sheet.write(sheet_line, 8, question_time, style=style)
+                                    style=setstyle_text)
+                    sheet.write(sheet_line, 5, groupnum, style=setstyle)
+                    sheet.write(sheet_line, 6, answer_time, style=setstyle)
+                    sheet.write(sheet_line, 7, question_time, style=setstyle)
                 except:
                     pass
                 lines_dict[sheet_line + 1] = {
@@ -182,8 +210,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'xxxxxx'
-    secret_key = 'xxxxxx'
+    secret_id = 'xxx'
+    secret_key = 'xxx'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)
@@ -195,24 +223,47 @@ def uploadcos(data, filename):
                                          ACL='public-read',
                                          EnableMD5=False)
     #print(response_upload)
-    cosurl = 'https://' + Bucket_name + '.cos.' + region + '.myqcloud.com/' + data[
-        'qq'] + '-' + filename + '.xls' + '?ci-process=doc-preview&dstType=html'
+    downloadcosurl = 'https://' + Bucket_name + '.cos.' + region + '.myqcloud.com/' + data[
+        'qq'] + '-' + filename + '.xls'
+    cosurl = downloadcosurl + '?ci-process=doc-preview&dstType=html'
+    nodelist = []
+    nodedict = {
+        'senderId': data['qq'],
+        'time': int(time.time()),
+        'senderName': 'ChatLearning',
+        'messageChain': []
+    }
+    tipmessageChain = [{
+        'type':
+        'Plain',
+        'text':
+        '请输入需要删除的行数(取消输入-1)\n多个用空格隔开\n若要删除xx行至xx行\n请输入"xx xx"(不要忘记双引号)'
+    }]
+    nodedict['messageChain'] = tipmessageChain
+    nodelist.append(nodedict.copy())
+    cosurlmessageChain = [{'type': 'Plain', 'text': '在线浏览：\n' + cosurl}]
+    nodedict['messageChain'] = cosurlmessageChain
+    nodelist.append(nodedict.copy())
+    downloadcosurlmessageChain = [{
+        'type': 'Plain',
+        'text': '下载地址(浏览器打开)：\n' + downloadcosurl
+    }]
+    nodedict['messageChain'] = downloadcosurlmessageChain
+    nodelist.append(nodedict.copy())
     os.remove(filename + '.xls')
-    return cosurl
+    return nodelist
 
 
 #删除词库
-def delcl(data, sender, lines_dict):
-    time.sleep(1.5)
-    simuse.Send_Message(
-        data, sender, 2,
-        '请输入需要删除的行数(取消输入-1)\n多个用空格隔开\n若要删除x行至x行\n请输入"xx xx"(不要忘记双引号)', 1)
+def delcl(data, sender, lines_dict, nodelist):
+    tipsmessagechain = [{'type': 'Forward', 'nodeList': nodelist}]
+    simuse.Send_Message_Chain(data, sender, 2, tipsmessagechain)
     while 1:
         errorlines = 0
         seerrorlines = 0
         command = ChatAdmin.get_admin_command(data, sender=sender)
         if command != None:
-            if command == str(-1) or command=='–1':
+            if command == str(-1) or command == '–1':
                 print('取消删除')
                 simuse.Send_Message(data, sender, 2, '取消删除', 1)
                 return None
@@ -307,6 +358,10 @@ def delcl(data, sender, lines_dict):
             questiondict = cldict[question]
             questiondict_orign = cldict_orign[question]
             answerlist = questiondict['answer']
+            if answerlist == []:
+                cldict.pop(question)
+                delsign += 1
+                continue
             answerlist_orign = questiondict_orign['answer']
             answerlist.remove(answerlist_orign[nodedict['answernode']])
             delsign += 1
@@ -334,6 +389,7 @@ def delcl(data, sender, lines_dict):
 
 #查找问题
 def findallquestion(data, sender, cllist, question, allquestion=0):
+    simuse.Send_Message(data, sender, 2, '查找中……', 1)
     #findquestion={'群号':'问题字典'}
     findquestion = {}
     for i in question:
@@ -357,6 +413,12 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
                         questiondict = cldict[j]
                         questiondict['node'] = questionlist.index(j)
                         answerlist = questiondict['answer']
+                        if answerlist == []:
+                            answerlist = [{
+                                'answertext':
+                                "[{'type':'Plain','text':'该问题无答案'}]",
+                                'time': 100
+                            }]
                         for answerdict in answerlist:
                             answerdict['node'] = answerlist.index(answerdict)
                         questiondict['answer'] = answerlist
@@ -366,6 +428,12 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
                         questiondict = cldict[j]
                         questiondict['node'] = questionlist.index(j)
                         answerlist = questiondict['answer']
+                        if answerlist == []:
+                            answerlist = [{
+                                'answertext':
+                                "[{'type':'Plain','text':'该问题无答案'}]",
+                                'time': 100
+                            }]
                         for answerdict in answerlist:
                             answerdict['node'] = answerlist.index(answerdict)
                         questiondict['answer'] = answerlist
@@ -377,6 +445,12 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
                         questiondict = cldict[j]
                         questiondict['node'] = questionlist.index(j)
                         answerlist = questiondict['answer']
+                        if answerlist == []:
+                            answerlist = [{
+                                'answertext':
+                                "[{'type':'Plain','text':'该问题无答案'}]",
+                                'time': 100
+                            }]
                         for answerdict in answerlist:
                             answerdict['node'] = answerlist.index(answerdict)
                         questiondict['answer'] = answerlist
@@ -386,6 +460,12 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
                         questiondict = cldict[j]
                         questiondict['node'] = questionlist.index(j)
                         answerlist = questiondict['answer']
+                        if answerlist == []:
+                            answerlist = [{
+                                'answertext':
+                                "[{'type':'Plain','text':'该问题无答案'}]",
+                                'time': 100
+                            }]
                         for answerdict in answerlist:
                             answerdict['node'] = answerlist.index(answerdict)
                         questiondict['answer'] = answerlist
@@ -412,19 +492,18 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
     filename = filename_lines_dict[0]
     lines_dict = filename_lines_dict[1]
     if allquestion == 1:
-        cosurl = uploadcos(data, filename)
-        simuse.Send_Message(data, sender, 2, cosurl, 1)
-        delcl(data, sender, lines_dict)
+        nodelist = uploadcos(data, filename)
+        time.sleep(1)
+        delcl(data, sender, lines_dict, nodelist)
         return None
-    simuse.Send_Message(data, sender, 2,
-                        '请输入你的选择\n1.返回查找结果(不包含无答案词条)\n2.继续查找\n3.返回', 1)
+    time.sleep(1)
+    simuse.Send_Message(data, sender, 2, '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender)
         if command == str(1):
-            cosurl = uploadcos(data, filename)
+            nodelist = uploadcos(data, filename)
             time.sleep(1)
-            simuse.Send_Message(data, sender, 2, cosurl, 1)
-            delcl(data, sender, lines_dict)
+            delcl(data, sender, lines_dict, nodelist)
             break
         elif command == str(2):
             os.remove(filename + '.xls')
@@ -438,6 +517,7 @@ def findallquestion(data, sender, cllist, question, allquestion=0):
 
 #查找答案
 def findallanswer(data, sender, cllist, answer):
+    simuse.Send_Message(data, sender, 2, '查找中……', 1)
     findquestion = {}
     for i in answer:
         try:
@@ -459,7 +539,6 @@ def findallanswer(data, sender, cllist, answer):
                 tempanswerlist = []
                 findsign = 0
                 for j in answerlist:
-                    findsign = 0
                     answermessagechain = j['answertext']
                     j['node'] = answerlist.index(j)
                     if l['type'] == 'Plain':
@@ -467,7 +546,7 @@ def findallanswer(data, sender, cllist, answer):
                             findsign = 1
                             tempanswerlist.append(j.copy())
                     if l['type'] == 'Image':
-                        if str(answermessagechain).find(l['text']) != -1:
+                        if str(answermessagechain).find(l['imageId']) != -1:
                             findsign = 1
                             tempanswerlist.append(j.copy())
                 if findsign != 0:
@@ -497,15 +576,14 @@ def findallanswer(data, sender, cllist, answer):
     filename_lines_dict = createxcel(findquestion)
     filename = filename_lines_dict[0]
     lines_dict = filename_lines_dict[1]
-    simuse.Send_Message(data, sender, 2,
-                        '请输入你的选择\n1.返回查找结果(不包含无答案词条)\n2.继续查找\n3.返回', 1)
+    time.sleep(1)
+    simuse.Send_Message(data, sender, 2, '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender)
         if command == str(1):
-            cosurl = uploadcos(data, filename)
+            nodelist = uploadcos(data, filename)
             time.sleep(1)
-            simuse.Send_Message(data, sender, 2, cosurl, 1)
-            delcl(data, sender, lines_dict)
+            delcl(data, sender, lines_dict, nodelist)
             break
         elif command == str(2):
             os.remove(filename + '.xls')

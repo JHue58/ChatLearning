@@ -17,7 +17,7 @@ import ChatReply
 import simuse
 
 nest_asyncio.apply()
-version = '2.0.0'
+version = '2.1.0'
 
 
 class commandclass():
@@ -227,8 +227,10 @@ def admin(adminsign, fromchat=0):
         learningsign = tempsign[0]
         mergesign = tempsign[1]
     if replysign == 1:
+        time.sleep(0.8)
         replysign = reply(replysign, fromchat)
     if adminsign == 0:
+        time.sleep(0.8)
         print('<-进入管理模式')
         print('请不要操作控制台！！！')
         #print('拥有词库的群号:')
