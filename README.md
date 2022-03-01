@@ -5,7 +5,7 @@
 让bot学习你的群聊
 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning)](https://github.com/Nana-Miko/ChatLearning/releases)
-![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total-ff69b4)
+![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4)](https://mirai.mamoe.net/topic/1018)
 ------
 
