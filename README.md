@@ -3,7 +3,7 @@
 
 让bot学习你的群聊！
 
-https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=for-the-badge
+[![Release](https://img.shields.io/github/v/release/cssxsh/pixiv-helper)](https://github.com/cssxsh/pixiv-helper/releases)
 ------
 
 ## 开始使用
