@@ -1,16 +1,18 @@
 <div align='center' >
-  
-  <h1>ChatLearning</h1>
- 
-  ChatLearning 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
 
-  <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
+  <img src="https://user-images.githubusercontent.com/57851695/156120989-bd688017-2f27-4e01-884f-a86de2e7b3b3.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
  
+  <h1>ChatLearning</h1>
+
+   [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
+  
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
 [![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
-
+ 
+  <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
+  
 </div> 
 
  ## 开始使用
