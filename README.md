@@ -2,13 +2,14 @@
   
   <h1>ChatLearning</h1>
  
-  ChatLearning基于 Mirai Console 的词库插件
+  ChatLearning 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
 
   <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
  
-[![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning)](https://github.com/Nana-Miko/ChatLearning/releases)
-![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total)
-[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4)](https://mirai.mamoe.net/topic/1018)
+[![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
+![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
+[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
+[![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
 
 </div> 
 
