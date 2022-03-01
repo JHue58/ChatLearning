@@ -1,16 +1,18 @@
-# ChatLearning
-
-<img src="http://sayuri.fumiama.top/cmoe?name=yourname" alt="yourname" />
-
-> 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
-
-让bot学习你的群聊
-
+<div align='center' >
+  
+  <h1>ChatLearning</h1>
+ 
+  ChatLearning基于 Mirai Console 的词库插件
+ 
+  <img src="http://sayuri.fumiama.top/cmoe?name=yourname" alt="yourname" />
+ 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4)](https://mirai.mamoe.net/topic/1018)
 
-## 开始使用
+</div> 
+
+ ## 开始使用
 
 **使用前应该查阅的相关文档或项目**
 
@@ -58,7 +60,7 @@
 |:----------------------------------------|:---------------------------|
 | `learning`                       | 开启/关闭记录 |
 | `reply`                  | 开启/关闭回复             |
-| `merge xxx`                  | 设定总词库更新时间，xxx的单位为秒        |
+| `merge xxx`                  | 设定总词库更新时间，xxx的单位为秒         |
 | `add learning xxx`                       | 添加开启记录的群，有多个用空格隔开                |
 | `add learnings xxx`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
 | `add reply xxx`                      | 添加开启回复的群，有多个用空格隔开                   |
