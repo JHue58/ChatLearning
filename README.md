@@ -1,6 +1,6 @@
 <div align='center' >
 
-  <img src="https://user-images.githubusercontent.com/57851695/156120989-bd688017-2f27-4e01-884f-a86de2e7b3b3.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
+  <img src="https://user-images.githubusercontent.com/57851695/156125736-5ffdb3c1-0d08-4501-ab73-571119701e33.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
  
   <h1>ChatLearning</h1>
 
@@ -17,15 +17,17 @@
 
  ## 开始使用
 
-**使用前应该查阅的相关文档或项目**
+使用前应该查阅的相关文档或项目
 
 * [User Manual](https://github.com/mamoe/mirai/blob/dev/docs/UserManual.md)
 * [Permission Command](https://github.com/mamoe/mirai/blob/dev/mirai-console/docs/BuiltInCommands.md#permissioncommand)
 * [Chat Command](https://github.com/project-mirai/chat-command)
 
-前置插件：[mirai-api-http](https://github.com/project-mirai/mirai-api-http)请先安装并配置好，使用 `http ` ，并确保 `singleMode` 为 `false`
+配置前置插件 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 
 
-在 `data.json` 文件中填入 `mirai-api-http` 的配置信息
+使用 `http adapter` 并确保 `singleMode` 为 `false`
+
+在 `data.json` 文件中填入 `mirai-api-http` 的配置信息，
 
 ```json
 {
@@ -37,45 +39,41 @@
 }
 ```
 
-**Windows**用户点击<code>Chatmain.exe</code>运行
+**Windows**用户：
 
-**Linux**用户则使用python运行<code>Chatmain.py</code>脚本 **（python版本需为3.5以上）**
+双击 <code>Chatmain.exe</code> 直接运行。
 
-输入<code>help</code>来查看命令列表
+**Linux**用户：
 
+1. Python版本需为3.5以上
+2. 使用 <code>pip install -r requirements.txt</code> 安装依赖
+3. 运行 <code>Chatmain.py</code> 
 
+(强烈建议使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误。)
 
-## 依赖
-
-本项目所使用的一些Python模块：
-
-<code>asyncio </code>   <code>prompt_toolkit</code>   <code>nest_asyncio</code>   <code>threading</code> <code>cos-python-sdk-v5</code>
-
-以上模块**Linux**用户可能会缺少，请先用<code>cd</code>切换到所在目录，然后使用<code>pip install -r requirements.txt</code>安装所需依赖
-
-也可自行通过<code>pip install</code>来安装对应模块
+**首次使用时，** 请在控制台输入 `setadmin <你的QQ号>` 来设置可在聊天环境下执行命令的管理员； `blackfreq <次数>` 来设置黑名单容错次数
 
 ## 指令
 
-发送 `help` 可获取指令表 如需在聊天环境下使用指令，请使用管理员QQ私聊bot，且指令前加上<code>！</code>如<code>！help</code>
+控制台发送 `help` 可获取指令表；管理员在聊天环境下私聊bot执行指令时，加上指令前缀 `！` 或 `!`
 
 | 指令                                      | 描述                         |
 |:----------------------------------------|:---------------------------|
 | `learning`                       | 开启/关闭记录 |
 | `reply`                  | 开启/关闭回复             |
-| `merge xxx`                  | 设定总词库更新时间，xxx的单位为秒         |
-| `add learning xxx`                       | 添加开启记录的群，有多个用空格隔开                |
-| `add learnings xxx`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
-| `add reply xxx`                      | 添加开启回复的群，有多个用空格隔开                   |
-| `add unmerge xxx`                    | 添加不录入总词库的群，有多个用空格隔开                   |
-| `remove learning xxx`                        | 移除开启记录的群，有多个用空格隔开                |
-| `remove reply xxx`                       | 移除开启回复的群，有多个用空格隔开                     |
-| `remove unmerge xxx`                       | 移除不录入总词库的群，有多个用空格隔开                     |
+| `merge <单位/秒>`                  | 设定总词库更新时间        |
+| `add learning <群号>`                       | 添加开启记录的群，有多个用空格隔开                |
+| `add learnings <群号>`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
+| `add reply <群号>`                      | 添加开启回复的群，有多个用空格隔开                   |
+| `add unmerge <群号>`                    | 添加不录入总词库的群，有多个用空格隔开                   |
+| `remove learning <群号>`                        | 移除开启记录的群，有多个用空格隔开                |
+| `remove reply <群号>`                       | 移除开启回复的群，有多个用空格隔开                     |
+| `remove unmerge <群号>`                       | 移除不录入总词库的群，有多个用空格隔开                     |
 | `check`                       | 查看词库的问答个数和属性设置                     |
 | `grouplist`                       | 查看开启记录/回复的群列表                     |
 | `globe`                       | 开启/关闭全局模式                     |
-| `setadmin  xxx`                       | 设置管理员QQ号，有多个用空格隔开                     |
-| `blackfreq xxx`                       | 设置黑名单容错次数                     |
+| `setadmin  <QQ>`                       | 设置管理员QQ号，有多个用空格隔开                     |
+| `blackfreq <次数>`                       | 设置黑名单容错次数                     |
 | `admin`                       | 进入管理模式                     |
 
 ## **管理模式**
