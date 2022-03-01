@@ -18,12 +18,14 @@
 * [Permission Command](https://github.com/mamoe/mirai/blob/dev/mirai-console/docs/BuiltInCommands.md#permissioncommand)
 * [Chat Command](https://github.com/project-mirai/chat-command)
 
-在 `data.json` 文件中填入 `mirai-api-http` 的配置信息，请使用 `http adapter` ，并确保 `singleMode` 为 `false`
+前置插件：[mirai-api-http](https://github.com/project-mirai/mirai-api-http)请先安装并配置好，使用 `http ` ，并确保 `singleMode` 为 `false`
+
+在 `data.json` 文件中填入 `mirai-api-http` 的配置信息
 
 ```json
 {
  "Key": "xxxxx", //在mirai-api-http中设置的密钥
- "host": "127.0.0.1:8080", //mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
+ "host": "127.0.0.1", //mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
  "port": "8080", //mirai-api-httpmirai-api-http中设置的端口
  "qq": "xxx",  //所登录mirai的QQ号
  "session": "xxx" //任意，由程序自动获取
@@ -50,26 +52,26 @@
 
 ## 指令
 
-发送 `!help` 可获取指令表
+发送 `help` 可获取指令表 如需在聊天环境下使用指令，请使用管理员QQ私聊bot，且指令前加上<code>！</code>如<code>！help</code>
 
 | 指令                                      | 描述                         |
 |:----------------------------------------|:---------------------------|
-| `！learning`                       | 开启/关闭记录 |
-| `！reply`                  | 开启/关闭回复             |
-| `！merge xxx`                  | 设定总词库更新时间，xxx的单位为秒        |
-| `！add learning xxx`                       | 添加开启记录的群，有多个用空格隔开                |
-| `！add learnings xxx`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
-| `！add reply xxx`                      | 添加开启回复的群，有多个用空格隔开                   |
-| `！add unmerge xxx`                    | 添加不录入总词库的群，有多个用空格隔开                   |
-| `！remove learning xxx`                        | 移除开启记录的群，有多个用空格隔开                |
-| `！remove reply xxx`                       | 移除开启回复的群，有多个用空格隔开                     |
-| `！remove unmerge xxx`                       | 移除不录入总词库的群，有多个用空格隔开                     |
-| `！check`                       | 查看词库的问答个数和属性设置                     |
-| `！grouplist`                       | 查看开启记录/回复的群列表                     |
-| `！globe`                       | 开启/关闭全局模式                     |
-| `！setadmin  xxx`                       | 设置管理员QQ号，有多个用空格隔开                     |
-| `！blackfreq xxx`                       | 设置黑名单容错次数                     |
-| `！admin`                       | 进入管理模式                     |
+| `learning`                       | 开启/关闭记录 |
+| `reply`                  | 开启/关闭回复             |
+| `merge xxx`                  | 设定总词库更新时间，xxx的单位为秒        |
+| `add learning xxx`                       | 添加开启记录的群，有多个用空格隔开                |
+| `add learnings xxx`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
+| `add reply xxx`                      | 添加开启回复的群，有多个用空格隔开                   |
+| `add unmerge xxx`                    | 添加不录入总词库的群，有多个用空格隔开                   |
+| `remove learning xxx`                        | 移除开启记录的群，有多个用空格隔开                |
+| `remove reply xxx`                       | 移除开启回复的群，有多个用空格隔开                     |
+| `remove unmerge xxx`                       | 移除不录入总词库的群，有多个用空格隔开                     |
+| `check`                       | 查看词库的问答个数和属性设置                     |
+| `grouplist`                       | 查看开启记录/回复的群列表                     |
+| `globe`                       | 开启/关闭全局模式                     |
+| `setadmin  xxx`                       | 设置管理员QQ号，有多个用空格隔开                     |
+| `blackfreq xxx`                       | 设置黑名单容错次数                     |
+| `admin`                       | 进入管理模式                     |
 
 ## **管理模式**
 
