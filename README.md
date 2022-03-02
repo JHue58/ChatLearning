@@ -9,7 +9,8 @@
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
-[![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
+![](https://img.shields.io/badge/Python-100%25-yellow?style=flat-square)
+[![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
 </div> 
 
@@ -30,8 +31,8 @@
 
 - Windows双击 <code>Chatmain.exe</code> 直接运行
 - Linux（Python≥3.6）使用 <code>pip install -r requirements.txt</code> 安装依赖后运行 <code>Chatmain.py</code> 
-- 请使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误
-- 首次使用在控制台使用 `setadmin <你的QQ号>` 设置管理员； `blackfreq <次数>` 设置黑名单容错次数
+> 请使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误         
+> 首次使用在控制台使用 `setadmin <你的QQ号>` 设置管理员； `blackfreq <次数>` 设置黑名单容错次数
 
 ## 指令
 
