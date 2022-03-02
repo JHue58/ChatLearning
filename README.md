@@ -11,8 +11,6 @@
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
 [![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
 
-  <img src="http://sayuri.fumiama.top/cmoe?name=123&theme=r34" alt="123" />
-
 </div> 
 
  ## 开始使用
