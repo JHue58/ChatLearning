@@ -8,8 +8,8 @@
 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
-[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
-![](https://img.shields.io/badge/Python-100%25-yellow?style=flat-square)
+[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-blueviolet?style=flat-square)](https://mirai.mamoe.net/topic/1018)
+![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
 </div> 
