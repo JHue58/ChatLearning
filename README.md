@@ -1,6 +1,6 @@
 <div align='center' >
 
-  <img src="https://user-images.githubusercontent.com/57851695/156125736-5ffdb3c1-0d08-4501-ab73-571119701e33.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
+  <img src="https://user-images.githubusercontent.com/57851695/156380675-e37c7729-e5cf-47c0-9957-7e22cf520f9d.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
 
   <h1>ChatLearning</h1>
 
