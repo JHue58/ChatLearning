@@ -3,6 +3,8 @@
   <img src="https://user-images.githubusercontent.com/57851695/156380675-e37c7729-e5cf-47c0-9957-7e22cf520f9d.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
 
   <h1>ChatLearning</h1>
+  
+ 
 
    [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) の饶有味道の `多属性` 词库插件
 
@@ -11,7 +13,8 @@
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-blueviolet?style=flat-square)](https://mirai.mamoe.net/topic/1018)
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
-
+ 
+  # 推荐选择查阅本项目 [文档](https://fuyon.github.io/nanami/)
 </div> 
 
  ## 开始使用
