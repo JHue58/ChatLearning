@@ -4,15 +4,21 @@
 
   <h1>ChatLearning——ToVoice</h1>
 
-> ## 实时语音克隆 - 中文/普通话
+## 实时语音克隆 - 中文/普通话
 
 ![mockingbird](https://user-images.githubusercontent.com/12797292/131216767-6eb251d6-14fc-4951-8324-2722f0cd4c63.jpg)
+
+------
 
 
 
 ### **ChatLearning**的语音转换模块使用了[Mocking Bird](https://github.com/babysor/MockingBird)
 
 考虑到使用**Mocking Bird**时环境配置麻烦，且深度学习过于占用资源，所以决定将语音转换模块部署至**ChatLearning服务器**中
+
+------
+
+
 
 ### 使用步骤
 
@@ -31,6 +37,10 @@
 因服务器资源有限，在使用**@bot**方法触发功能时，最大字数**不得超过80**，并且有**10s**的冷却时间
 
 后续会观察服务器负载情况来调整阈值
+
+------
+
+
 
 ### 训练模型
 
