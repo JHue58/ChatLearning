@@ -1,57 +1,38 @@
 <div align='center' >
 
-  <img src="https://user-images.githubusercontent.com/57851695/156125736-5ffdb3c1-0d08-4501-ab73-571119701e33.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
+  <img src="https://user-images.githubusercontent.com/57851695/156380675-e37c7729-e5cf-47c0-9957-7e22cf520f9d.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
 
   <h1>ChatLearning</h1>
 
-   [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的词库插件
+   [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) の饶有味道の `多属性` 词库插件
 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
-[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-ff69b4?style=flat-square)](https://mirai.mamoe.net/topic/1018)
-[![issues](https://img.shields.io/github/issues/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/issues)
-
-  <img src="http://sayuri.fumiama.top/cmoe?name=yourname&theme=r34" alt="yourname" />
+[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-blueviolet?style=flat-square)](https://mirai.mamoe.net/topic/1018)
+![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
+[![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
 </div> 
 
  ## 开始使用
 
-使用前应该查阅的相关文档或项目
-
-* [User Manual](https://github.com/mamoe/mirai/blob/dev/docs/UserManual.md)
-* [Permission Command](https://github.com/mamoe/mirai/blob/dev/mirai-console/docs/BuiltInCommands.md#permissioncommand)
-* [Chat Command](https://github.com/project-mirai/chat-command)
-
-配置前置插件 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 
-
-使用 `http adapter` 并确保 `singleMode` 为 `false`
-
-在 `data.json` 文件中填入 `mirai-api-http` 的配置信息，
+- [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 配置 `http adapter` ， `singleMode` 为 `false`
+- 配置 `data.json` 
 
 ```json
 {
  "Key": "xxxxx", //在mirai-api-http中设置的密钥
  "host": "127.0.0.1", //mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
- "port": "8080", //mirai-api-httpmirai-api-http中设置的端口
- "qq": "xxx",  //所登录mirai的QQ号
- "session": "xxx" //任意，由程序自动获取
+ "port": "8080", //mirai-api-http中设置的端口
+ "qq": "xxx",  //在mirai登陆的QQ号
+ "session": "xxx" //无需修改
 }
 ```
 
-**Windows**用户：
-
-双击 <code>Chatmain.exe</code> 直接运行。
-
-**Linux**用户：
-
-1. Python版本需为3.5以上
-2. 使用 <code>pip install -r requirements.txt</code> 安装依赖
-3. 运行 <code>Chatmain.py</code> 
-
-(强烈建议使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误。)
-
-**首次使用时，** 请在控制台输入 `setadmin <你的QQ号>` 来设置可在聊天环境下执行命令的管理员； `blackfreq <次数>` 来设置黑名单容错次数
+- Windows双击 <code>Chatmain.exe</code> 直接运行
+- Linux（Python≥3.6）使用 <code>pip install -r requirements.txt</code> 安装依赖后运行 <code>Chatmain.py</code> 
+> 请使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误         
+> 首次使用在控制台使用 `setadmin <你的QQ号>` 设置管理员； `blackfreq <次数>` 设置黑名单容错次数
 
 ## 指令
 
@@ -59,8 +40,9 @@
 
 | 指令                                      | 描述                         |
 |:----------------------------------------|:---------------------------|
-| `learning`                       | 开启/关闭记录 |
+| `learning `            | 开启/关闭记录 |
 | `reply`                  | 开启/关闭回复             |
+| `voicereply` | 开启/关闭文字转语音回复 |
 | `merge <单位/秒>`                  | 设定总词库更新时间        |
 | `add learning <群号>`                       | 添加开启记录的群，有多个用空格隔开                |
 | `add learnings <群号>`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
@@ -73,38 +55,22 @@
 | `grouplist`                       | 查看开启记录/回复的群列表                     |
 | `globe`                       | 开启/关闭全局模式                     |
 | `setadmin  <QQ>`                       | 设置管理员QQ号，有多个用空格隔开                     |
+| `setvoicept  <训练集>` | 选择音源合成时的训练模型 |
 | `blackfreq <次数>`                       | 设置黑名单容错次数                     |
+| `uploadwav` | 上传音源文件 |
 | `admin`                       | 进入管理模式                     |
 
-## **管理模式**
+## 管理模式
 
-在**ChatLearning 1.2.0**版本后，使用了全新的管理模式
+- 词库管理：模糊 `搜索/查看/删除` `所有群/指定群` 的词库
+- 过滤：自定义无用关键词，也可以通过在删除答案时前加<code>add</code>来直接添加进过滤列表
+- 黑名单：自定义敏感关键词，不记录且将对象拉入黑名单，用 <code>blackfreq <次数></code> 自定义容错次数。
 
-### 	在所有群内搜索
 
-​		该模式下支持模糊搜索所有群的词库，或者查看指定群的词库
 
-​		需删除时请按照提示输入指定行
+## **文字转语音**
 
-### 	在指定群内搜索
-
-​		与**1.2.0**版本之前的管理模式一致，在特定的群词条中删除词库
-
-### 	过滤设置
-
-#### 		过滤条目
-
-​			在收集词库的的过程中，往往有一些你认为无意义，没必要的答案，这时可以添加到过滤条目中，ChatLearning将不会记录与之			匹配的问题与答案，你也可以通过在删除答案时前加<code>add</code>来直接添加进过滤列表
-
-#### 		敏感关键字
-
-​			在这里你可以添加一些过于敏感的词语（或是图片），如涉政，涉黄，涉暴等，当ChatLearning检测到问题中有这些关键字时，			将不会记录，与此同时将发送者列入黑名单
-
-#### 		黑名单
-
-​			处于黑名单的账号，都会有自己的容错次数（也就是触发敏感词的次数），当它超过你的设定值时，ChatLearning会将其屏蔽，			此账号下的任何发言都将不作记录
-
-​			你可以通过<code>blackfreq *</code>指令来更改容错次数
+[ChatLearning—ToVoice](https://github.com/Nana-Miko/ChatLearning/blob/master/ToVoice/ToVoice.md)
 
 
 
@@ -178,3 +144,4 @@
 
 
 
+​	

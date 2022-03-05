@@ -2,10 +2,14 @@ import asyncio
 import re
 import threading
 import time
-
+import base64
 import nest_asyncio
+import os
+import json
+import requests
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
+from qcloud_cos import CosConfig, CosS3Client
 
 import ChatAdmin
 import ChatAllfind
@@ -17,7 +21,7 @@ import ChatReply
 import simuse
 
 nest_asyncio.apply()
-version = '2.1.0'
+version = '2.5.0'
 
 
 class commandclass():
@@ -25,8 +29,10 @@ class commandclass():
     commandtips = {}
     commandtips['learning'] = '#开启/关闭记录'
     commandtips['reply'] = '#开启/关闭回复'
+    commandtips['voicereply']='#开启/关闭文字转语音回复'
     commandtips['learning *'] = '#设定词库链间隔时间，*的单位为秒'
     commandtips['reply *'] = '#设定回复的触发几率'
+    commandtips['voicereply *']='#设定文字转语音回复几率'
     commandtips['merge *'] = '#设定总词库更新时间，*的单位为秒'
     commandtips['add learning *'] = '#添加开启记录的群，有多个用空格隔开'
     commandtips['add learnings *'] = '#同时添加开启记录和回复的群，有多个用空格隔开'
@@ -39,7 +45,9 @@ class commandclass():
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
     commandtips['setadmin *'] = '#设置管理员QQ号，有多个用空格隔开'
+    commandtips['setvoicept *']='#设置文字转语音回复的训练集'
     commandtips['blackfreq *'] = '#设置黑名单容错次数'
+    commandtips['uploadwav']='#上传源音频文件'
     commandtips['admin'] = '#进入管理模式'
 
     def __init__(self, input):
@@ -121,6 +129,80 @@ def unknowcommand(command):
     pass
 
 
+def uploadwav(data,fromchat=0):
+    try:
+        wavsize=os.path.getsize('source.wav')
+    except:
+        print('未找到source.wav文件！')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '未找到source.wav文件！', 1)
+        return None
+    wav_kb=wavsize/float(1024)
+    if wav_kb>=10240:
+        print('文件大小超过10M！取消上传')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '文件大小超过10M！取消上传', 1)
+        return None
+    wavfile=open('source.wav','rb')
+    base64_data=base64.b64encode(wavfile.read())
+    wavfile.close()
+    data_in={'QQ':data['qq'],'base64':base64_data.decode()}
+    url='http://124.222.165.166:19630/Sourcewav'
+    try:
+        print('正在等待服务器响应')
+        simuse.Send_Message(data, fromchat, 2, '正在等待服务器响应', 1)
+        res=requests.request('post',url=url,json=data_in,timeout=20)
+        res=json.loads(res.text)
+    except:
+        print('上传失败,服务器未响应')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '上传失败,服务器未响应', 1)
+            return None
+    try:
+        if res['code']==1:
+            print('上传成功！')
+            if fromchat!=0:
+                simuse.Send_Message(data, fromchat, 2, '上传成功！', 1)
+            return None
+        else:
+            print('上传失败！')
+            if fromchat!=0:
+                simuse.Send_Message(data, fromchat, 2, '上传失败！', 1)
+            return None
+    except:
+        print('上传失败！')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '上传失败！', 1)
+        return None
+
+        
+def testvoice(data,text,fromchat=0):
+    if fromchat==0:
+        print('请在聊天环境下进行')
+        return None
+    if ChatReply.canToVoice(text):
+        if ChatReply.CanSendTask():
+            answer=ChatReply.Plain_Voice(data,text)
+            if answer==None:
+                print('转换失败')
+                if fromchat!=0:
+                    simuse.Send_Message(data, fromchat, 2, '转换失败', 1)
+                return None
+            else:
+                simuse.Send_Message_Chain(data,fromchat,2,answer)
+        else:
+            print('转换失败，服务器队列已满')
+            if fromchat!=0:
+                simuse.Send_Message(data, fromchat, 2, '转换失败，服务器队列已满', 1)
+            return None
+    else:
+        print('转换失败，存在不支持的字符')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '转换失败，存在不支持的字符', 1)
+
+
+
+
 def blackfreq(num, fromchat=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
     config = file.read()
@@ -141,6 +223,43 @@ def blackfreq(num, fromchat=0):
     print('黑名单容错次数已设置为{}次'.format(num))
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '黑名单容错次数已设置为{}次'.format(num), 1)
+
+
+def setvoicept(data,ptname,fromchat=0):
+    url="http://124.222.165.166:19630/Ptlist"
+    try:
+        print('正在等待服务器响应')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '正在等待服务器响应', 1)
+        res=requests.request('get',url,timeout=20)
+        res=json.loads(res.text)
+    except:
+        print('设置失败,服务器未响应')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '设置失败,服务器未响应', 1)
+            return None
+    ptlist=res['ptlist']
+    if not(ptname in ptlist):
+        sendptlist=''
+        for i in ptlist:
+            sendptlist=sendptlist+i+' '
+        print('该训练集不存在')
+        print('服务器中存在的训练集：\n'+sendptlist)
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '该训练集不存在\n服务器中存在的训练集：\n'+sendptlist, 1)
+        return None
+    file=open('config.clc','r',encoding='utf-8-sig')
+    config=eval(file.read())
+    file.close()
+    config['synthesizer']=ptname
+    file=open('config.clc','w',encoding='utf-8-sig')
+    file.write(str(config))
+    file.close()
+    print('训练集已更改为{}'.format(ptname))
+    if fromchat!=0:
+        simuse.Send_Message(data, fromchat, 2, '训练集已更改为{}'.format(ptname), 1)
+    
+
 
 
 def remerge():
@@ -364,6 +483,32 @@ def replychance(chance, fromchat=0):
     config = eval(config)
     file.close()
     config['replychance'] = chance
+    file2 = open('config.clc', 'w', encoding='utf-8-sig')
+    file2.write(str(config))
+
+def voicereplychance(chance, fromchat=0):
+    global data
+    try:
+        chance = int(chance)
+    except:
+        print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    if chance <= 0 or chance > 100:
+        print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    print('<-已设置语音回复的触发概率', chance, '%')
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2,
+                            '已设置语音回复的触发概率' + str(chance) + '%', 1)
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    config = eval(config)
+    file.close()
+    config['voicereplychance'] = chance
     file2 = open('config.clc', 'w', encoding='utf-8-sig')
     file2.write(str(config))
 
@@ -692,6 +837,40 @@ def reply(replysign, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '关闭回复功能', 1)
         return replysign
 
+def voicereply(voicereplysign, fromchat=0):
+    global data
+    if voicereplysign == 0:
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        file.close()
+        config = eval(config)
+        config['voicereply'] = 1
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-开启语音回复功能')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '开启语音回复功能', 1)
+        reply = threading.Thread(target=ChatReply.main)
+        voicereplysign = 1
+        reply.start()
+        return voicereplysign
+    else:
+        voicereplysign = 0
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        file.close()
+        config = eval(config)
+        config['voicereply'] = 0
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-关闭语音回复功能')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '关闭语音回复功能', 1)
+        return voicereplysign
+
+
 
 def merge(time, fromchat=0):
     if time <= 0:
@@ -787,6 +966,7 @@ def commandchoice(command, fromchat=0):
     global mergesign
     global replysign
     global adminsign
+    global voicereplysign
     if command[:8] == 'learning':
         if command == 'learning':
             learningmodesign = learning(learningsign, mergesign, fromchat)
@@ -803,6 +983,15 @@ def commandchoice(command, fromchat=0):
             replychance(command[6:], fromchat)
         else:
             commandlist.commandhelp(fromchat)
+    elif command[:10]=='voicereply':
+        if command=='voicereply':
+            voicereplysign=voicereply(voicereplysign,fromchat)
+        elif command[:11]=='voicereply ':
+            voicereplychance(command[11:],fromchat)
+        else:
+            commandlist.commandhelp(fromchat)
+    elif command=='uploadwav':
+        uploadwav(data,fromchat)
     elif command[:6] == 'merge ':
         try:
             time = int(command[6:])
@@ -837,7 +1026,8 @@ def commandchoice(command, fromchat=0):
         return 'breaksign'
     elif command[:10] == 'blackfreq ':
         blackfreq(command[10:])
-
+    elif command[:11]=='setvoicept ':
+        setvoicept(data,command[11:],fromchat)
     elif command == 'help' or command == '?' or command == '？':
         commandlist.printhelp(fromchat)
     else:
@@ -849,6 +1039,10 @@ globesign = globe(get=1)
 learningsign = 0
 mergesign = 0
 replysign = 0
+try:    
+    voicereplysign=ChatReply.getconfig(5)
+except:
+    voicereplysign=0
 adminsign = 0
 data = simuse.Get_data()
 data = simuse.Get_Session(data)

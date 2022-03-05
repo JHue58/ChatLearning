@@ -1,8 +1,8 @@
 import os
 import time
-
+import requests
 import simuse
-
+import json
 
 def getallconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
@@ -10,6 +10,17 @@ def getallconfig():
     file.close()
     config = eval(config)
     return config
+
+
+def checkserver():
+    url='http://124.222.165.166:19630/Tasknum'
+    try:
+        res=requests.request('get',url=url,timeout=20)
+    except:
+        return 0
+    return 1
+
+
 
 
 def clcheck(filename, data, fromchat):
@@ -77,16 +88,30 @@ def main(data, fromchat):
         replytip = replytip.format('开启')
     else:
         replytip = replytip.format('关闭')
+    voicereplytip = '文字转语音回复功能：{}'
+    if config['voicereply'] == 1:
+        voicereplytip = voicereplytip.format('开启')
+    else:
+        voicereplytip = voicereplytip.format('关闭')
     golbetip = '全局模式：{}'
     if config['sendmode'] == 1:
         golbetip = golbetip.format('开启')
     else:
         golbetip = golbetip.format('关闭')
     replychancetip = '回复触发概率：{}%'.format(config['replychance'])
+    voicereplychancetip = '语音回复触发概率：{}%'.format(config['voicereplychance'])
+    try:
+        synthesizertip='训练集：{}'.format(config['synthesizer'])
+    except:
+        synthesizertip='训练集：无'
     mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
     blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
-    situation = learningtip + '\n' + replytip + '\n' + golbetip + '\n' + replychancetip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip
+    if checkserver():
+        onlinetip="已连接至ChatLearning服务器"
+    else:
+        onlinetip="未连接至ChatLearning服务器"
+    situation = learningtip + '\n' + replytip + '\n'+voicereplytip+'\n' + golbetip + '\n' + replychancetip + '\n'+voicereplychancetip+'\n'+synthesizertip+'\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip+'\n'+onlinetip
     situationchain = [{'type': 'Plain', 'text': situation}]
     situationnodedict = {
         'senderId': data['qq'],
