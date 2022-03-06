@@ -1,0 +1,24 @@
+---
+sidebar_position: 1
+---
+- [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 配置 `http adapter` ， `singleMode` 为 `false`
+- 配置 `data.json` 
+
+```json
+{
+ "Key": "xxxxx", //在mirai-api-http中设置的密钥
+ "host": "127.0.0.1", //mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
+ "port": "8080", //mirai-api-http中设置的端口
+ "qq": "xxx",  //在mirai登陆的QQ号
+ "session": "xxx" //无需修改
+}
+```
+
+- Windows双击 <code>Chatmain.exe</code> 直接运行
+- Linux（Python≥3.6）使用 <code>pip install -r requirements.txt</code> 安装依赖后运行 <code>Chatmain.py</code> 
+    :::tip My tip
+- 首次使用在控制台使用 `setadmin <你的QQ号>` 设置管理员； `blackfreq <次数>` 设置黑名单容错次数
+
+:::danger 请注意！
+
+强烈建议使用你喜欢的 [虚拟环境](https://zhuanlan.zhihu.com/p/368095197) 安装依赖，否则可能导致错误 
