@@ -8,14 +8,16 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Chat Learning',
   tagline: '可愛さ最高！',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://cute.rosmontics.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
-
+  projectName: 'ChatLearning', // Usually your repo name.
+  deploymentBranch: 'gh-pages',
+  trailingSlash: true,
+  
   presets: [
     [
       'classic',
