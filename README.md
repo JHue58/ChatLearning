@@ -14,7 +14,7 @@
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
  
-  # 推荐选择查阅本项目 [文档](https://fuyon.github.io/nanami/)
+  # 推荐选择查阅本项目 [文档](https://cute.rosmon.top/)
 </div> 
 
  ## 开始使用
