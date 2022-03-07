@@ -17,6 +17,13 @@ const config = {
   projectName: 'ChatLearning', // Usually your repo name.
   deploymentBranch: 'gh-pages',
   trailingSlash: true,
+  i18n: {
+    defaultLocale: "zh-Hans",
+    locales: ["zh-Hans"],
+    localeConfigs: {
+      "zh-Hans": { label: "简体中文" },
+    },
+  },
   
   presets: [
     [
