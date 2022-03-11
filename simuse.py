@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Type
 
 import requests as r
 

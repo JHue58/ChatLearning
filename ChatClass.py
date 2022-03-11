@@ -1,0 +1,119 @@
+import re
+import threading
+import time
+import traceback
+
+import simuse
+
+version = '2.6.0'
+
+
+# 控制台指令类
+class commandclass():
+    command = ''
+    commandtips = {}
+    commandtips['learning'] = '#开启/关闭记录'
+    commandtips['reply'] = '#开启/关闭回复'
+    commandtips['voicereply'] = '#开启/关闭文字转语音回复'
+    commandtips['learning <秒>'] = '#设定词库链间隔时间'
+    commandtips['reply <％>'] = '#设定回复的触发几率'
+    commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
+    commandtips['merge <秒>'] = '#设定总词库更新时间'
+    commandtips['add learning <群号>'] = '#添加开启记录的群'
+    commandtips['add learnings <群号>'] = '#同时添加开启记录和回复的群'
+    commandtips['add reply <群号>'] = '#添加开启回复的群'
+    commandtips['add subadmin <群号>'] = '#添加可自行管理的群'
+    commandtips['add unmerge <群号>'] = '#添加不录入总词库的群'
+    commandtips['remove learning <群号>'] = '#移除开启记录的群'
+    commandtips['remove reply <群号>'] = '#移除开启回复的群'
+    commandtips['remove subadmin <群号>'] = '#移除可自行管理的群'
+    commandtips['remove unmerge <群号>'] = '#移除不录入总词库的群'
+    commandtips['check'] = '#查看设置情况'
+    commandtips['grouplist'] = '#查看开启记录/回复的群列表'
+    commandtips['globe'] = '#开启/关闭全局模式'
+    commandtips['setadmin <QQ号>'] = '#设置管理员QQ号'
+    commandtips['setvoicept <训练集>'] = '#设置文字转语音回复的训练集'
+    commandtips['blackfreq <次数>'] = '#设置黑名单容错次数'
+    commandtips['uploadwav'] = '#上传源音频文件'
+    commandtips['admin'] = '#进入管理模式'
+
+    def __init__(self, data, input):
+        self.command = input.strip('*')
+        self.command = self.command.strip(' ')
+        self.data = data
+
+    def printhelp(self, fromchat):
+        print('指令列表：')
+        sendtext = ''
+        for i in self.commandtips:
+            sendtext = sendtext + i + self.commandtips[i] + '\n'
+            print(i, '   ', self.commandtips[i])
+        print('\n')
+        if fromchat != 0:
+            simuse.Send_Message(self.data, fromchat, 2, sendtext, 1)
+
+    def commandlist(self):
+        return list(self.commandtips.keys())
+
+    def fuzzyfinder(self, user_input):
+        collection = self.commandlist()
+        suggestions = []
+        pattern = '.*?'.join(user_input)
+        regex = re.compile(pattern)
+        for i in collection:
+            match = regex.search(i)
+            if match:
+                suggestions.append((len(match.group()), match.start(), i))
+        return [x for _, _, x in sorted(suggestions)]
+
+    def commandhelp(self, fromchat):
+        sendtext = ''
+        try:
+            if self.fuzzyfinder(self.command) != [] and self.command != '':
+                print('<-未知指令"{}"   你是否想输入以下指令？'.format(self.command))
+                if fromchat != 0:
+                    simuse.Send_Message(
+                        self.data, fromchat, 2,
+                        '未知指令"{}"   你是否想输入以下指令？'.format(self.command), 1)
+                for i in self.fuzzyfinder(self.command):
+                    print(i, '   ', self.commandtips[i])
+                    sendtext = sendtext + i + self.commandtips[i] + '\n'
+                if sendtext != '':
+                    simuse.Send_Message(self.data, fromchat, 2, sendtext, 1)
+            else:
+                print('<-未知指令"{}"   请输入help/?查看帮助'.format(self.command))
+                if fromchat != 0:
+                    simuse.Send_Message(
+                        self.data, fromchat, 2,
+                        '未知指令"{}"   请输入help/?查看帮助'.format(self.command), 1)
+        except:
+            print('<-未知指令"{}"   请输入help/?查看帮助'.format(self.command))
+            if fromchat != 0:
+                simuse.Send_Message(
+                    self.data, fromchat, 2,
+                    '未知指令"{}"   请输入help/?查看帮助'.format(self.command), 1)
+
+
+# 多线程类的复写
+class My_Thread(threading.Thread):
+
+    def run(self):
+        try:
+            if self._target:
+                self._target(*self._args, **self._kwargs)
+        except:
+            log = open('log.log', 'a', encoding='utf-8-sig')
+            traceback_str = traceback.format_exc()
+            log.write(
+                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '\n' +
+                traceback_str + '\n')
+            log.close()
+            print('抛出异常，已记录到日志(log.log文件)')
+            print(traceback_str)
+        finally:
+            del self._target, self._args, self._kwargs
+
+# 返回版本号
+def Version():
+    global version
+    return version

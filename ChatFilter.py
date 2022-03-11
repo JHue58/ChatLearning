@@ -319,6 +319,8 @@ def sensitivecheck(question, sender):
 
 
 def filtercheck(question):
+    command='!learning！learning!reply！reply!admin！admin'
+    text=''
     for i in question:  # 去除作为问题中的变动因素“url”
         try:
             i.pop('url')
@@ -326,7 +328,16 @@ def filtercheck(question):
             continue
     Filterconfig = blackcheck()
     #print(question)
-    if str(question) in Filterconfig['filter']:
+    for i in question:
+        if i['type'] == 'Plain':
+            for k in Filterconfig['filter']:
+                k = eval(k)
+                for j in k:
+                    if j['type'] == 'Plain':
+                        if i['text'].find(j['text']) != -1:
+                            print('已过滤，原因：与过滤名单模糊匹配')
+                            return 0
+    if str(question) in Filterconfig['filter'] or command.find(text):
         print('已过滤，原因：与过滤名单匹配')
         return 0
     else:

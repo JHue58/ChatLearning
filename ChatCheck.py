@@ -1,8 +1,13 @@
+import json
 import os
 import time
+from wsgiref.simple_server import server_version
+
 import requests
+
 import simuse
-import json
+from ChatClass import Version
+
 
 def getallconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
@@ -12,15 +17,19 @@ def getallconfig():
     return config
 
 
-def checkserver():
-    url='http://124.222.165.166:19630/Tasknum'
+def checkversion():
+    url = 'http://XXXXX/Update'
     try:
-        res=requests.request('get',url=url,timeout=20)
+        res = requests.request('get', url=url, timeout=20)
+        res = json.loads(res.text)
     except:
-        return 0
-    return 1
-
-
+        return None
+    now_version = int(Version().replace('.', ''))
+    server_version = int(res['version'].replace('.', ''))
+    if server_version > now_version:
+        return 1,res['version'],Version()
+    else:
+        return 0,Version()
 
 
 def clcheck(filename, data, fromchat):
@@ -101,18 +110,22 @@ def main(data, fromchat):
     replychancetip = '回复触发概率：{}%'.format(config['replychance'])
     voicereplychancetip = '语音回复触发概率：{}%'.format(config['voicereplychance'])
     try:
-        synthesizertip='训练集：{}'.format(config['synthesizer'])
+        synthesizertip = '训练集：{}'.format(config['synthesizer'])
     except:
-        synthesizertip='训练集：无'
+        synthesizertip = '训练集：无'
     mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
     blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
-    if checkserver():
-        onlinetip="已连接至ChatLearning服务器"
+    check_version = checkversion()
+    if check_version[0] == 1:
+        versiontip = "已连接至ChatLearning服务器\n检测到有新版本：{}\n当前版本：{}".format(check_version[1],check_version[2])
+    elif check_version[0] == 0:
+        versiontip = "已连接至ChatLearning服务器\n当前已是最新版本：{}".format(check_version[1])
     else:
-        onlinetip="未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n'+voicereplytip+'\n' + golbetip + '\n' + replychancetip + '\n'+voicereplychancetip+'\n'+synthesizertip+'\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip+'\n'+onlinetip
+        versiontip = "未连接至ChatLearning服务器"
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip 
     situationchain = [{'type': 'Plain', 'text': situation}]
+    version_message = [{'type': 'Plain', 'text': versiontip}]
     situationnodedict = {
         'senderId': data['qq'],
         'time': int(time.time()),
@@ -124,11 +137,13 @@ def main(data, fromchat):
     }
     situationnodedict['messageChain'] = situationchain
     nodelist.append(situationnodedict.copy())
+    situationnodedict['messageChain']=version_message
+    nodelist.append(situationnodedict.copy())
     if fromchat != 0:
         sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
         sendmessagedict = sendmessagechain[0]
         sendmessagedict['nodeList'] = nodelist
         simuse.Send_Message_Chain(data, fromchat, 2, sendmessagechain)
-    print(situation)
+    print(situation,'\n'+versiontip)
 
     #os.system('pause')

@@ -14,29 +14,46 @@ import simuse
 #nest_asyncio.apply()
 
 
-def get_admin_question(data, sender):
+def get_admin_question(data, sender,group=0):
     message = simuse.Fetch_Message(data)
     if type(message) == type(0):
         time.sleep(0.5)
         return None
     for i in message:
-        if i['type'] == 'FriendMessage' and i[
-                'sender'] == sender:  # 判断监听到的消息是否为群消息
-            messagechain = i['messagechain']
-            messagechain.pop(0)
-            question = messagechain
-            return question
+        if group==0:
+            if i['type'] == 'FriendMessage' and i[
+                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                messagechain.pop(0)
+                question = messagechain
+                return question
+        elif group!=0:
+            if i['type'] == 'GroupMessage' and i[
+                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                messagechain.pop(0)
+                question = messagechain
+                return question
     return None
 
 
-def get_admin_command(data, adminlist=0, sender=0):
+def get_admin_command(data, adminlist=0, sender=0,group=0):
     message = simuse.Fetch_Message(data)
     if type(message) == type(0):
         time.sleep(0.5)
         return None
     for i in message:
-        if sender != 0:
+        if sender != 0 and group==0:
             if i['type'] == 'FriendMessage' and i[
+                    'sender'] == sender:  # 判断监听到的消息是否为群消息
+                messagechain = i['messagechain']
+                command = messagechain[1]
+                if command['type'] == 'Plain':
+                    #node = command['text']
+                    return command['text']
+                return None
+        elif sender!=0 and group!=0:
+            if i['type'] == 'GroupMessage' and i[
                     'sender'] == sender:  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
                 command = messagechain[1]

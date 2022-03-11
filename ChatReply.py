@@ -8,7 +8,11 @@ nowtime=time.time()
 
 def talkvoice(data,group,messagechain):
     global nowtime
-    atmessage=messagechain[0]
+    try:
+        atmessage=messagechain[0]
+    except:
+        print('转换语音失败')
+        return None
     if atmessage['type']=='At' and str(atmessage['target'])==data['qq']:
         try:
             textmessage=messagechain[1]
@@ -19,7 +23,7 @@ def talkvoice(data,group,messagechain):
                 pass
             if text[:3]=='快说 ':
                 text=text[3:]
-                if len(text)>100:
+                if len(text)>50:
                     print('超过长度限制')
                     simuse.Send_Message(data,group,1,'超过长度限制',1)
                     return None                 
@@ -77,7 +81,7 @@ def CanSendTask(nowtime,cd):
 
 
 def Plain_Voice(data,text):
-    url='http://124.222.165.166:19630/ToVoice'
+    url='http://XXXXX/ToVoice'
     data_in={'text':text,'QQ':data['qq'],'synthesizer':getconfig(7)}
     try:
         res=requests.request('post',url,json=data_in)
@@ -142,10 +146,10 @@ def getanswer(group, question):  # 从词库中获取答案
     filename = str(group) + '.cl'  # 读取已缓存的词库
     try:
         file = open(filename, 'r', encoding='utf-8-sig')
+        tempdict = file.read()
+        tempdict = eval(tempdict)
     except:
         return None
-    tempdict = file.read()
-    tempdict = eval(tempdict)
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
         #print(question)
         questiondict = tempdict[question]
