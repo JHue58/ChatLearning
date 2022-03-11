@@ -3,7 +3,7 @@
   <img src="https://user-images.githubusercontent.com/57851695/156380675-e37c7729-e5cf-47c0-9957-7e22cf520f9d.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
 
   <h1>ChatLearning</h1>
-  
+
  
 
    [ChatLearning](https://github.com/Nana-Miko/ChatLearning) 是基于 [Mirai Console](https://github.com/mamoe/mirai-console) の饶有味道の `多属性` 词库插件
@@ -13,7 +13,7 @@
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-blueviolet?style=flat-square)](https://mirai.mamoe.net/topic/1018)
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
- 
+
   # 推荐选择查阅本项目 [文档](https://cute.rosmon.top/)
 </div> 
 
@@ -33,7 +33,8 @@
 ```
 
 - Windows双击 <code>Chatmain.exe</code> 直接运行
-- Linux（Python≥3.6）使用 <code>pip install -r requirements.txt</code> 安装依赖后运行 <code>Chatmain.py</code> 
+- Linux在<code>cd</code>到目录后使用<code>./Chatmain</code>运行
+- Win7或以下的32位系统(包括32位的Linux)则需下载**Source包**并确保Python版本≥3.6使用 <code>pip install -r requirements.txt</code> 安装依赖后运行 <code>Chatmain.py</code> 
 > 请使用你喜欢的[虚拟环境](https://zhuanlan.zhihu.com/p/368095197)安装依赖，否则可能导致错误         
 > 首次使用在控制台使用 `setadmin <你的QQ号>` 设置管理员； `blackfreq <次数>` 设置黑名单容错次数
 
@@ -50,9 +51,11 @@
 | `add learning <群号>`                       | 添加开启记录的群，有多个用空格隔开                |
 | `add learnings <群号>`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
 | `add reply <群号>`                      | 添加开启回复的群，有多个用空格隔开                   |
+| <code>add subadmin <群号></code> | 添加可自行管理的群，有多个用空格隔开 |
 | `add unmerge <群号>`                    | 添加不录入总词库的群，有多个用空格隔开                   |
 | `remove learning <群号>`                        | 移除开启记录的群，有多个用空格隔开                |
 | `remove reply <群号>`                       | 移除开启回复的群，有多个用空格隔开                     |
+| <code>remove subadmin <群号></code> | 移除可自行管理的群，有多个用空格隔开 |
 | `remove unmerge <群号>`                       | 移除不录入总词库的群，有多个用空格隔开                     |
 | `check`                       | 查看词库的问答个数和属性设置                     |
 | `grouplist`                       | 查看开启记录/回复的群列表                     |
@@ -62,6 +65,8 @@
 | `blackfreq <次数>`                       | 设置黑名单容错次数                     |
 | `uploadwav` | 上传音源文件 |
 | `admin`                       | 进入管理模式                     |
+
+
 
 ## 管理模式
 
