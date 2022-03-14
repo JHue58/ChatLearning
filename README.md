@@ -48,15 +48,11 @@
 | `reply`                  | 开启/关闭回复             |
 | `voicereply` | 开启/关闭文字转语音回复 |
 | `merge <单位/秒>`                  | 设定总词库更新时间        |
-| `add learning <群号>`                       | 添加开启记录的群，有多个用空格隔开                |
-| `add learnings <群号>`                       | 同时添加开启记录和回复的群，有多个用空格隔开                  |
-| `add reply <群号>`                      | 添加开启回复的群，有多个用空格隔开                   |
-| <code>add subadmin <群号></code> | 添加可自行管理的群，有多个用空格隔开 |
-| `add unmerge <群号>`                    | 添加不录入总词库的群，有多个用空格隔开                   |
-| `remove learning <群号>`                        | 移除开启记录的群，有多个用空格隔开                |
-| `remove reply <群号>`                       | 移除开启回复的群，有多个用空格隔开                     |
-| <code>remove subadmin <群号></code> | 移除可自行管理的群，有多个用空格隔开 |
-| `remove unmerge <群号>`                       | 移除不录入总词库的群，有多个用空格隔开                     |
+| `add/remove learning <群号>`                       | 添加/移除开启记录的群，有多个用空格隔开                |
+| `add/remove learnings <群号>`                       | 同时添加/移除开启记录和回复的群，有多个用空格隔开                  |
+| `add/remove reply <群号>`                      | 添加/移除开启回复的群，有多个用空格隔开                   |
+| `add/remove subadmin <群号>` | 添加/移除可自行管理的群，有多个用空格隔开 |
+| `add/remove unmerge <群号>`                    | 添加/移除不录入总词库的群，有多个用空格隔开                   |
 | `check`                       | 查看词库的问答个数和属性设置                     |
 | `grouplist`                       | 查看开启记录/回复的群列表                     |
 | `globe`                       | 开启/关闭全局模式                     |
