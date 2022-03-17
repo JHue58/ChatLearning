@@ -53,5 +53,5 @@
 |   pretrained   |      [**@babysor**](https://github.com/babysor)      | [地址](https://github.com/babysor/MockingBird/blob/main/README-CN.md) |        75k steps 用3个开源数据集混合训练         |
 |   ferret70k    |   [**@ferretgeek**](https://github.com/ferretgeek)   |  [地址](https://github.com/babysor/MockingBird/issues/245)   | aidatatang_200zh以及aishell3两个数据集，混合训练 |
 |   azusa200k    |  [**@Marg1t**](https://space.bilibili.com/23436398)  |     [地址](https://www.bilibili.com/video/BV1RF411z7C5)      |                 阿梓音源训练模型                 |
-|    pipimeng    | [**@imi-123**](https://mirai.mamoe.net/user/imi-123) |                                                              |           皮皮梦音源训练模型，步长160k           |
+|    pipimeng    | [**@imi-123**](https://mirai.mamoe.net/user/imi-123) |  [地址](https://github.com/babysor/MockingBird/issues/460)   |           皮皮梦音源训练模型，步长160k           |
 
