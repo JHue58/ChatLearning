@@ -2,9 +2,9 @@
 
   <img src="https://user-images.githubusercontent.com/57851695/156380675-e37c7729-e5cf-47c0-9957-7e22cf520f9d.jpg" width = "150" height = "150" alt="Nana-Miko"><br>
 
-  <h1>ChatLearning</h1>
+  # Chat Learning
 
-   基于 [Mirai Console](https://github.com/mamoe/mirai-console) の 多属性、自动化、**~~女友化~~** 词库插件
+   基于 [Mirai Console](https://github.com/mamoe/mirai-console) の 多属性、自动化、**~~★女友化★~~** 词库插件
 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
