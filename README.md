@@ -12,5 +12,5 @@
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
-  # 欢迎 Pick💘 本项目 [→官方网站←](https://fuyon.github.io/123456/) （完善！接着完善！）
+  # 欢迎 Pick💘 本项目 [→官方网站←](https://fuyon.github.io/123456/) 
 </div> 
