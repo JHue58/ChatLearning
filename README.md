@@ -4,7 +4,7 @@
 
   <h1>ChatLearning</h1>
 
-   一个基于 [Mirai Console](https://github.com/mamoe/mirai-console) の 多属性、自动化、~~拟人化~~ 词库插件
+   基于 [Mirai Console](https://github.com/mamoe/mirai-console) の 多属性、自动化、**~~女友化~~** 词库插件
 
 [![Release](https://img.shields.io/github/v/release/Nana-Miko/ChatLearning?style=flat-square)](https://github.com/Nana-Miko/ChatLearning/releases)
 ![Downloads](https://img.shields.io/github/downloads/Nana-Miko/ChatLearning/total?style=flat-square)
