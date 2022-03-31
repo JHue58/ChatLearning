@@ -3,6 +3,8 @@ import base64
 import json
 import os
 import time
+import wave
+import sys
 
 import nest_asyncio
 import requests
@@ -18,12 +20,13 @@ import ChatMerge
 import ChatReply
 import ChatSubadmin
 import simuse
-from ChatClass import My_Thread, Version, commandclass
+from ChatClass import My_Thread, Version, commandclass,ClChange
 
 nest_asyncio.apply()
 
 
 def hello():
+    #os.system("title ChatLearning")
     file = open('config.clc', 'r', encoding='utf-8-sig')
     config = file.read()
     file.close()
@@ -32,6 +35,9 @@ def hello():
     config['merge'] = 0
     config['learning'] = 0
     config['admin'] = 0
+    if ('version' in config.keys()) == False:
+        ClChange()
+        config['version']=Version()
     file = open('config.clc', 'w', encoding='utf-8-sig')
     file.write(str(config))
     file.close()
@@ -43,6 +49,10 @@ def hello():
 def unknowcommand(command):
     print('<-未知指令"{}"   请输入help/?查看帮助'.format(command))
     pass
+
+def exit():
+    sys.exit(0)
+
 
 
 def uploadwav(data, fromchat=0):
@@ -59,11 +69,18 @@ def uploadwav(data, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '文件大小超过10M！取消上传', 1)
         return None
+    wavefile=wave.open('source.wav', 'rb')
+    wav_secs = wavefile.getnframes() / wavefile.getframerate()
+    if wav_secs>=20:
+        print('音频时长大于20秒！取消上传')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '音频时长大于20秒！取消上传', 1)
+        return None
     wavfile = open('source.wav', 'rb')
     base64_data = base64.b64encode(wavfile.read())
     wavfile.close()
     data_in = {'QQ': data['qq'], 'base64': base64_data.decode()}
-    url = 'http://XXXXXX/Sourcewav'
+    url = 'http://124.222.165.166:19630/Sourcewav'
     try:
         print('正在等待服务器响应')
         simuse.Send_Message(data, fromchat, 2, '正在等待服务器响应', 1)
@@ -140,7 +157,7 @@ def blackfreq(num, fromchat=0):
 
 
 def setvoicept(data, ptname, fromchat=0):
-    url = "http://XXXXXX/Ptlist"
+    url = "http://124.222.165.166:19630/Ptlist"
     try:
         print('正在等待服务器响应')
         if fromchat != 0:
@@ -251,6 +268,8 @@ def admin(adminsign, fromchat=0):
     global learningsign
     global mergesign
     global replysign
+    learning_close_sign=0
+    reply_close_sign=0
     if fromchat == 0:
         print('请在聊天环境中执行该指令')
         return adminsign
@@ -258,9 +277,11 @@ def admin(adminsign, fromchat=0):
         tempsign = learning(learningsign, mergesign, fromchat)
         learningsign = tempsign[0]
         mergesign = tempsign[1]
+        learning_close_sign=1
     if replysign == 1:
         time.sleep(0.8)
         replysign = reply(replysign, fromchat)
+        reply_close_sign=1
     if adminsign == 0:
         time.sleep(0.8)
         print('<-进入管理模式')
@@ -276,7 +297,7 @@ def admin(adminsign, fromchat=0):
             ChatAllfind.findallcontrol(data, fromchat)
             print(('<-退出管理模式'))
             simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-            return adminsign
+            #return adminsign
         elif choice == str(2):
             if fromchat != 0:
                 tips = '进入管理模式' + '\n' + '拥有词库的群号' + '\n' + str(
@@ -311,18 +332,27 @@ def admin(adminsign, fromchat=0):
             #admin.join()
             #listen = My_Thread(target=getcommand_chat)
             #listen.start()
-            return adminsign
+            #return adminsign
         elif choice == str(3):
             ChatFilter.filtercontrol(data, fromchat)
             print('<-退出管理模式')
             simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-            return adminsign
+            #return adminsign
         else:
             print('参数错误')
             print('<-退出管理模式')
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
-            return adminsign
+            #return adminsign
+        if learning_close_sign==1:
+            time.sleep(0.8)
+            tempsign = learning(learningsign, mergesign, fromchat)
+            learningsign = tempsign[0]
+            mergesign = tempsign[1]
+        if reply_close_sign==1:
+            time.sleep(0.8)
+            replysign = reply(replysign, fromchat)
+        return adminsign
 
 
 def get_group_perm(data, group):
@@ -867,9 +897,7 @@ def voicereply(voicereplysign, fromchat=0):
         print('<-开启语音回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开启语音回复功能', 1)
-        reply = My_Thread(target=ChatReply.main)
         voicereplysign = 1
-        reply.start()
         return voicereplysign
     else:
         voicereplysign = 0
@@ -911,6 +939,7 @@ def check(fromchat=0):
     check = My_Thread(target=ChatCheck.main, args=(data, fromchat))
     check.start()
     check.join()
+    
 
 
 def getcommand_chat():
@@ -970,7 +999,7 @@ async def getcommand_tui():
             with patch_stdout():
                 command = await session.prompt_async('\nChatLearning ->')
         except:
-            print('ChatLearning控制台无法加载，可能是置于后台运行')
+            print('ChatLearning控制台无法加载，可能是置于后台运行，或是程序退出')
             return None
         commandchoice(command)
 
@@ -1046,6 +1075,8 @@ def commandchoice(command, fromchat=0):
         blackfreq(command[10:])
     elif command[:11] == 'setvoicept ':
         setvoicept(data, command[11:], fromchat)
+    elif command=='exit':
+        exit()
     elif command == 'help' or command == '?' or command == '？':
         commandlist.printhelp(fromchat)
     else:
@@ -1055,9 +1086,9 @@ def commandchoice(command, fromchat=0):
 if __name__ == '__main__':
     adminsendmode = 0
     globesign = globe(get=1)
-    learningsign = 0
+    learningsign = ChatLearning.getconfig()[1]
     mergesign = 0
-    replysign = 0
+    replysign = ChatReply.getconfig(3)
     try:
         voicereplysign = ChatReply.getconfig(5)
     except:
@@ -1066,5 +1097,14 @@ if __name__ == '__main__':
     data = simuse.Get_data()
     data = simuse.Get_Session(data)
     hello()
+    if learningsign==1:
+        learningsign=0
+        tempsign = learning(learningsign, mergesign, 0)
+        learningsign = tempsign[0]
+        mergesign = tempsign[1]
+    if replysign==1:
+        replysign=0
+        time.sleep(0.8)
+        replysign = reply(replysign, 0)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(getcommand_tui())

@@ -1,3 +1,4 @@
+import pickle
 import json
 import os
 import time
@@ -18,7 +19,7 @@ def getallconfig():
 
 
 def checkversion():
-    url = 'http://XXXXX/Update'
+    url = 'http://124.222.165.166:19630/Update'
     try:
         res = requests.request('get', url=url, timeout=20)
         res = json.loads(res.text)
@@ -36,10 +37,7 @@ def clcheck(filename, data, fromchat):
     question_num = 0
     answer_num = 0
     allanswerlist = []
-    file = open(filename, 'r', encoding='utf-8-sig')
-    cldict = file.read()
-    file.close()
-    cldict = eval(cldict)
+    cldict=pickle.load(open(filename, 'rb'))
     for i in cldict:
         question_num += 1
         questioninfo = cldict[i]
@@ -145,5 +143,6 @@ def main(data, fromchat):
         sendmessagedict['nodeList'] = nodelist
         simuse.Send_Message_Chain(data, fromchat, 2, sendmessagechain)
     print(situation,'\n'+versiontip)
+    return None
 
     #os.system('pause')

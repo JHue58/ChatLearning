@@ -61,17 +61,25 @@ def Subadmin(group, sender):
     data = simuse.Get_Session(data)
     learning_config = ChatLearning.getconfig()
     reply_config = [ChatReply.getconfig(3), ChatReply.getconfig(1)]
+    learning_close_sign=0
+    reply_close_sign=0
     if learning_config[1] == 1 and group in learning_config[2]:
         Sublearning(data, group)
-        #closelearning=1
+        learning_close_sign=1
     time.sleep(0.8)
     if reply_config[0] == 1 and group in reply_config[1]:
         Subreply(data, group)
-        #closereply=1
+        reply_close_sign=1
     time.sleep(0.8)
     ChatAllfind.findallcontrol(data, sender, group=group)
     print('群{}退出管理模式,操作者：{}'.format(group, sender))
     simuse.Send_Message(data, group, 1, '退出管理模式', 1)
+    if learning_close_sign==1:
+        time.sleep(0.8)
+        Sublearning(data, group)
+    if reply_close_sign==1:
+        time.sleep(0.8)
+        Subreply(data, group)
 
 
 def main():

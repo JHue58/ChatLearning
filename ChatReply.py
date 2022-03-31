@@ -1,4 +1,6 @@
 # Demo阶段
+import os
+import pickle
 import random
 import time
 import simuse
@@ -81,7 +83,7 @@ def CanSendTask(nowtime,cd):
 
 
 def Plain_Voice(data,text):
-    url='http://XXXXX/ToVoice'
+    url='http://124.222.165.166:19630/ToVoice'
     data_in={'text':text,'QQ':data['qq'],'synthesizer':getconfig(7)}
     try:
         res=requests.request('post',url,json=data_in)
@@ -96,12 +98,12 @@ def Plain_Voice(data,text):
 
 
 def runchance(replychance):
-    list = []
-    for i in range(replychance):
-        list.append(1)
-    for i in range(100 - replychance):
-        list.append(0)
-    chance = random.choice(list)
+    ranom_num=random.uniform(0,1)
+    replychance=replychance*0.01
+    if ranom_num<=replychance:
+        chance=1
+    else:
+        chance=0
     return chance
 
 
@@ -145,9 +147,7 @@ def getanswer(group, question):  # 从词库中获取答案
     question = str(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
     try:
-        file = open(filename, 'r', encoding='utf-8-sig')
-        tempdict = file.read()
-        tempdict = eval(tempdict)
+        tempdict=pickle.load(open(filename, 'rb'))
     except:
         return None
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
@@ -250,6 +250,7 @@ def main():
     data = simuse.Get_data()
     data = simuse.Get_Session(data)
     listening(data)
+    return None
 
 
 #main()

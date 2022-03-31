@@ -1,11 +1,12 @@
+import pickle
 import re
 import threading
 import time
 import traceback
-
+import os
 import simuse
 
-version = '2.6.0'
+version = '2.7.0'
 
 
 # 控制台指令类
@@ -36,6 +37,7 @@ class commandclass():
     commandtips['blackfreq <次数>'] = '#设置黑名单容错次数'
     commandtips['uploadwav'] = '#上传源音频文件'
     commandtips['admin'] = '#进入管理模式'
+    commandtips['exit'] = '#退出程序'
 
     def __init__(self, data, input):
         self.command = input.strip('*')
@@ -96,8 +98,10 @@ class commandclass():
 
 # 多线程类的复写
 class My_Thread(threading.Thread):
-
+    daemon=True
+    
     def run(self):
+        # 常驻为守护线程
         try:
             if self._target:
                 self._target(*self._args, **self._kwargs)
@@ -117,3 +121,23 @@ class My_Thread(threading.Thread):
 def Version():
     global version
     return version
+
+# 2.7.0前版本更新需要更换词库的缓存形式
+def ClChange():
+    filelist = os.listdir()   # 获取词库列表
+    cllist = []
+    for i in filelist:
+        if i[-3:] == '.cl':
+            #print(i)
+            cllist.append(i)
+    #print(cllist)
+    print('正在为更新做一些准备，请稍等')
+    print('期间请勿关闭程序，否则将导致数据丢失！')
+    for i in cllist:
+        file=open(i,'r',encoding='utf-8-sig')
+        dicts=file.read()
+        dicts=eval(dicts)
+        file.close()
+        pickle.dump(dicts,open(i,'wb'))
+    print('准备完毕！')
+

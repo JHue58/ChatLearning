@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 import tkinter
 import time
@@ -80,9 +81,7 @@ def restore(path):
         path = path[:-4] + '.cl'
     else:
         path = path[:-4] + '_change.cl'
-    file = open(path, 'w', encoding='utf-8-sig')
-    file.write(str(questiondict))
-    file.close()
+    pickle.dump(questiondict,open(path, 'wb'))
     if questionchange > 0:
         print('增加问题{}个'.format(questionchange))
     elif questionchange == 0:
@@ -98,10 +97,7 @@ def restore(path):
 
 
 def changecl(path):
-    file = open(path, 'r', encoding='utf-8-sig')
-    tempdict = file.read()
-    file.close()
-    tempdict = eval(tempdict)
+    tempdict=pickle.load(open(path, 'rb'))
     lens = len(tempdict)
     questionlist = tempdict.keys()
     questiondictlist = tempdict.values()
