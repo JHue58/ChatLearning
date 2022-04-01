@@ -126,9 +126,9 @@ def extractmessage(data, tempdict):  # 将消息链转化为字典格式（key�
                 pass
             checkmessage=copy.deepcopy(i['messagechain'])
             checkmessage.pop(0)
-            if ChatFilter.sensitivecheck(checkmessage,i['sender'])==0:
+            if ChatFilter.sensitivecheck(checkmessage,i['sender'],i['group'])==0:
                 continue
-            elif ChatFilter.filtercheck(checkmessage)==0:
+            elif ChatFilter.filtercheck(checkmessage,i['sender'],i['group'])==0:
                 continue
 
             if i['group'] in tempdict.keys():

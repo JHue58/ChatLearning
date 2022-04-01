@@ -6,7 +6,7 @@ import traceback
 import os
 import simuse
 
-version = '2.7.0'
+version = '2.7.1'
 
 
 # 控制台指令类

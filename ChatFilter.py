@@ -287,7 +287,7 @@ def blackcheck():
         return Filterconfig
 
 
-def sensitivecheck(question, sender):
+def sensitivecheck(question, sender,group):
     for i in question:
         try:
             i.pop('url')
@@ -297,7 +297,7 @@ def sensitivecheck(question, sender):
 
     if str(question) in Filterconfig['sensitive']:
         creatblack(sender)
-        print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单')
+        print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单','发送者{}'.format(sender),'来自群{}'.format(group))
         return 0
     else:
         for i in question:
@@ -308,18 +308,18 @@ def sensitivecheck(question, sender):
                         if j['type'] == 'Plain':
                             if i['text'].find(j['text']) != -1:
                                 creatblack(sender)
-                                print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单')
+                                print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单','发送者{}'.format(sender),'来自群{}'.format(group))
                                 return 0
     if sender in Filterconfig['blackdict'].keys():
         num = Filterconfig['blackdict']
         if num[sender] >= getconfig():
-            print('该用户在黑名单中超出最大次数，已屏蔽')
+            print('该用户在黑名单中超出最大次数，已屏蔽','发送者{}'.format(sender),'来自群{}'.format(group))
             return 0
     return 1
 
 
-def filtercheck(question):
-    command='!learning！learning!reply！reply!admin！admin'
+def filtercheck(question,sender,group):
+    command=['!learning','learning','!reply','reply','!admin','admin']
     text=''
     for i in question:  # 去除作为问题中的变动因素“url”
         try:
@@ -336,15 +336,18 @@ def filtercheck(question):
                 for j in k:
                     if j['type'] == 'Plain':
                         if i['text'].find(j['text']) != -1:
-                            print('已过滤，原因：与过滤名单模糊匹配')
+                            print('已过滤，原因：与过滤名单模糊匹配','发送者{}'.format(sender),'来自群{}'.format(group))
                             return 0
-    if str(question) in Filterconfig['filter'] or command.find(text)!=-1:
-        print('已过滤，原因：与过滤名单匹配')
+    if str(question) in Filterconfig['filter']:
+        print('已过滤，原因：与过滤名单匹配','发送者{}'.format(sender),'来自群{}'.format(group))
+        return 0
+    elif text in command:
+        print('已过滤，原因：与指令匹配','发送者{}'.format(sender),'来自群{}'.format(group))
         return 0
     else:
         for i in question:
             if i['type'] in Filterconfig['type']:
-                print('已过滤，原因：与过滤名单中消息类型匹配')
+                print('已过滤，原因：与过滤名单中消息类型匹配','发送者{}'.format(sender),'来自群{}'.format(group))
                 return 0
         return 1
 

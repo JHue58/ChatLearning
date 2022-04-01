@@ -37,7 +37,7 @@ def hello():
     config['admin'] = 0
     if ('version' in config.keys()) == False:
         ClChange()
-        config['version']=Version()
+    config['version']=Version()
     file = open('config.clc', 'w', encoding='utf-8-sig')
     file.write(str(config))
     file.close()
