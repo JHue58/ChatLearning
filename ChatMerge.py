@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 
 
@@ -13,10 +14,7 @@ def getconfig():
 
 def Merge(Mergedict, filename):
     repeatquestion_num = 0
-    file = open(filename, 'r', encoding='utf-8-sig')
-    cldict = file.read()
-    file.close()
-    cldict = eval(cldict)
+    cldict=pickle.load(open(filename, 'rb'))
     #print(Mergedict)
     try:
         repeatquestion = Mergedict.keys() & cldict.keys()
@@ -56,9 +54,7 @@ def getfile():
         except:
             pass
         Mergedict = Merge(Mergedict, i)
-    file = open('Merge.cl', 'w', encoding='utf-8-sig')
-    file.write(str(Mergedict))
-    file.close()
+    pickle.dump(Mergedict,open('Merge.cl', 'wb'))
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '词库合并完成')
     #print('->',end='')
     #os.system('pause')

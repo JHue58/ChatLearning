@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import os
+import pickle
 import time
 
 import xlwt
@@ -208,8 +209,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'xxxx'
-    secret_key = 'xxxx'
+    secret_id = 'XXX'
+    secret_key = 'XXX'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)
@@ -348,11 +349,9 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
 
     delsign = 0
     for group in changedict:
-        file = open(str(group) + '.cl', 'r', encoding='utf-8-sig')
-        cldict_orign = eval(file.read())
+        cldict_orign=pickle.load(open(str(group) + '.cl', 'rb'))
         cldict = copy.deepcopy(cldict_orign)
         questionlist = list(cldict_orign.keys())
-        file.close()
         changelist = changedict[group]
         for nodedict in changelist:
             question = questionlist[nodedict['questionnode']]
@@ -370,9 +369,7 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
             if answerlist == []:
                 cldict.pop(question)
         cldict_orign = cldict
-        file = open(str(group) + '.cl', 'w', encoding='utf-8-sig')
-        file.write(str(cldict_orign))
-        file.close()
+        pickle.dump(cldict_orign,open(str(group) + '.cl', 'wb'))
     if changedict != {} and nofoundlines == []:
         print('删除{}个条目成功'.format(delsign))
         simuse.Send_Message(data, target, target_type, '删除{}个条目成功'.format(delsign), 1)
@@ -406,11 +403,8 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
         try:
-            file = open(i, 'r', encoding='utf-8-sig')
-            cldict = file.read()
-            cldict = eval(cldict)
+            cldict=pickle.load(open(i, 'rb'))
             questionlist = list(cldict.keys())
-            file.close()
         except:
             print('该群无词库')
             simuse.Send_Message(data, target, target_type, '该群无词库', 1)
@@ -502,7 +496,13 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
     filename = filename_lines_dict[0]
     lines_dict = filename_lines_dict[1]
     if allquestion == 1:
-        nodelist = uploadcos(data, filename)
+        try:
+            nodelist = uploadcos(data, filename)
+        except:
+            print('网络连接出错')
+            simuse.Send_Message(data, target, target_type, '网络连接出错', 1)
+            os.remove(filename + '.xls')
+            return None
         time.sleep(1)
         delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
         return None
@@ -511,7 +511,13 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
         if command == str(1):
-            nodelist = uploadcos(data, filename)
+            try:
+                nodelist = uploadcos(data, filename)
+            except:
+                print('网络连接出错')
+                simuse.Send_Message(data, target, target_type, '网络连接出错', 1)
+                os.remove(filename + '.xls')
+                break
             time.sleep(1)
             delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
             break
@@ -541,10 +547,7 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
     for i in cllist:
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
-        file = open(i, 'r', encoding='utf-8-sig')
-        cldict = file.read()
-        cldict = eval(cldict)
-        file.close()
+        cldict=pickle.load(open(i, 'rb'))
         for l in answer:
             for k in cldict:
                 questiondict = cldict[k]
@@ -595,7 +598,13 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
         if command == str(1):
-            nodelist = uploadcos(data, filename)
+            try:
+                nodelist = uploadcos(data, filename)
+            except:
+                print('网络连接出错')
+                simuse.Send_Message(data, target, target_type, '网络连接出错', 1)
+                os.remove(filename + '.xls')
+                break
             time.sleep(1)
             delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
             break

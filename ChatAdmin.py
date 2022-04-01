@@ -1,8 +1,10 @@
 #import asyncio
 import copy
 import os
+import pickle
 import threading
 import time
+import pickle
 
 #import nest_asyncio
 from prompt_toolkit import PromptSession
@@ -104,9 +106,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
             time.sleep(0.8)
         tempdict.pop(question)
         filename = str(group) + '.cl'  # 读取已缓存的词库
-        file = open(filename, 'w', encoding='utf-8-sig')
-        file.write(str(tempdict))
-        file.close()
+        pickle.dump(tempdict,open(filename, 'wb'))
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
     if node == str(-1) or node == '–1':
@@ -155,9 +155,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
     if answerlist == []:
         tempdict.pop(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    file = open(filename, 'w', encoding='utf-8-sig')
-    file.write(str(tempdict))
-    file.close()
+    pickle.dump(tempdict,open(filename, 'wb'))
     if templist != []:
         if sendtext != '':
             simuse.Send_Message(
@@ -305,10 +303,7 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
             continue
     question = str(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    file = open(filename, 'r', encoding='utf-8-sig')
-    tempdict = file.read()
-    file.close()
-    tempdict = eval(tempdict)
+    tempdict=pickle.load(open(filename, 'rb'))
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
         #print(question)
         questiondict = tempdict[question]

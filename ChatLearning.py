@@ -1,6 +1,6 @@
 # Demo阶段
 import copy
-import os
+import pickle
 import time
 import ChatFilter
 from re import I
@@ -36,10 +36,7 @@ def creatquestion(question, group):  # 记录问题
     question = str(question)
     filename = str(group) + ".cl"
     try:  # 读取已缓存的词库
-        file = open(filename, 'r', encoding='utf-8-sig')
-        tempdict = file.read()
-        file.close()
-        tempdict = eval(tempdict)
+        tempdict=pickle.load(open(filename, 'rb'))
     except:
         tempdict = {}
     if not (question in tempdict.keys()):  # 判断词库中问题是否存在，若不存在则记录问题
@@ -52,9 +49,7 @@ def creatquestion(question, group):  # 记录问题
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n问题已记录",
               filename)
     #print(tempdict)
-    file = open(filename, 'w', encoding='utf-8-sig')
-    file.write(str(tempdict))
-    file.close()
+    pickle.dump(tempdict,open(filename, 'wb'))
     return tempquestion  # 返回未去除“url”的消息链，为记录答案做准备
 
 
@@ -69,10 +64,7 @@ def creatanswer(question, answer, group):  # 记录答案
     question = str(question)
     answer = str(answer)
     filename = str(group) + ".cl"
-    file = open(filename, 'r', encoding='utf-8-sig')  # 读取缓存的词库
-    tempdict = file.read()
-    file.close()
-    tempdict = eval(tempdict)
+    tempdict=pickle.load(open(filename, 'rb'))  # 读取缓存的词库
     answertime = int(time.time())
     answerdict = {"answertext": "", "time": ""}
     answerdict["answertext"] = answer
@@ -116,11 +108,9 @@ def creatanswer(question, answer, group):  # 记录答案
     else:  # 答案列表为空时一定是新答案，所以直接记录
         questiondict["answer"].append(answerdict.copy())
     tempdict[question] = questiondict
-    file = open(filename, 'w', encoding='utf-8-sig')
-    file.write(str(tempdict))
+    pickle.dump(tempdict,open(filename, 'wb'))
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
           filename)
-    file.close()
 
 
 def extractmessage(data, tempdict):  # 将消息链转化为字典格式（key为群号，value为消息链）
@@ -204,6 +194,7 @@ def main():
     data = simuse.Get_data()
     data = simuse.Get_Session(data)
     listening(data)
+    return None
 
 
 #main()
