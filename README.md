@@ -14,7 +14,7 @@
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
-# 欢迎 Pick💘 本项目 [官方网站](https://chat-learning.233333.top/)
+# 欢迎 Pick💘 本项目 [官方网站](https://123456-drab.vercel.app/)
 
 </div> 
 
