@@ -8,15 +8,21 @@ import xlwt
 from qcloud_cos import CosConfig, CosS3Client
 
 import ChatAdmin
+import ChatMerge
 import simuse
 from ChatClass import Version
 
 
 def getcllist():
-    filelist = os.listdir()
+    tagdict = ChatMerge.getconfig()[3]
+    filelist = os.listdir('WordStock')
     cllist = []
+    Taglist = []
+    for i in tagdict.values():
+        Taglist.extend(i)
+    Taglist = list(set(Taglist))
     for i in filelist:
-        if i[-3:] == '.cl' and i != 'Merge.cl':
+        if i[-3:] == '.cl' and i != 'Merge.cl' and not (i[:-3] in Taglist):
             #print(i)
             cllist.append(i)
     return cllist
@@ -254,17 +260,17 @@ def uploadcos(data, filename):
 
 
 #删除词库
-def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
-    if group!=0:
-        target=group
+def delcl(data, sender, lines_dict, nodelist, target_type=0, group=0):
+    if group != 0:
+        target = group
     else:
-        target=sender
+        target = sender
     tipsmessagechain = [{'type': 'Forward', 'nodeList': nodelist}]
     simuse.Send_Message_Chain(data, target, target_type, tipsmessagechain)
     while 1:
         errorlines = 0
         seerrorlines = 0
-        command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
+        command = ChatAdmin.get_admin_command(data, sender=sender, group=group)
         if command != None:
             if command == str(-1) or command == '–1':
                 print('取消删除')
@@ -320,11 +326,12 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
                 break
             elif errorlines != 0:
                 print('行数错误，请重新输入\n最小行数为2')
-                simuse.Send_Message(data, target, target_type, '行数错误，请重新输入\n最小行数为2', 1)
+                simuse.Send_Message(data, target, target_type,
+                                    '行数错误，请重新输入\n最小行数为2', 1)
             elif errorlines == 0 and seerrorlines != 0:
                 print('行数错误，请重新输入\n结束行应大于起始行')
-                simuse.Send_Message(data, target, target_type, '行数错误，请重新输入\n结束行应大于起始行',
-                                    1)
+                simuse.Send_Message(data, target, target_type,
+                                    '行数错误，请重新输入\n结束行应大于起始行', 1)
 
         else:
             continue
@@ -349,7 +356,8 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
 
     delsign = 0
     for group in changedict:
-        cldict_orign=pickle.load(open(str(group) + '.cl', 'rb'))
+        cldict_orign = pickle.load(
+            open('WordStock/' + str(group) + '.cl', 'rb'))
         cldict = copy.deepcopy(cldict_orign)
         questionlist = list(cldict_orign.keys())
         changelist = changedict[group]
@@ -369,10 +377,12 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
             if answerlist == []:
                 cldict.pop(question)
         cldict_orign = cldict
-        pickle.dump(cldict_orign,open(str(group) + '.cl', 'wb'))
+        pickle.dump(cldict_orign, open('WordStock/' + str(group) + '.cl',
+                                       'wb'))
     if changedict != {} and nofoundlines == []:
         print('删除{}个条目成功'.format(delsign))
-        simuse.Send_Message(data, target, target_type, '删除{}个条目成功'.format(delsign), 1)
+        simuse.Send_Message(data, target, target_type,
+                            '删除{}个条目成功'.format(delsign), 1)
     elif nofoundlines != []:
         tips = ''
         for i in nofoundlines:
@@ -382,15 +392,22 @@ def delcl(data, sender, lines_dict, nodelist,target_type=0,group=0):
                             '删除{}个条目成功\n未找到行{}'.format(delsign, tips), 1)
     else:
         print('删除失败')
-        simuse.Send_Message(data, target, target_type, '删除失败'.format(delsign), 1)
+        simuse.Send_Message(data, target, target_type, '删除失败'.format(delsign),
+                            1)
 
 
 #查找问题
-def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target_type=0):
-    if group!=0:
-        target=group
+def findallquestion(data,
+                    sender,
+                    cllist,
+                    question,
+                    allquestion=0,
+                    group=0,
+                    target_type=0):
+    if group != 0:
+        target = group
     else:
-        target=sender
+        target = sender
     simuse.Send_Message(data, target, target_type, '查找中……', 1)
     #findquestion={'群号':'问题字典'}
     findquestion = {}
@@ -403,7 +420,7 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
         try:
-            cldict=pickle.load(open(i, 'rb'))
+            cldict = pickle.load(open('WordStock/' + i, 'rb'))
             questionlist = list(cldict.keys())
         except:
             print('该群无词库')
@@ -504,12 +521,18 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
             os.remove(filename + '.xls')
             return None
         time.sleep(1)
-        delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
+        delcl(data,
+              sender,
+              lines_dict,
+              nodelist,
+              target_type=target_type,
+              group=group)
         return None
     time.sleep(1)
-    simuse.Send_Message(data, target, target_type, '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
+    simuse.Send_Message(data, target, target_type,
+                        '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
     while 1:
-        command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
+        command = ChatAdmin.get_admin_command(data, sender=sender, group=group)
         if command == str(1):
             try:
                 nodelist = uploadcos(data, filename)
@@ -519,7 +542,12 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
                 os.remove(filename + '.xls')
                 break
             time.sleep(1)
-            delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
+            delcl(data,
+                  sender,
+                  lines_dict,
+                  nodelist,
+                  target_type=target_type,
+                  group=group)
             break
         elif command == str(2):
             os.remove(filename + '.xls')
@@ -532,11 +560,11 @@ def findallquestion(data, sender, cllist, question, allquestion=0,group=0,target
 
 
 #查找答案
-def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
-    if group!=0:
-        target=group
+def findallanswer(data, sender, cllist, answer, group=0, target_type=0):
+    if group != 0:
+        target = group
     else:
-        target=sender
+        target = sender
     simuse.Send_Message(data, target, target_type, '查找中……', 1)
     findquestion = {}
     for i in answer:
@@ -547,7 +575,7 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
     for i in cllist:
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
-        cldict=pickle.load(open(i, 'rb'))
+        cldict = pickle.load(open('WordStock/' + i, 'rb'))
         for l in answer:
             for k in cldict:
                 questiondict = cldict[k]
@@ -594,9 +622,10 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
     filename = filename_lines_dict[0]
     lines_dict = filename_lines_dict[1]
     time.sleep(1)
-    simuse.Send_Message(data, target, target_type, '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
+    simuse.Send_Message(data, target, target_type,
+                        '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
     while 1:
-        command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
+        command = ChatAdmin.get_admin_command(data, sender=sender, group=group)
         if command == str(1):
             try:
                 nodelist = uploadcos(data, filename)
@@ -606,7 +635,12 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
                 os.remove(filename + '.xls')
                 break
             time.sleep(1)
-            delcl(data, sender, lines_dict, nodelist,target_type=target_type,group=group)
+            delcl(data,
+                  sender,
+                  lines_dict,
+                  nodelist,
+                  target_type=target_type,
+                  group=group)
             break
         elif command == str(2):
             os.remove(filename + '.xls')
@@ -618,34 +652,44 @@ def findallanswer(data, sender, cllist, answer,group=0,target_type=0):
             continue
 
 
-def findallcontrol(data, sender,group=0):
-    if group==0:
+def findallcontrol(data, sender, group=0):
+    if group == 0:
         cllist = getcllist()
-        target=sender
-        target_type=2
+        target = sender
+        target_type = 2
     else:
-        cllist=[str(group)+'.cl']
-        target=group
-        target_type=1
+        cllist = [str(group) + '.cl']
+        target = group
+        target_type = 1
     while 1:
         time.sleep(1)
-        if group==0:
+        if group == 0:
             tips = '请选择你的操作\n1.查找问题\n2.查找答案\n3.查看某个群的所有词库\n4.退出管理模式'
         else:
-            tips='进入管理模式\n请选择你的操作\n1.查找问题\n2.查找答案\n3.查看所有词库\n4.退出管理模式'
+            tips = '进入管理模式\n请选择你的操作\n1.查找问题\n2.查找答案\n3.查看所有词库\n4.退出管理模式'
         simuse.Send_Message(data, target, target_type, tips, 1)
         while 1:
-            command = ChatAdmin.get_admin_command(data, sender=sender,group=group)
+            command = ChatAdmin.get_admin_command(data,
+                                                  sender=sender,
+                                                  group=group)
             if command != None:
                 break
         if command == str(1):
             simuse.Send_Message(data, target, target_type, '请发送关键字', 1)
             while 1:
                 time.sleep(0.5)
-                question = ChatAdmin.get_admin_question(data, sender=sender,group=group)
+                question = ChatAdmin.get_admin_question(data,
+                                                        sender=sender,
+                                                        group=group)
                 if question != None:
-                    if findallquestion(data, sender, cllist, question,group=group,target_type=target_type) == 2:
-                        simuse.Send_Message(data, target, target_type, '请发送关键字', 1)
+                    if findallquestion(data,
+                                       sender,
+                                       cllist,
+                                       question,
+                                       group=group,
+                                       target_type=target_type) == 2:
+                        simuse.Send_Message(data, target, target_type,
+                                            '请发送关键字', 1)
                         continue
                     else:
                         break
@@ -653,18 +697,22 @@ def findallcontrol(data, sender,group=0):
             simuse.Send_Message(data, target, target_type, '请发送关键字', 1)
             while 1:
                 time.sleep(0.5)
-                question = ChatAdmin.get_admin_question(data, sender=sender,group=group)
+                question = ChatAdmin.get_admin_question(data,
+                                                        sender=sender,
+                                                        group=group)
                 if question != None:
-                    if findallanswer(data, sender, cllist, question,group,target_type) == 2:
-                        simuse.Send_Message(data, target, target_type, '请发送关键字', 1)
+                    if findallanswer(data, sender, cllist, question, group,
+                                     target_type) == 2:
+                        simuse.Send_Message(data, target, target_type,
+                                            '请发送关键字', 1)
                         continue
                     else:
                         break
 
-        elif command == str(3) and group==0:
+        elif command == str(3) and group == 0:
             grouplist = []
             for i in cllist:
-                grouplist.append(int(i[:-3]))
+                grouplist.append(i[:-3])
             simuse.Send_Message(data, sender, 2,
                                 '以下是拥有词库的群\n' + str(grouplist) + '\n请发送群号', 1)
             while 1:
@@ -672,7 +720,7 @@ def findallcontrol(data, sender,group=0):
                 choicegroup = ChatAdmin.get_admin_command(data, sender=sender)
                 if choicegroup != None:
                     try:
-                        choicegroup = int(choicegroup)
+                        choicegroup = str(choicegroup)
                     except:
                         simuse.Send_Message(data, sender, 2, '参数错误', 1)
                         break
@@ -686,12 +734,23 @@ def findallcontrol(data, sender,group=0):
                                             'type': 'Plain',
                                             'text': 'AllFind'
                                         }],
-                                        allquestion=1,group=group,target_type=target_type)
+                                        allquestion=1,
+                                        group=group,
+                                        target_type=target_type)
                         break
                     else:
                         simuse.Send_Message(data, sender, 2, '群不存在', 1)
                         break
-        elif command==str(3) and group!=0:
-            findallquestion(data,sender,cllist,question=[{'type': 'Plain','text': 'AllFind'}],allquestion=1,group=group,target_type=target_type)
+        elif command == str(3) and group != 0:
+            findallquestion(data,
+                            sender,
+                            cllist,
+                            question=[{
+                                'type': 'Plain',
+                                'text': 'AllFind'
+                            }],
+                            allquestion=1,
+                            group=group,
+                            target_type=target_type)
         else:
             return None

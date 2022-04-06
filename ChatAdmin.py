@@ -4,32 +4,32 @@ import os
 import pickle
 import threading
 import time
-import pickle
 
 #import nest_asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 import ChatFilter
+import ChatMerge
 import simuse
 
 #nest_asyncio.apply()
 
 
-def get_admin_question(data, sender,group=0):
+def get_admin_question(data, sender, group=0):
     message = simuse.Fetch_Message(data)
     if type(message) == type(0):
         time.sleep(0.5)
         return None
     for i in message:
-        if group==0:
+        if group == 0:
             if i['type'] == 'FriendMessage' and i[
                     'sender'] == sender:  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
                 messagechain.pop(0)
                 question = messagechain
                 return question
-        elif group!=0:
+        elif group != 0:
             if i['type'] == 'GroupMessage' and i[
                     'sender'] == sender:  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
@@ -39,13 +39,13 @@ def get_admin_question(data, sender,group=0):
     return None
 
 
-def get_admin_command(data, adminlist=0, sender=0,group=0):
+def get_admin_command(data, adminlist=0, sender=0, group=0):
     message = simuse.Fetch_Message(data)
     if type(message) == type(0):
         time.sleep(0.5)
         return None
     for i in message:
-        if sender != 0 and group==0:
+        if sender != 0 and group == 0:
             if i['type'] == 'FriendMessage' and i[
                     'sender'] == sender:  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
@@ -54,7 +54,7 @@ def get_admin_command(data, adminlist=0, sender=0,group=0):
                     #node = command['text']
                     return command['text']
                 return None
-        elif sender!=0 and group!=0:
+        elif sender != 0 and group != 0:
             if i['type'] == 'GroupMessage' and i[
                     'sender'] == sender:  # 判断监听到的消息是否为群消息
                 messagechain = i['messagechain']
@@ -106,7 +106,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
             time.sleep(0.8)
         tempdict.pop(question)
         filename = str(group) + '.cl'  # 读取已缓存的词库
-        pickle.dump(tempdict,open(filename, 'wb'))
+        pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
     if node == str(-1) or node == '–1':
@@ -155,7 +155,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
     if answerlist == []:
         tempdict.pop(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    pickle.dump(tempdict,open(filename, 'wb'))
+    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
     if templist != []:
         if sendtext != '':
             simuse.Send_Message(
@@ -303,7 +303,7 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
             continue
     question = str(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    tempdict=pickle.load(open(filename, 'rb'))
+    tempdict = pickle.load(open('WordStock/' + filename, 'rb'))
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
         #print(question)
         questiondict = tempdict[question]
@@ -364,10 +364,15 @@ def tui(data, adminlist, group):
 
 
 def getfilelist():
-    filelist = os.listdir()
+    filelist = os.listdir('WordStock')
+    tagdict = ChatMerge.getconfig()[3]
+    Taglist = []
+    for i in tagdict.values():
+        Taglist.extend(i)
+    Taglist = list(set(Taglist))
     cllist = []
     for i in filelist:
-        if i[-3:] == '.cl':
+        if i[-3:] == '.cl' and not (i[:-3] in Taglist):
             #print(i)
             cllist.append(i)
     try:
@@ -376,7 +381,7 @@ def getfilelist():
         pass
     grouplist = []
     for i in cllist:
-        grouplist.append(int(i[:-3]))
+        grouplist.append((i[:-3]))
     return grouplist
 
 

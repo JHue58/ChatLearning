@@ -1,6 +1,6 @@
-import pickle
 import json
 import os
+import pickle
 import time
 from wsgiref.simple_server import server_version
 
@@ -28,16 +28,16 @@ def checkversion():
     now_version = int(Version().replace('.', ''))
     server_version = int(res['version'].replace('.', ''))
     if server_version > now_version:
-        return 1,res['version'],Version()
+        return 1, res['version'], Version()
     else:
-        return 0,Version()
+        return 0, Version()
 
 
 def clcheck(filename, data, fromchat):
     question_num = 0
     answer_num = 0
     allanswerlist = []
-    cldict=pickle.load(open(filename, 'rb'))
+    cldict = pickle.load(open('WordStock/' + filename, 'rb'))
     for i in cldict:
         question_num += 1
         questioninfo = cldict[i]
@@ -48,8 +48,14 @@ def clcheck(filename, data, fromchat):
             answer_num += 1
     except:
         pass
+    config = getallconfig()
+    Tagdict = config['tag']
     group = filename[:-3]
-    print('群', group, '收集到问题', question_num, '个', ' 答案', answer_num, '个')
+    try:
+        print('词库', group, '收集到问题', question_num, '个', ' 答案', answer_num, '个',
+              'Tag:{}'.format(' '.join(Tagdict[group])))
+    except:
+        print('词库', group, '收集到问题', question_num, '个', ' 答案', answer_num, '个')
     if fromchat != 0:
         nodedict = {
             'senderId': data['qq'],
@@ -62,15 +68,21 @@ def clcheck(filename, data, fromchat):
         }
         messagechain = nodedict['messageChain']
         messagedict = messagechain[0]
-        messagedict['text'] = '群' + str(group) + '收集到问题' + str(
-            question_num) + '个' + ' 答案' + str(answer_num) + '个'
+        try:
+            messagedict['text'] = '词库' + str(group) + '收集到问题' + str(
+                question_num) + '个' + ' 答案' + str(
+                    answer_num) + '个' + '\nTag:{}'.format(' '.join(
+                        Tagdict[group]))
+        except:
+            messagedict['text'] = '词库' + str(group) + '收集到问题' + str(
+                question_num) + '个' + ' 答案' + str(answer_num) + '个'
         return nodedict
         #simuse.Send_Message(data, fromchat, 2, '群'+str(group)+'收集到问题'+str(question_num)+'个'+' 答案'+str(answer_num)+'个', 1)
         #time.sleep(1)
 
 
 def main(data, fromchat):
-    filelist = os.listdir()
+    filelist = os.listdir('WordStock')
     cllist = []
     nodelist = []
     for i in filelist:
@@ -114,15 +126,39 @@ def main(data, fromchat):
     mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
     blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
+    typefreqtip = '回复阈值设定：\n'
+    singlereplytip = '指定群回复触发概率：\n'
+    singlevoicereplytip = '指定群回复概率（语音）：\n'
+    typefreqdict = config['typefreq']
+    replydict = config['singlereplychance']
+    voicereplydict = config['singlevoicereplychance']
+    if replydict == {}:
+        singlereplytip = ''
+    if voicereplydict == {}:
+        singlevoicereplytip = ''
+    if typefreqdict == {}:
+        typefreqtip = ''
+    for i in typefreqdict:
+        typefreqtip = typefreqtip + '{}:{}次\n'.format(i, typefreqdict[i])
+    for i in replydict:
+        singlereplytip = singlereplytip + '群{}：{}%\n'.format(i, replydict[i])
+    for i in voicereplydict:
+        singlevoicereplytip = singlevoicereplytip + '群{}：{}%\n'.format(
+            i, voicereplydict[i])
     check_version = checkversion()
     if check_version[0] == 1:
-        versiontip = "已连接至ChatLearning服务器\n检测到有新版本：{}\n当前版本：{}".format(check_version[1],check_version[2])
+        versiontip = "已连接至ChatLearning服务器\n检测到有新版本：{}\n当前版本：{}".format(
+            check_version[1], check_version[2])
     elif check_version[0] == 0:
-        versiontip = "已连接至ChatLearning服务器\n当前已是最新版本：{}".format(check_version[1])
+        versiontip = "已连接至ChatLearning服务器\n当前已是最新版本：{}".format(
+            check_version[1])
     else:
         versiontip = "未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip 
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip
     situationchain = [{'type': 'Plain', 'text': situation}]
+    typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]
+    siglereply_message = [{'type': 'Plain', 'text': singlereplytip}]
+    singlevoicereply_message = [{'type': 'Plain', 'text': singlevoicereplytip}]
     version_message = [{'type': 'Plain', 'text': versiontip}]
     situationnodedict = {
         'senderId': data['qq'],
@@ -135,14 +171,22 @@ def main(data, fromchat):
     }
     situationnodedict['messageChain'] = situationchain
     nodelist.append(situationnodedict.copy())
-    situationnodedict['messageChain']=version_message
+    situationnodedict['messageChain'] = typefreq_message
+    nodelist.append(situationnodedict.copy())
+    situationnodedict['messageChain'] = siglereply_message
+    nodelist.append(situationnodedict.copy())
+    situationnodedict['messageChain'] = singlevoicereply_message
+    nodelist.append(situationnodedict.copy())
+    situationnodedict['messageChain'] = version_message
     nodelist.append(situationnodedict.copy())
     if fromchat != 0:
         sendmessagechain = [{'type': 'Forward', 'nodeList': ''}]
         sendmessagedict = sendmessagechain[0]
         sendmessagedict['nodeList'] = nodelist
         simuse.Send_Message_Chain(data, fromchat, 2, sendmessagechain)
-    print(situation,'\n'+versiontip)
+    print(
+        situation, '\n' + typefreqtip + '\n' + singlereplytip + '\n' +
+        singlevoicereplytip + '\n' + versiontip)
     return None
 
     #os.system('pause')

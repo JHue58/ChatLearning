@@ -2,9 +2,9 @@ import asyncio
 import base64
 import json
 import os
+import sys
 import time
 import wave
-import sys
 
 import nest_asyncio
 import requests
@@ -14,13 +14,15 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import ChatAdmin
 import ChatAllfind
 import ChatCheck
+import ChatDelete
 import ChatFilter
 import ChatLearning
 import ChatMerge
 import ChatReply
 import ChatSubadmin
 import simuse
-from ChatClass import My_Thread, Version, commandclass,ClChange
+from ChatClass import (Cl_version, ClChange, Config_version, My_Thread,
+                       Version, commandclass)
 
 nest_asyncio.apply()
 
@@ -37,10 +39,14 @@ def hello():
     config['admin'] = 0
     if ('version' in config.keys()) == False:
         ClChange()
-    config['version']=Version()
+        config['version'] = '2.7.0'
+    Cl_version(config['version'])
+    config=Config_version(config['version'])
+    config['version'] = Version()
     file = open('config.clc', 'w', encoding='utf-8-sig')
     file.write(str(config))
     file.close()
+    ChatFilter.Merge_Filter()
     print('欢迎使用ChatLearning应用 版本号：', Version())
     #print('遇到问题和bug请在mirai论坛回复我或发送至我的邮箱1121917292@qq.com')
     print('输入help来查看指令列表吧！')
@@ -50,9 +56,9 @@ def unknowcommand(command):
     print('<-未知指令"{}"   请输入help/?查看帮助'.format(command))
     pass
 
+
 def exit():
     sys.exit(0)
-
 
 
 def uploadwav(data, fromchat=0):
@@ -69,9 +75,9 @@ def uploadwav(data, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '文件大小超过10M！取消上传', 1)
         return None
-    wavefile=wave.open('source.wav', 'rb')
+    wavefile = wave.open('source.wav', 'rb')
     wav_secs = wavefile.getnframes() / wavefile.getframerate()
-    if wav_secs>=20:
+    if wav_secs >= 20:
         print('音频时长大于20秒！取消上传')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '音频时长大于20秒！取消上传', 1)
@@ -268,8 +274,8 @@ def admin(adminsign, fromchat=0):
     global learningsign
     global mergesign
     global replysign
-    learning_close_sign=0
-    reply_close_sign=0
+    learning_close_sign = 0
+    reply_close_sign = 0
     if fromchat == 0:
         print('请在聊天环境中执行该指令')
         return adminsign
@@ -277,18 +283,18 @@ def admin(adminsign, fromchat=0):
         tempsign = learning(learningsign, mergesign, fromchat)
         learningsign = tempsign[0]
         mergesign = tempsign[1]
-        learning_close_sign=1
+        learning_close_sign = 1
     if replysign == 1:
         time.sleep(0.8)
         replysign = reply(replysign, fromchat)
-        reply_close_sign=1
+        reply_close_sign = 1
     if adminsign == 0:
         time.sleep(0.8)
         print('<-进入管理模式')
         print('请不要操作控制台！！！')
         #print('拥有词库的群号:')
         #print(ChatAdmin.getfilelist())
-        tips = '请发送需要操作的序号\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置'
+        tips = '请发送需要操作的序号\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置\n4.自动清理词库'
         simuse.Send_Message(data, fromchat, 2, tips, 1)
         command = getcommand_chat_foradmin()
         choice = command[0]
@@ -311,7 +317,7 @@ def admin(adminsign, fromchat=0):
             group = command[0]
             sender = command[1]
             try:
-                group = int(group)
+                group = str(group)
             except:
                 print('参数错误')
                 print('<-退出管理模式')
@@ -338,18 +344,31 @@ def admin(adminsign, fromchat=0):
             print('<-退出管理模式')
             simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
             #return adminsign
+        elif choice == str(4):
+            simuse.Send_Message(
+                data, fromchat, 2,
+                '此操作将会删除词库中仅出现过单次的条目和被过滤的条目，且操作不可逆！！\n请输入“确定”确认删除', 1)
+            command = getcommand_chat_foradmin()
+            if command[0] == '确定':
+                sender = command[1]
+                ChatDelete.Delete(data, sender)
+                print('<-退出管理模式')
+                simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
+            else:
+                print('<-退出管理模式')
+                simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
         else:
             print('参数错误')
             print('<-退出管理模式')
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
             #return adminsign
-        if learning_close_sign==1:
+        if learning_close_sign == 1:
             time.sleep(0.8)
             tempsign = learning(learningsign, mergesign, fromchat)
             learningsign = tempsign[0]
             mergesign = tempsign[1]
-        if reply_close_sign==1:
+        if reply_close_sign == 1:
             time.sleep(0.8)
             replysign = reply(replysign, fromchat)
         return adminsign
@@ -421,56 +440,272 @@ def learninginterval(interval, fromchat=0):
 
 def replychance(chance, fromchat=0):
     global data
-    try:
-        chance = int(chance)
-    except:
-        print('参数错误')
+    if chance[:chance.find(' ')] == '-s':
+        args = chance[chance.find(' ') + 1:]
+        if args.find(' ') != -1:
+            single_chance = args[:args.find(' ')]
+        else:
+            print('参数错误,群号为空')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误,群号为空', 1)
+            return None
+        try:
+            single_chance = int(single_chance)
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        if single_chance <= 0 or single_chance > 100:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        grouplist = '[{}]'.format(args[args.find(' ') + 1:])
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        try:
+            file = open('config.clc', 'r', encoding='utf-8-sig')
+            config = file.read()
+            config = eval(config)
+            file.close()
+            replydict = config['singlereplychance']
+        except:
+            replydict = {}
+        for i in grouplist:
+            replydict[str(i)] = single_chance
+        config['singlereplychance'] = replydict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-添加完毕')
         if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
-        return None
-    if chance <= 0 or chance > 100:
-        print('参数错误')
+            simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
+
+    elif chance[:chance.find(' ')] == '-d':
+        args = chance[chance.find(' ') + 1:]
+        grouplist = '[{}]'.format(args)
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        config = eval(config)
+        file.close()
+        try:
+            replydict = config['singlereplychance']
+        except:
+            print('请先添加！')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '请先添加！', 1)
+            return None
+        pass
+        sendtext = ''
+        for i in grouplist:
+            try:
+                replydict.pop(str(i))
+            except:
+                print('群', i, '不存在')
+                sendtext = sendtext + str(i) + '\n'
+                continue
+        if sendtext != '':
+            simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
+        config['singlereplychance'] = replydict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-移除完毕')
         if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
-        return None
-    print('<-已设置回复的触发概率', chance, '%')
-    if fromchat != 0:
-        simuse.Send_Message(data, fromchat, 2,
-                            '已设置回复的触发概率' + str(chance) + '%', 1)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
-    config = eval(config)
-    file.close()
-    config['replychance'] = chance
-    file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    file2.write(str(config))
+            simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
+    else:
+        try:
+            chance = int(chance)
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        if chance <= 0 or chance > 100:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        print('<-已设置回复的触发概率', chance, '%')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2,
+                                '已设置回复的触发概率' + str(chance) + '%', 1)
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        config = eval(config)
+        file.close()
+        config['replychance'] = chance
+        file2 = open('config.clc', 'w', encoding='utf-8-sig')
+        file2.write(str(config))
 
 
 def voicereplychance(chance, fromchat=0):
     global data
-    try:
-        chance = int(chance)
-    except:
-        print('参数错误')
+    if chance[:chance.find(' ')] == '-s':
+        args = chance[chance.find(' ') + 1:]
+        if args.find(' ') != -1:
+            single_chance = args[:args.find(' ')]
+        else:
+            print('参数错误,群号为空')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误,群号为空', 1)
+            return None
+        try:
+            single_chance = int(single_chance)
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        if single_chance <= 0 or single_chance > 100:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        grouplist = '[{}]'.format(args[args.find(' ') + 1:])
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        try:
+            file = open('config.clc', 'r', encoding='utf-8-sig')
+            config = file.read()
+            config = eval(config)
+            file.close()
+            replydict = config['singlevoicereplychance']
+        except:
+            replydict = {}
+        for i in grouplist:
+            replydict[str(i)] = single_chance
+        config['singlevoicereplychance'] = replydict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-添加完毕')
         if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
-        return None
-    if chance <= 0 or chance > 100:
-        print('参数错误')
+            simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
+
+    elif chance[:chance.find(' ')] == '-d':
+        args = chance[chance.find(' ') + 1:]
+        grouplist = '[{}]'.format(args)
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        config = eval(config)
+        file.close()
+        try:
+            replydict = config['singlevoicereplychance']
+        except:
+            print('请先添加！')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '请先添加！', 1)
+            return None
+        pass
+        sendtext = ''
+        for i in grouplist:
+            try:
+                replydict.pop(str(i))
+            except:
+                print('群', i, '不存在')
+                sendtext = sendtext + str(i) + '\n'
+                continue
+        if sendtext != '':
+            simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
+        config['singlevoicereplychance'] = replydict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-移除完毕')
         if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
-        return None
-    print('<-已设置语音回复的触发概率', chance, '%')
-    if fromchat != 0:
-        simuse.Send_Message(data, fromchat, 2,
-                            '已设置语音回复的触发概率' + str(chance) + '%', 1)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
-    config = eval(config)
-    file.close()
-    config['voicereplychance'] = chance
-    file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    file2.write(str(config))
+            simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
+
+    else:
+        try:
+            chance = int(chance)
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        if chance <= 0 or chance > 100:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        print('<-已设置语音回复的触发概率', chance, '%')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2,
+                                '已设置语音回复的触发概率' + str(chance) + '%', 1)
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        config = eval(config)
+        file.close()
+        config['voicereplychance'] = chance
+        file2 = open('config.clc', 'w', encoding='utf-8-sig')
+        file2.write(str(config))
+        file2.close()
 
 
 def addgroup(args, fromchat=0):
@@ -620,12 +855,66 @@ def addgroup(args, fromchat=0):
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
+    elif args[:4] == 'tag ':
+        tempargs = args[4:]
+        tag = tempargs[:tempargs.find(' ')]
+        if tempargs.find(' ') == -1:
+            print('参数错误,群号为空')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误,群号为空', 1)
+            return None
+        grouplist = '[{}]'.format(tempargs[tempargs.find(' ') + 1:])
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        try:
+            file = open('config.clc', 'r', encoding='utf-8-sig')
+            config = file.read()
+            config = eval(config)
+            file.close()
+            Tagdict = config['tag']
+        except:
+            Tagdict = {}
+        for i in grouplist:
+            try:
+                Taglist = Tagdict[str(i)]
+            except:
+                Taglist = []
+            Taglist.append(tag)
+            Tagdict[str(i)] = list(set(Taglist))
+        config['tag'] = Tagdict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-添加完毕')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
+        try:
+            ChatMerge.getfile()
+        except:
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2,
+                                    '词库合并错误，请关闭Learning/Reply后重新操作', 1)
+            print('词库合并错误，请关闭Learning/Reply后重新操作')
     else:
         print('参数错误')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
-    pass
 
 
 def removegroup(args, fromchat=0):
@@ -782,7 +1071,6 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '请先添加！', 1)
             return None
-
         pass
         sendtext = ''
         for i in grouplist:
@@ -797,16 +1085,82 @@ def removegroup(args, fromchat=0):
         config['subadmin'] = subadmindict
         file = open('config.clc', 'w', encoding='utf-8-sig')
         file.write(str(config))
+        file.close()
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
         pass
+
+    elif args[:4] == 'tag ':
+        grouplist = '[{}]'.format(args[4:])
+        try:
+            grouplist = grouplist.replace('，', ',')
+            grouplist = grouplist.replace(' ', ',')
+        except:
+            pass
+        try:
+            grouplist = eval(grouplist)
+            if type(grouplist) != type([]):
+                print('参数错误')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                return None
+        except:
+            print('参数错误')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+            return None
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        config = eval(config)
+        file.close()
+        try:
+            Tagdict = config['tag']
+        except:
+            print('请先添加！')
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2, '请先添加！', 1)
+            return None
+        pass
+        sendtext = ''
+        Taglist = []
+        for i in Tagdict.values():
+            Taglist.extend(i)
+        Taglist = list(set(Taglist))
+        for i in Taglist:
+            try:
+                os.remove('WordStock/' + '{}.cl'.format(i))
+            except:
+                pass
+        for i in grouplist:
+            try:
+                Tagdict.pop(str(i))
+            except:
+                print('群', i, '不存在')
+                sendtext = sendtext + str(i) + '\n'
+                continue
+        if sendtext != '':
+            simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
+        config['tag'] = Tagdict
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-移除完毕')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
+        try:
+            ChatMerge.getfile()
+        except:
+            if fromchat != 0:
+                simuse.Send_Message(data, fromchat, 2,
+                                    '词库合并错误，请关闭Learning/Reply后重新操作', 1)
+            print('词库合并错误，请关闭Learning/Reply后重新操作')
+
     else:
         print('参数错误')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
-    pass
 
 
 def learning(learningsign, mergesign, fromchat=0):
@@ -932,6 +1286,7 @@ def merge(time, fromchat=0):
     config['mergetime'] = time
     file2 = open('config.clc', 'w', encoding='utf-8-sig')
     file2.write(str(config))
+    file2.close()
 
 
 def check(fromchat=0):
@@ -939,7 +1294,52 @@ def check(fromchat=0):
     check = My_Thread(target=ChatCheck.main, args=(data, fromchat))
     check.start()
     check.join()
-    
+
+
+def typefreq(data, args, fromchat=0):
+    typelist = [
+        'Plain', 'Image', 'Face', 'FlashImage', 'Voice', 'Forward', 'App',
+        'Xml', 'Json'
+    ]
+    type = args[:args.find(' ')]
+    freq = args[args.find(''):][args[args.find(''):].find(' ') + 1:]
+    for i in typelist:
+        if type == i.lower():
+            type = i
+            break
+    else:
+        typetip = '支持的类型：\n'
+        for types in typelist:
+            typetip += types + ' '
+        print('<-消息类型错误\n' + typetip)
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '消息类型错误\n' + typetip, 1)
+        return None
+    try:
+        freq = int(freq)
+    except:
+        print('<-参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    if freq <= 0:
+        print('<-参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    config = eval(config)
+    file.close()
+    freqdict = config['typefreq']
+    freqdict[type] = freq
+    file = open('config.clc', 'w', encoding='utf-8-sig')
+    file.write(str(config))
+    file.close()
+    print('<-已设置{}回复阈值'.format(type), freq, '次')
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2,
+                            '已设置{}回复阈值'.format(type) + str(freq) + '次', 1)
 
 
 def getcommand_chat():
@@ -998,9 +1398,12 @@ async def getcommand_tui():
         try:
             with patch_stdout():
                 command = await session.prompt_async('\nChatLearning ->')
-        except:
+        except KeyboardInterrupt:
             print('ChatLearning控制台无法加载，可能是置于后台运行，或是程序退出')
             return None
+        except:
+            time.sleep(10)
+            continue
         commandchoice(command)
 
 
@@ -1075,7 +1478,9 @@ def commandchoice(command, fromchat=0):
         blackfreq(command[10:])
     elif command[:11] == 'setvoicept ':
         setvoicept(data, command[11:], fromchat)
-    elif command=='exit':
+    elif command[:9] == 'typefreq ':
+        typefreq(data, command[9:], fromchat)
+    elif command == 'exit':
         exit()
     elif command == 'help' or command == '?' or command == '？':
         commandlist.printhelp(fromchat)
@@ -1097,13 +1502,13 @@ if __name__ == '__main__':
     data = simuse.Get_data()
     data = simuse.Get_Session(data)
     hello()
-    if learningsign==1:
-        learningsign=0
+    if learningsign == 1:
+        learningsign = 0
         tempsign = learning(learningsign, mergesign, 0)
         learningsign = tempsign[0]
         mergesign = tempsign[1]
-    if replysign==1:
-        replysign=0
+    if replysign == 1:
+        replysign = 0
         time.sleep(0.8)
         replysign = reply(replysign, 0)
     loop = asyncio.get_event_loop()

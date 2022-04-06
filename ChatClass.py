@@ -1,12 +1,14 @@
+import os
 import pickle
 import re
+import shutil
 import threading
 import time
 import traceback
-import os
+
 import simuse
 
-version = '2.7.1'
+version = '2.8.0'
 
 
 # 控制台指令类
@@ -18,17 +20,24 @@ class commandclass():
     commandtips['voicereply'] = '#开启/关闭文字转语音回复'
     commandtips['learning <秒>'] = '#设定词库链间隔时间'
     commandtips['reply <％>'] = '#设定回复的触发几率'
+    commandtips['reply -s <％> <群号>'] = '#单独设定回复触发几率'
+    commandtips['reply -d <群号>'] = '#清除单独设定的回复触发几率'
     commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
+    commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
+    commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
     commandtips['merge <秒>'] = '#设定总词库更新时间'
+    commandtips['typefreq <消息类型> <次数>'] = '#设定消息发送阈值'
     commandtips['add learning <群号>'] = '#添加开启记录的群'
     commandtips['add learnings <群号>'] = '#同时添加开启记录和回复的群'
     commandtips['add reply <群号>'] = '#添加开启回复的群'
     commandtips['add subadmin <群号>'] = '#添加可自行管理的群'
     commandtips['add unmerge <群号>'] = '#添加不录入总词库的群'
+    commandtips['add tag <标签> <群号>'] = '#添加群标签'
     commandtips['remove learning <群号>'] = '#移除开启记录的群'
     commandtips['remove reply <群号>'] = '#移除开启回复的群'
     commandtips['remove subadmin <群号>'] = '#移除可自行管理的群'
     commandtips['remove unmerge <群号>'] = '#移除不录入总词库的群'
+    commandtips['remove tag <群号>'] = '#移除群标签'
     commandtips['check'] = '#查看设置情况'
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
@@ -98,8 +107,8 @@ class commandclass():
 
 # 多线程类的复写
 class My_Thread(threading.Thread):
-    daemon=True
-    
+    daemon = True
+
     def run(self):
         # 常驻为守护线程
         try:
@@ -117,14 +126,19 @@ class My_Thread(threading.Thread):
         finally:
             del self._target, self._args, self._kwargs
 
+
 # 返回版本号
 def Version():
     global version
     return version
 
+
 # 2.7.0前版本更新需要更换词库的缓存形式
 def ClChange():
-    filelist = os.listdir()   # 获取词库列表
+    try:
+        filelist = os.listdir('WordStock')  # 获取词库列表
+    except:
+        filelist = os.listdir()  # 获取词库列表
     cllist = []
     for i in filelist:
         if i[-3:] == '.cl':
@@ -134,10 +148,50 @@ def ClChange():
     print('正在为更新做一些准备，请稍等')
     print('期间请勿关闭程序，否则将导致数据丢失！')
     for i in cllist:
-        file=open(i,'r',encoding='utf-8-sig')
-        dicts=file.read()
-        dicts=eval(dicts)
+        file = open(i, 'r', encoding='utf-8-sig')
+        dicts = file.read()
+        dicts = eval(dicts)
         file.close()
-        pickle.dump(dicts,open(i,'wb'))
+        pickle.dump(dicts, open(i, 'wb'))
     print('准备完毕！')
 
+
+def Cl_version(version):
+    version = int(version.replace('.', ''))
+    try:
+        filelist = os.listdir('WordStock')  # 获取词库列表
+    except:
+        filelist = os.listdir()
+    cllist = []
+    if not (os.path.exists('WordStock')):
+        os.mkdir('WordStock')
+    for i in filelist:
+        if i[-3:] == '.cl':
+            #print(i)
+            cllist.append(i)
+    #print(cllist)
+    # 2.8.0前版本更新需要为词库Key添加"freq"次数键
+    if version < 280:
+        print('正在更新词库版本,{} -> 280 请勿中途退出'.format(version))
+        for i in cllist:
+            dicts = pickle.load(open(i, 'rb'))
+            for k in dicts.keys():
+                questiondict = dicts[k]
+                if not ('freq' in questiondict.keys()):
+                    questiondict['freq'] = 1
+            pickle.dump(dicts, open(i, 'wb'))
+            shutil.move(i, 'WordStock/' + i)
+
+
+def Config_version(version):
+    version = int(version.replace('.', ''))
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = eval(file.read())
+    file.close()
+    if version < 280:
+        print('正在更新config, -> 280 请勿中途退出')
+        config['tag'] = {}
+        config['singlereplychance'] = {}
+        config['singlevoicereplychance'] = {}
+        config['typefreq'] = {}
+    return config

@@ -2,9 +2,9 @@
 import copy
 import pickle
 import time
-import ChatFilter
 from re import I
 
+import ChatFilter
 import simuse
 
 
@@ -31,25 +31,29 @@ def creatquestion(question, group):  # 记录问题
         except:
             continue
 
-
-
     question = str(question)
     filename = str(group) + ".cl"
     try:  # 读取已缓存的词库
-        tempdict=pickle.load(open(filename, 'rb'))
+        tempdict = pickle.load(open('WordStock/' + filename, 'rb'))
     except:
         tempdict = {}
     if not (question in tempdict.keys()):  # 判断词库中问题是否存在，若不存在则记录问题
         questiondict = {}
         questiontime = int(time.time())
         answerlist = []
+        questiondict["freq"] = 1
         questiondict["time"] = questiontime
         questiondict["answer"] = answerlist
         tempdict[question] = questiondict
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n问题已记录",
               filename)
+    else:
+        questiondict = tempdict[question]
+        questiondict["freq"] += 1
+        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+              "\n相同问题 已记录重复", filename)
     #print(tempdict)
-    pickle.dump(tempdict,open(filename, 'wb'))
+    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
     return tempquestion  # 返回未去除“url”的消息链，为记录答案做准备
 
 
@@ -64,7 +68,7 @@ def creatanswer(question, answer, group):  # 记录答案
     question = str(question)
     answer = str(answer)
     filename = str(group) + ".cl"
-    tempdict=pickle.load(open(filename, 'rb'))  # 读取缓存的词库
+    tempdict = pickle.load(open('WordStock/' + filename, 'rb'))  # 读取缓存的词库
     answertime = int(time.time())
     answerdict = {"answertext": "", "time": ""}
     answerdict["answertext"] = answer
@@ -108,7 +112,7 @@ def creatanswer(question, answer, group):  # 记录答案
     else:  # 答案列表为空时一定是新答案，所以直接记录
         questiondict["answer"].append(answerdict.copy())
     tempdict[question] = questiondict
-    pickle.dump(tempdict,open(filename, 'wb'))
+    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
           filename)
 
@@ -124,11 +128,13 @@ def extractmessage(data, tempdict):  # 将消息链转化为字典格式（key�
                     continue
             except:
                 pass
-            checkmessage=copy.deepcopy(i['messagechain'])
+            checkmessage = copy.deepcopy(i['messagechain'])
             checkmessage.pop(0)
-            if ChatFilter.sensitivecheck(checkmessage,i['sender'],i['group'])==0:
+            if ChatFilter.sensitivecheck(checkmessage, i['sender'],
+                                         i['group']) == 0:
                 continue
-            elif ChatFilter.filtercheck(checkmessage,i['sender'],i['group'])==0:
+            elif ChatFilter.filtercheck(checkmessage, i['sender'],
+                                        i['group']) == 0:
                 continue
 
             if i['group'] in tempdict.keys():
