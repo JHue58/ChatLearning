@@ -1402,6 +1402,7 @@ async def getcommand_tui():
             print('ChatLearning控制台无法加载，可能是置于后台运行，或是程序退出')
             return None
         except:
+            sys.stdout.flush()
             time.sleep(10)
             continue
         commandchoice(command)
