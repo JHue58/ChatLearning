@@ -41,7 +41,7 @@ def hello():
         ClChange()
         config['version'] = '2.7.0'
     Cl_version(config['version'])
-    config=Config_version(config['version'])
+    config = Config_version(config['version'])
     config['version'] = Version()
     file = open('config.clc', 'w', encoding='utf-8-sig')
     file.write(str(config))
@@ -1417,6 +1417,7 @@ def commandchoice(command, fromchat=0):
     global adminsign
     global voicereplysign
     command = command.lower()
+    command = ' '.join(command.split())
     commandlist = commandclass(data, command)
     if command[:8] == 'learning':
         if command == 'learning':

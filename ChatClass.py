@@ -5,10 +5,11 @@ import shutil
 import threading
 import time
 import traceback
+import platform
 
 import simuse
 
-version = '2.8.0'
+version = '2.8.1'
 
 
 # 控制台指令类

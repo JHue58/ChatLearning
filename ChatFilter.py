@@ -542,6 +542,8 @@ def Merge_Filter():
             Filterconfiglist = list(set(Filterconfiglist))
         except:
             print(filename, '合并错误')
+        else:
+            print(filename, '合并完成')
     FilterConfig = blackcheck()
     Filterlist_origin = FilterConfig['filter']
     Filterlist_origin.extend(Filterconfiglist)
@@ -550,5 +552,3 @@ def Merge_Filter():
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
     file.write(str(FilterConfig))
     file.close()
-    if Filterlist != []:
-        print('合并完成')

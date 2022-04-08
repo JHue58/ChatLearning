@@ -29,8 +29,12 @@ def DelType(tempdict, answerlist):
             try:
                 questiondict = tempdict[str(answertext)]
             except:
-                new_answerlist.remove(answerdict)
-                continue
+                try:
+                    new_answerlist.remove(answerdict)
+                except:
+                    pass
+                num += 1
+                deltype = deltype + i['type'] + ' '
             try:
                 if questiondict['freq'] < freqdict[i['type']]:
                     new_answerlist.remove(answerdict)
@@ -40,7 +44,7 @@ def DelType(tempdict, answerlist):
             except:
                 continue
     if num != 0:
-        print('已过滤{}个不符合发送要求的{}'.format(num, deltype))
+        print('已过滤{}个不符合发送要求的{}'.format(num, ','.join(set(deltype.split()))))
     return new_answerlist
 
 
