@@ -44,10 +44,11 @@ def restore(path):
                     questionsign = line[:qindex]
                     #print('1')
                     questionnum += 1
-                    question = line[qindex + 2:line.rfind('|')]
+                    question = line[qindex + 2:line.rfind('|!TIME!|')]
                     questiondict[question] = {
                         'answer': [],
-                        'time': int(line[line.rfind('|') + 1:])
+                        'time': int(line[line.rfind('|!TIME!|') + 8:line.rfind('|!FREQUENCY!|')]),
+                        'freq': int(line[line.rfind('|!FREQUENCY!|') + 13:]),
                     }
                     #print(question)
                     #os.system('pause')
@@ -63,8 +64,12 @@ def restore(path):
                     answernnum += 1
                     answerdict = {'answertext': '', 'time': ''}
                     answerdict['answertext'] = line[line.find('：') +
-                                                    1:line.rfind('|')]
-                    answerdict['time'] = int(line[line.rfind('|') + 1:])
+                                                    1:line.rfind('|!TIME!|')]               
+                    if line.find('|!FREQUENCY!|') != -1:
+                        answerdict['time'] = int(line[line.rfind('|!TIME!|') + 8:line.rfind('|!FREQUENCY!|')])
+                        answerdict['same'] = int(line[line.rfind('|!FREQUENCY!|') + 13:])
+                    else:
+                        answerdict['time'] = int(line[line.rfind('|!TIME!|') + 8:])
                     #print(answerdict)
                     answerlist.append(answerdict.copy())
                     #print(answerlist)
@@ -101,7 +106,7 @@ def changecl(path):
     lens = len(tempdict)
     questionlist = tempdict.keys()
     questiondictlist = tempdict.values()
-    displaystr = ''
+    displaystr = []
     questionnode = 0
     allanswernum = 0
     sign = 0
@@ -113,13 +118,18 @@ def changecl(path):
         sign += 1
         answernode = 0
         answerlist = questiondict['answer']
-        displaystr = displaystr + '{}问：'.format(questionnode) + str(
-            question) + '|' + str(questiondict['time']) + '\n'
+        displaystr.append('{}问：'.format(questionnode) + str(
+            question) + '|!TIME!|' + str(questiondict['time']) + '|!FREQUENCY!|' + str(questiondict['freq']) + '\n')
         for answerdict in answerlist:
             answer = answerdict['answertext']
-            displaystr = displaystr + '{0}答{1}：'.format(
-                questionnode, answernode) + str(answer) + '|' + str(
-                    answerdict['time']) + '\n'
+            try:
+                displaystr.append('{0}答{1}：'.format(
+                    questionnode, answernode) + str(answer) + '|!TIME!|' + str(
+                        answerdict['time']) + '|!FREQUENCY!|' + str(answerdict['same']) + '\n')
+            except:
+                displaystr.append('{0}答{1}：'.format(
+                    questionnode, answernode) + str(answer) + '|!TIME!|' + str(
+                        answerdict['time']) + '\n')       
             answernode += 1
             allanswernum += 1
         questionnode += 1
@@ -134,8 +144,7 @@ def changecl(path):
                 print(tips, '\r', end='')
             percent = percent + 0.01
 
-    displaystr = '共有问：{0}个，答：{1}个\n'.format(questionnode,
-                                            allanswernum) + displaystr
+    displaystr.insert(0, '共有问：{0}个，答：{1}个\n'.format(questionnode,allanswernum))
     #lens=len(tempdict)
     #print(lens)
     #tempdict= iter(tempdict.items())
@@ -144,7 +153,10 @@ def changecl(path):
     #    alinedict=dict(itertools.islice(tempdict,1))
     #    dictstr=dictstr+str(alinedict)+'\n'
     file = open(path[:-3] + '.txt', 'w', encoding='utf-8-sig')
-    file.write(displaystr)
+    file.close()
+    file = open(path[:-3] + '.txt', 'a', encoding='utf-8-sig')
+    for line in displaystr:
+        file.write(str(line))
     file.close()
 
 
