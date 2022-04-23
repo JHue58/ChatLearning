@@ -1,15 +1,17 @@
 import os
 import pickle
+import platform
 import re
 import shutil
 import threading
 import time
 import traceback
-import platform
+
+import requests
 
 import simuse
 
-version = '2.8.1'
+version = '2.9.0'
 
 
 # 控制台指令类
@@ -39,11 +41,13 @@ class commandclass():
     commandtips['remove subadmin <群号>'] = '#移除可自行管理的群'
     commandtips['remove unmerge <群号>'] = '#移除不录入总词库的群'
     commandtips['remove tag <群号>'] = '#移除群标签'
+    commandtips['fastdelete'] = '#更改快速清除的权限'
     commandtips['check'] = '#查看设置情况'
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
     commandtips['setadmin <QQ号>'] = '#设置管理员QQ号'
     commandtips['setvoicept <训练集>'] = '#设置文字转语音回复的训练集'
+    commandtips['settemp <条数>'] = '#设置单个群中消息缓存最大数目'
     commandtips['blackfreq <次数>'] = '#设置黑名单容错次数'
     commandtips['uploadwav'] = '#上传源音频文件'
     commandtips['admin'] = '#进入管理模式'
@@ -108,24 +112,45 @@ class commandclass():
 
 # 多线程类的复写
 class My_Thread(threading.Thread):
+    Trynum = 0
     daemon = True
+
+    def TrynumSet(self, Trynum):
+        self.Trynum = Trynum
+
+    def Raise_log(self, traceback_str):
+        log = open('log.log', 'a', encoding='utf-8-sig')
+        log.write(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '\n' +
+            traceback_str + '\n')
+        log.close()
+        print('抛出异常，已记录到日志(log.log文件)')
+        print(traceback_str)
 
     def run(self):
         # 常驻为守护线程
-        try:
-            if self._target:
+        if self._target:
+            try:
                 self._target(*self._args, **self._kwargs)
-        except:
-            log = open('log.log', 'a', encoding='utf-8-sig')
-            traceback_str = traceback.format_exc()
-            log.write(
-                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '\n' +
-                traceback_str + '\n')
-            log.close()
-            print('抛出异常，已记录到日志(log.log文件)')
-            print(traceback_str)
-        finally:
-            del self._target, self._args, self._kwargs
+            except ConnectionError:
+                if self.Trynum == 0:
+                    print('{}：未与api-http取得连接，或mirai未登录'.format(self._target))
+                print('{}：正在进行第{}次重试'.format(self._target.__name__,
+                                             self.Trynum + 1))
+                time.sleep(2)
+                New_Thread = My_Thread(target=self._target, args=self._args)
+                New_Thread.TrynumSet(self.Trynum + 1)
+                New_Thread.start()
+            except requests.exceptions.ConnectionError:
+                #print('{}：与api-http连接被强制中断'.format(self._target))
+                self.Raise_log('{}：与api-http连接被强制中断'.format(self._target))
+                New_Thread = My_Thread(target=self._target, args=self._args)
+                New_Thread.start()
+            except:
+                self.Raise_log(traceback.format_exc())
+
+        #finally:
+        #    del self._target, self._args, self._kwargs
 
 
 # 返回版本号
@@ -134,65 +159,74 @@ def Version():
     return version
 
 
-# 2.7.0前版本更新需要更换词库的缓存形式
-def ClChange():
-    try:
-        filelist = os.listdir('WordStock')  # 获取词库列表
-    except:
-        filelist = os.listdir()  # 获取词库列表
-    cllist = []
-    for i in filelist:
-        if i[-3:] == '.cl':
-            #print(i)
-            cllist.append(i)
-    #print(cllist)
-    print('正在为更新做一些准备，请稍等')
-    print('期间请勿关闭程序，否则将导致数据丢失！')
-    for i in cllist:
-        file = open(i, 'r', encoding='utf-8-sig')
-        dicts = file.read()
-        dicts = eval(dicts)
-        file.close()
-        pickle.dump(dicts, open(i, 'wb'))
-    print('准备完毕！')
+# 更新类
+class Update():
 
+    def __init__(self, config_version) -> None:
+        self.version = config_version
+        self.version = int(self.version.replace('.', ''))
 
-def Cl_version(version):
-    version = int(version.replace('.', ''))
-    try:
-        filelist = os.listdir('WordStock')  # 获取词库列表
-    except:
-        filelist = os.listdir()
-    cllist = []
-    if not (os.path.exists('WordStock')):
-        os.mkdir('WordStock')
-    for i in filelist:
-        if i[-3:] == '.cl':
-            #print(i)
-            cllist.append(i)
-    #print(cllist)
-    # 2.8.0前版本更新需要为词库Key添加"freq"次数键
-    if version < 280:
-        print('正在更新词库版本,{} -> 280 请勿中途退出'.format(version))
+    # 2.7.0前版本更新需要更换词库的缓存形式
+    def ClChange():
+        try:
+            filelist = os.listdir('WordStock')  # 获取词库列表
+        except:
+            filelist = os.listdir()  # 获取词库列表
+        cllist = []
+        for i in filelist:
+            if i[-3:] == '.cl':
+                #print(i)
+                cllist.append(i)
+        #print(cllist)
+        print('正在为更新做一些准备，请稍等')
+        print('期间请勿关闭程序，否则将导致数据丢失！')
         for i in cllist:
-            dicts = pickle.load(open(i, 'rb'))
-            for k in dicts.keys():
-                questiondict = dicts[k]
-                if not ('freq' in questiondict.keys()):
-                    questiondict['freq'] = 1
+            file = open(i, 'r', encoding='utf-8-sig')
+            dicts = file.read()
+            dicts = eval(dicts)
+            file.close()
             pickle.dump(dicts, open(i, 'wb'))
-            shutil.move(i, 'WordStock/' + i)
+        print('准备完毕！')
 
+    def Cl_version(self):
+        try:
+            filelist = os.listdir('WordStock')  # 获取词库列表
+        except:
+            filelist = os.listdir()
+        cllist = []
+        if not (os.path.exists('WordStock')):
+            os.mkdir('WordStock')
+        for i in filelist:
+            if i[-3:] == '.cl':
+                #print(i)
+                cllist.append(i)
+        #print(cllist)
+        # 2.8.0前版本更新需要为词库Key添加"freq"次数键
+        if self.version < 280:
+            print('正在更新词库版本,{} -> 280 请勿中途退出'.format(self.version))
+            for i in cllist:
+                dicts = pickle.load(open(i, 'rb'))
+                for k in dicts.keys():
+                    questiondict = dicts[k]
+                    if not ('freq' in questiondict.keys()):
+                        questiondict['freq'] = 1
+                pickle.dump(dicts, open(i, 'wb'))
+                shutil.move(i, 'WordStock/' + i)
 
-def Config_version(version):
-    version = int(version.replace('.', ''))
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = eval(file.read())
-    file.close()
-    if version < 280:
-        print('正在更新config, -> 280 请勿中途退出')
-        config['tag'] = {}
-        config['singlereplychance'] = {}
-        config['singlevoicereplychance'] = {}
-        config['typefreq'] = {}
-    return config
+    def Config_version(self):
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = eval(file.read())
+        file.close()
+        # 280版本功能加入
+        if self.version < 280:
+            print('正在更新config, -> 280 请勿中途退出')
+            config['tag'] = {}
+            config['singlereplychance'] = {}
+            config['singlevoicereplychance'] = {}
+            config['typefreq'] = {}
+        # 290版本功能加入
+        if self.version < 290:
+            print('正在更新config, -> 290 请勿中途退出')
+            config['tempmessagenum'] = 32
+            config['fastdelete'] = 0
+        return config

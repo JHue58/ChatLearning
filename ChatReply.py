@@ -8,6 +8,7 @@ import traceback
 
 import requests
 
+import ChatAllfind
 import ChatFilter
 import simuse
 
@@ -46,6 +47,74 @@ def DelType(tempdict, answerlist):
     if num != 0:
         print('已过滤{}个不符合发送要求的{}'.format(num, ','.join(set(deltype.split()))))
     return new_answerlist
+
+
+def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
+    if getconfig(13) == 0:
+        if not (sender in getconfig(14)):
+            return 1
+    First_index = messagechain[0]
+    IS_ME = 0
+    if First_index['type'] == 'Quote':
+        SourceId = First_index['id']
+        for i in messagechain:
+            if i['type'] == 'At':
+                if str(i['target']) == data['qq']:
+                    IS_ME = 1
+            if i['type'] == 'Plain' and IS_ME == 1:
+                if i['text'].lower() == ' !delete' or i['text'].lower(
+                ) == ' ！delete':
+                    Delete_Sign = Fast_Delete(TempMessage, group, SourceId)
+                    break
+        else:
+            return 0
+        if Delete_Sign == 1:
+            global RecallList
+            simuse.Recall_Message(data, SourceId)
+            time.sleep(1)
+            RecallList.append(simuse.Send_Message(data, group, 1, '删除成功！', 1))
+        elif Delete_Sign == 0:
+            RecallList.append(
+                simuse.Send_Message(data, group, 1, '删除失败，该消息已不在缓存内', 1))
+        elif Delete_Sign == -1:
+            RecallList.append(
+                simuse.Send_Message(data, group, 1, '删除失败，词库中已无法找到该答案', 1))
+        return 1
+    else:
+        return 0
+
+
+def Fast_Delete(TempMessage, group, SourceId):
+    try:
+        IDdict = TempMessage[group]
+        IDlist = IDdict[SourceId]
+    except:
+        return 0
+    filelist = ChatAllfind.getcllist()
+    IS_FIND = 0
+    for filename in filelist:
+        THIS_IS_FIND = 0
+        cldict = pickle.load(open('WordStock/' + filename, 'rb'))
+        try:
+            questiondict = cldict[IDlist[0]]
+        except:
+            continue
+        answerlist = questiondict['answer']
+        for answerdict in answerlist:
+            if answerdict['answertext'] == IDlist[1]:
+                answerlist.remove(answerdict)
+                IS_FIND = 1
+                THIS_IS_FIND = 1
+                if answerlist == []:
+                    cldict.pop(IDlist[0])
+                break
+        if THIS_IS_FIND == 1:
+            pickle.dump(cldict, open('WordStock/' + filename, 'wb'))
+    if IS_FIND == 1:
+        IDdict.pop(SourceId)
+        return 1
+    else:
+        return -1
 
 
 def talkvoice(data, group, messagechain):
@@ -184,6 +253,15 @@ def getconfig(choice):
     elif choice == 11:
         voicereplydict = config['singlevoicereplychance']
         return voicereplydict
+    elif choice == 12:
+        TempMessageNum = config['tempmessagenum']
+        return TempMessageNum
+    elif choice == 13:
+        FastDelete = config['fastdelete']
+        return FastDelete
+    elif choice == 14:
+        Adminlist = config['Administrator']
+        return Adminlist
 
 
 def getanswer(group, question):  # 从词库中获取答案
@@ -256,6 +334,7 @@ def replyanswer(data, group, answer):  # 发送答案
         answer = eval(answer)
     except:
         pass
+    origin_answer = copy.deepcopy(answer)
     for i in answer:  # 去除答案中的imageId，不去除mirai api http会无法回复
         #print(i)
         try:
@@ -302,15 +381,28 @@ def replyanswer(data, group, answer):  # 发送答案
     if number != None:
         if voicereplysign == 0:
             print('答案已发送', number)
+            return origin_answer, number
         else:
             print('答案已发送(语音)', number)
+            return origin_answer, number
         #print('->',end='')
     else:
         print('答案发送失败')
 
 
 def listening(data):
+    global RecallList
+    RecallList = []
+    AfterSecond = 0
+    TempMessage = {}
     while 1:
+        if RecallList != []:
+            AfterSecond += 1
+        if RecallList != [] and AfterSecond >= 10:
+            for messageid in RecallList:
+                simuse.Recall_Message(data, messageid)
+            AfterSecond = 0
+            RecallList = []
         if getconfig(3) == 0:
             return None
         message = simuse.Fetch_Message(data)  # 监听消息链
@@ -328,10 +420,31 @@ def listening(data):
                 messagechain.pop(0)
                 if talkvoice(data, group, messagechain) == 1:
                     continue
+                if Judge_Fast_Delete(data, TempMessage, group, messagechain,
+                                     i['sender']) == 1:
+                    continue
                 question = messagechain
                 answer = getanswer(group, question)  # 获取答案
                 if answer != -1 and answer != None:
-                    replyanswer(data, group, answer)  # 让bot回复
+                    reply_answer_info = replyanswer(data, group,
+                                                    answer)  # 让bot回复
+                    if reply_answer_info != None:
+                        reply_answer = reply_answer_info[0]
+                        SourceId = reply_answer_info[1]
+                        if reply_answer != None:
+                            try:
+                                IDdict = TempMessage[group]
+                                # TempMessage:{group:{id:[question,answer],id:[question,answer]}}
+                            except:
+                                IDlist = [str(question), str(reply_answer)]
+                                IDdict = {}
+                                IDdict[SourceId] = IDlist
+                                TempMessage[group] = IDdict
+                            else:
+                                IDlist = [str(question), str(reply_answer)]
+                                IDdict[SourceId] = IDlist
+                                if len(IDdict) > getconfig(12):
+                                    IDdict.pop(list(IDdict.keys())[0])
         time.sleep(0.5)
 
 

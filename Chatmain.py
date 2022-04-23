@@ -21,8 +21,7 @@ import ChatMerge
 import ChatReply
 import ChatSubadmin
 import simuse
-from ChatClass import (Cl_version, ClChange, Config_version, My_Thread,
-                       Version, commandclass)
+from ChatClass import My_Thread, Update, Version, commandclass
 
 nest_asyncio.apply()
 
@@ -38,10 +37,13 @@ def hello():
     config['learning'] = 0
     config['admin'] = 0
     if ('version' in config.keys()) == False:
-        ClChange()
+        update = Update('0.0.0')
+        update.ClChange()
         config['version'] = '2.7.0'
-    Cl_version(config['version'])
-    config = Config_version(config['version'])
+    else:
+        update = Update(config['version'])
+    update.Cl_version()
+    config = update.Config_version()
     config['version'] = Version()
     file = open('config.clc', 'w', encoding='utf-8-sig')
     file.write(str(config))
@@ -140,7 +142,62 @@ def testvoice(data, text, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '转换失败，存在不支持的字符', 1)
 
 
-def blackfreq(num, fromchat=0):
+def SetTempMessage(data, num, fromchat=0):
+    file = open('config.clc', 'r', encoding='utf-8-sig')
+    config = file.read()
+    file.close()
+    config = eval(config)
+    try:
+        num = int(num)
+    except:
+        print('参数错误')
+        return None
+    if num < 1:
+        print('参数错误')
+        return None
+    config['tempmessagenum'] = num
+    file = open('config.clc', 'w', encoding='utf-8-sig')
+    file.write(str(config))
+    file.close()
+    print('每个群的消息缓存已设置为{}条'.format(num))
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, '每个群的消息缓存已设置为{}条'.format(num),
+                            1)
+
+
+def SetFastDeleteAdmin(FastDeletesign,fromchat=0):
+    global data
+    if FastDeletesign == 0:
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        file.close()
+        config = eval(config)
+        config['fastdelete'] = 1
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-快速删除已设置为所有人可用')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '快速删除已设置为所有人可用', 1)
+        FastDeletesign = 1
+        return FastDeletesign
+    else:
+        FastDeletesign = 0
+        file = open('config.clc', 'r', encoding='utf-8-sig')
+        config = file.read()
+        file.close()
+        config = eval(config)
+        config['fastdelete'] = 0
+        file = open('config.clc', 'w', encoding='utf-8-sig')
+        file.write(str(config))
+        file.close()
+        print('<-快速删除已设置为仅管理员可用')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '快速删除已设置为仅管理员可用', 1)
+        return FastDeletesign
+
+
+def blackfreq(data, num, fromchat=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
     config = file.read()
     file.close()
@@ -847,7 +904,13 @@ def addgroup(args, fromchat=0):
         except:
             Subadmindict = {}
         for i in grouplist:
-            Subadmindict[i] = get_group_perm(data, i)
+            try:
+                Subadmindict[i] = get_group_perm(data, i)
+            except:
+                print('群不存在')
+                if fromchat != 0:
+                    simuse.Send_Message(data, fromchat, 2, '群不存在', 1)
+                return None
         config['subadmin'] = Subadmindict
         file = open('config.clc', 'w', encoding='utf-8-sig')
         file.write(str(config))
@@ -1345,6 +1408,8 @@ def typefreq(data, args, fromchat=0):
 def getcommand_chat():
     global data
     global adminsendmode
+    data = simuse.Get_data()  # Test
+    data = simuse.Get_Session(data)  # Test
     while 1:
         if adminsendmode == 1:
             print('none')
@@ -1416,6 +1481,7 @@ def commandchoice(command, fromchat=0):
     global replysign
     global adminsign
     global voicereplysign
+    global FastDeletesign
     command = command.lower()
     command = ' '.join(command.split())
     commandlist = commandclass(data, command)
@@ -1477,11 +1543,15 @@ def commandchoice(command, fromchat=0):
         adminsign = admin(adminsign, fromchat)
         return 'breaksign'
     elif command[:10] == 'blackfreq ':
-        blackfreq(command[10:])
+        blackfreq(data, command[10:])
     elif command[:11] == 'setvoicept ':
         setvoicept(data, command[11:], fromchat)
     elif command[:9] == 'typefreq ':
         typefreq(data, command[9:], fromchat)
+    elif command[:8] == 'settemp ':
+        SetTempMessage(data, command[8:], fromchat)
+    elif command == 'fastdelete':
+        FastDeletesign = SetFastDeleteAdmin(FastDeletesign,fromchat)
     elif command == 'exit':
         exit()
     elif command == 'help' or command == '?' or command == '？':
@@ -1500,6 +1570,10 @@ if __name__ == '__main__':
         voicereplysign = ChatReply.getconfig(5)
     except:
         voicereplysign = 0
+    try:
+        FastDeletesign = ChatReply.getconfig(13)
+    except:
+        FastDeletesign = 0
     adminsign = 0
     data = simuse.Get_data()
     data = simuse.Get_Session(data)

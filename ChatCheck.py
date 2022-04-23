@@ -126,6 +126,7 @@ def main(data, fromchat):
     mergetimetip = '总词库合成间隔：{}秒'.format(config['mergetime'])
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
     blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
+    tempmessagenumtip = '单个群最大消息缓存数：{}条'.format(config['tempmessagenum'])
     typefreqtip = '回复阈值设定：\n'
     singlereplytip = '指定群回复触发概率：\n'
     singlevoicereplytip = '指定群回复概率（语音）：\n'
@@ -154,7 +155,7 @@ def main(data, fromchat):
             check_version[1])
     else:
         versiontip = "未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip+'\n'+tempmessagenumtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]
     siglereply_message = [{'type': 'Plain', 'text': singlereplytip}]
