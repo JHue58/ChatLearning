@@ -50,9 +50,6 @@ def DelType(tempdict, answerlist):
 
 
 def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
-    if getconfig(13) == 0:
-        if not (sender in getconfig(14)):
-            return 1
     First_index = messagechain[0]
     IS_ME = 0
     if First_index['type'] == 'Quote':
@@ -64,6 +61,9 @@ def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
             if i['type'] == 'Plain' and IS_ME == 1:
                 if i['text'].lower() == ' !delete' or i['text'].lower(
                 ) == ' ！delete':
+                    if getconfig(13) == 0:
+                            if not (sender in getconfig(14)):
+                                return 1                    
                     Delete_Sign = Fast_Delete(TempMessage, group, SourceId)
                     break
         else:
