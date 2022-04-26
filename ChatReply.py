@@ -50,7 +50,10 @@ def DelType(tempdict, answerlist):
 
 
 def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
-    First_index = messagechain[0]
+    try:
+        First_index = messagechain[0]
+    except:
+        return 1
     IS_ME = 0
     if First_index['type'] == 'Quote':
         SourceId = First_index['id']
