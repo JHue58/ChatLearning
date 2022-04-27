@@ -14,7 +14,7 @@
 ![](https://img.shields.io/badge/Python-100%25-orange?style=flat-square)
 [![xxx](https://img.shields.io/badge/Mocking%20Bird-RTVC%20For%20zh-ff69b4?style=flat-square)](https://github.com/babysor/MockingBird)
 
-# 欢迎 Pick💘 本项目 [官方网站](http://chat-learning.skadi.top/)
+# 欢迎 Pick💘 本项目 [演示官网](http://chat-learning.skadi.top/)
 
 </div> 
 
@@ -126,18 +126,6 @@
 **Q**：我要怎么才能让bot回复？
 
 **A**：首先应添加需要bot回复的群号，然后开启回复功能（输入<code>help</code>可查看到对应指令）
-
-------
-
-**Q**：什么是词库链间隔时间？
-
-**A：
-
-------
-
-**Q**：什么是管理模式？
-
-**A**：在这个模式中，你可以删除一些你觉得需要删除的回复，首先需要设置管理员QQ
 
 ------
 
