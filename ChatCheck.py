@@ -12,9 +12,8 @@ from ChatClass import Version
 
 def getallconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     return config
 
 
@@ -118,6 +117,7 @@ def main(data, fromchat):
     else:
         golbetip = golbetip.format('关闭')
     replychancetip = '回复触发概率：{}%'.format(config['replychance'])
+    replywaittip = '回复等待时间：{:g}±{:g}秒'.format(config['replywait'][0],config['replywait'][1])
     voicereplychancetip = '语音回复触发概率：{}%'.format(config['voicereplychance'])
     try:
         synthesizertip = '训练集：{}'.format(config['synthesizer'])
@@ -155,7 +155,7 @@ def main(data, fromchat):
             check_version[1])
     else:
         versiontip = "未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' + voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip+'\n'+tempmessagenumtip
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' + replychancetip + '\n' +replywaittip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip+'\n'+tempmessagenumtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]
     siglereply_message = [{'type': 'Plain', 'text': singlereplytip}]

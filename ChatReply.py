@@ -15,6 +15,17 @@ import simuse
 nowtime = time.time()
 
 
+def RandomStop():
+    replywait = getconfig(15)
+    StopTime=replywait[0]
+    RandomArea=random.uniform(-replywait[1],replywait[1])
+    print('WaitTime:{}'.format(StopTime+RandomArea))
+    time.sleep(StopTime+RandomArea)
+
+
+
+
+
 def DelType(tempdict, answerlist):
     freqdict = getconfig(10)
     num = 0
@@ -49,7 +60,7 @@ def DelType(tempdict, answerlist):
     return new_answerlist
 
 
-def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
+def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender,messageId):
     try:
         First_index = messagechain[0]
     except:
@@ -63,7 +74,7 @@ def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
                     IS_ME = 1
             if i['type'] == 'Plain' and IS_ME == 1:
                 if i['text'].lower() == ' !delete' or i['text'].lower(
-                ) == ' ！delete':
+                ) == ' ！delete' or i['text'].lower()==' !d' or i['text'].lower()==' ！d':
                     if getconfig(13) == 0:
                             if not (sender in getconfig(14)):
                                 return 1                    
@@ -75,13 +86,14 @@ def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender):
             global RecallList
             simuse.Recall_Message(data, SourceId)
             time.sleep(1)
-            RecallList.append(simuse.Send_Message(data, group, 1, '删除成功！', 1))
+            RecallList.append(simuse.Send_Message(data, group, 1, '已从词库内删除！', 1))
         elif Delete_Sign == 0:
             RecallList.append(
                 simuse.Send_Message(data, group, 1, '删除失败，该消息已不在缓存内', 1))
         elif Delete_Sign == -1:
             RecallList.append(
                 simuse.Send_Message(data, group, 1, '删除失败，词库中已无法找到该答案', 1))
+        RecallList.append(messageId)
         return 1
     else:
         return 0
@@ -138,8 +150,8 @@ def talkvoice(data, group, messagechain):
             if text[:3] == '快说 ':
                 text = text[3:]
                 if len(text) > 50:
-                    print('超过长度限制')
-                    simuse.Send_Message(data, group, 1, '超过长度限制', 1)
+                    print('长度超过限制')
+                    simuse.Send_Message(data, group, 1, getconfig(16)['voicelengtherror'], 1)
                     return None
                 if canToVoice(text):
                     try:
@@ -155,14 +167,14 @@ def talkvoice(data, group, messagechain):
                         else:
                             print('转换冷却中')
                             simuse.Send_Message(data, group, 1,
-                                                '能不能让我休息下喝口水再说啊？', 1)
+                                                getconfig(16)['voicecderror'], 1)
                             return 1
                     except:
                         print('转换语音失败')
                         return None
                 else:
                     print('存在违规字符，转换失败')
-                    simuse.Send_Message(data, group, 1, '存在违规字符，转换失败', 1)
+                    simuse.Send_Message(data, group, 1, getconfig(16)['voicecharerror'], 1)
                     return None
         except:
             return None
@@ -193,6 +205,17 @@ def CanSendTask(nowtime, cd):
 
 
 def Plain_Voice(data, text):
+    # 检查训练集是否在服务器中
+    pturl="http://124.222.165.166:19630/Ptlist"
+    try:
+        ptres = requests.request('get', pturl, timeout=20)
+        ptres = json.loads(ptres.text)
+    except:
+        return None
+    ptlist = ptres['ptlist']
+    if not (getconfig(7) in ptlist):
+        return None
+
     url = 'http://124.222.165.166:19630/ToVoice'
     data_in = {'text': text, 'QQ': data['qq'], 'synthesizer': getconfig(7)}
     try:
@@ -219,9 +242,8 @@ def runchance(replychance):
 
 def getconfig(choice):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     if choice == 1:
         grouplist = config['replygrouplist']
         grouptuple = tuple(grouplist)
@@ -265,6 +287,11 @@ def getconfig(choice):
     elif choice == 14:
         Adminlist = config['Administrator']
         return Adminlist
+    elif choice == 15:
+        replywait = config['replywait']
+        return replywait
+    elif choice == 16:
+        return config
 
 
 def getanswer(group, question):  # 从词库中获取答案
@@ -351,6 +378,7 @@ def replyanswer(data, group, answer):  # 发送答案
     if ChatFilter.filtercheck(copy.deepcopy(answer)) == 0:
         return None
     print(answer, end='')
+
     if getconfig(5) == 1:
         voicereplydict = getconfig(11)
         if str(group) in voicereplydict.keys():
@@ -378,6 +406,10 @@ def replyanswer(data, group, answer):  # 发送答案
                     except:
                         print('转换语音失败')
                     break
+
+    # 添加随机阻塞，增加真实感
+    if voicereplysign==0:
+        RandomStop()
 
     number = simuse.Send_Message_Chain(data, group, 1,
                                        answer)  # 让bot发送随机抽取中的答案
@@ -420,11 +452,13 @@ def listening(data):
                 except:
                     continue
                 messagechain = i['messagechain']
+                messageSource = messagechain[0]
+                messageId = messageSource['id']
                 messagechain.pop(0)
                 if talkvoice(data, group, messagechain) == 1:
                     continue
                 if Judge_Fast_Delete(data, TempMessage, group, messagechain,
-                                     i['sender']) == 1:
+                                     i['sender'],messageId) == 1:
                     continue
                 question = messagechain
                 answer = getanswer(group, question)  # 获取答案

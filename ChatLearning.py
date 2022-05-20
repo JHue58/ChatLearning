@@ -2,6 +2,7 @@
 import copy
 import pickle
 import time
+import json
 from re import I
 
 import ChatFilter
@@ -10,9 +11,8 @@ import simuse
 
 def getconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     learning = config['learning']
     interval = config['interval']
     grouplist = config['learninggrouplist']

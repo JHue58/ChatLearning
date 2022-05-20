@@ -1,15 +1,15 @@
 import os
 import pickle
 import time
+import json
 
 
 
 
 def getconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     #print(config)
     try:
         return config['merge'], config['mergetime'], config[

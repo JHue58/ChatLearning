@@ -530,7 +530,7 @@ def findallquestion(data,
         return None
     time.sleep(1)
     simuse.Send_Message(data, target, target_type,
-                        '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
+                        '请输入你的选择\n1.查看查找结果\n2.继续查找\n3.返回', 1)
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender, group=group)
         if command == str(1):
@@ -623,7 +623,7 @@ def findallanswer(data, sender, cllist, answer, group=0, target_type=0):
     lines_dict = filename_lines_dict[1]
     time.sleep(1)
     simuse.Send_Message(data, target, target_type,
-                        '请输入你的选择\n1.返回查找结果\n2.继续查找\n3.返回', 1)
+                        '请输入你的选择\n1.查看查找结果\n2.继续查找\n3.返回', 1)
     while 1:
         command = ChatAdmin.get_admin_command(data, sender=sender, group=group)
         if command == str(1):

@@ -4,6 +4,7 @@ import os
 import pickle
 import threading
 import time
+import json
 
 #import nest_asyncio
 from prompt_toolkit import PromptSession
@@ -76,14 +77,13 @@ def get_admin_command(data, adminlist=0, sender=0, group=0):
 
 def exitadmin(getadminsign=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     if getadminsign == 1:
         return config['admin']
     config['admin'] = 0
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    file.write(str(config))
+    json.dump(config,file,indent=3,ensure_ascii=False)
     file.close()
 
 
@@ -183,9 +183,8 @@ def getnode(data, tempdict, answerlist, group, sender, question):
 
 def getconfig(adminnum=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = file.read()
+    config = json.load(file)
     file.close()
-    config = eval(config)
     if adminnum == 1:
         return config['Administrator']
     admin = config['admin']

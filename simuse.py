@@ -116,94 +116,111 @@ def Fetch_Message_info(Message):
 #发送消息(target_type:1-群,2-私聊,3-临时会话;message_type:1-文字,2-图片;path:传入不为0的int值可发送本地图片，默认为url)
 ##target_type为3，传入的target应当为一个字典dict，格式:{'qq':'123','group':'123'}
 #返回值为本次发送的消息id
-def Send_Message(data, target, target_type, message, message_type, path=0):
+def Send_Message(data, targets, target_type, message, message_type, path=0):
+
+    targetlist=[]
+    if type(targets)==type([]):
+        targetlist.extend(targets)
+    else:
+        targetlist.append(targets)
+    
     host = data['host']
     session = data['session']
-    if target_type == 1 and message_type == 1:
-        #print('1')
-        url = 'http://' + host + '/sendGroupMessage'
-        messageinfo = []
-        messagechain = dict(type='Plain', text=message)
-        messageinfo.append(messagechain.copy())
-    elif target_type == 2 and message_type == 1:
-        #print('2')
-        url = 'http://' + host + '/sendFriendMessage'
-        messageinfo = []
-        messagechain = dict(type='Plain', text=message)
-        messageinfo.append(messagechain.copy())
-    elif target_type == 1 and message_type == 2:
-        #print('3')
-        url = 'http://' + host + '/sendGroupMessage'
-        messageinfo = []
-        if path == 0:
-            messagechain = dict(type='Image', url=message)
+
+    for target in targetlist:
+        if target_type == 1 and message_type == 1:
+            #print('1')
+            url = 'http://' + host + '/sendGroupMessage'
+            messageinfo = []
+            messagechain = dict(type='Plain', text=message)
             messageinfo.append(messagechain.copy())
-        elif path != 0:
-            messagechain = dict(type='Image', path=message)
+        elif target_type == 2 and message_type == 1:
+            #print('2')
+            url = 'http://' + host + '/sendFriendMessage'
+            messageinfo = []
+            messagechain = dict(type='Plain', text=message)
             messageinfo.append(messagechain.copy())
-    elif target_type == 2 and message_type == 2:
-        #print('4')
-        url = 'http://' + host + '/sendFriendMessage'
-        messageinfo = []
-        if path == 0:
-            messagechain = dict(type='Image', url=message)
+        elif target_type == 1 and message_type == 2:
+            #print('3')
+            url = 'http://' + host + '/sendGroupMessage'
+            messageinfo = []
+            if path == 0:
+                messagechain = dict(type='Image', url=message)
+                messageinfo.append(messagechain.copy())
+            elif path != 0:
+                messagechain = dict(type='Image', path=message)
+                messageinfo.append(messagechain.copy())
+        elif target_type == 2 and message_type == 2:
+            #print('4')
+            url = 'http://' + host + '/sendFriendMessage'
+            messageinfo = []
+            if path == 0:
+                messagechain = dict(type='Image', url=message)
+                messageinfo.append(messagechain.copy())
+            elif path != 0:
+                messagechain = dict(type='Image', path=message)
+                messageinfo.append(messagechain.copy())
+        elif target_type == 3 and message_type == 1:
+            #print('5')
+            url = 'http://' + host + '/sendTempMessage'
+            messageinfo = []
+            messagechain = dict(type='Plain', text=message)
             messageinfo.append(messagechain.copy())
-        elif path != 0:
-            messagechain = dict(type='Image', path=message)
-            messageinfo.append(messagechain.copy())
-    elif target_type == 3 and message_type == 1:
-        #print('5')
-        url = 'http://' + host + '/sendTempMessage'
-        messageinfo = []
-        messagechain = dict(type='Plain', text=message)
-        messageinfo.append(messagechain.copy())
-    elif target_type == 3 and message_type == 2:
-        #print('6')
-        url = 'http://' + host + '/sendTempMessage'
-        messageinfo = []
-        if path == 0:
-            messagechain = dict(type='Image', url=message)
-            messageinfo.append(messagechain.copy())
-        elif path != 0:
-            messagechain = dict(type='Image', path=message)
-            messageinfo.append(messagechain.copy())
-    else:
-        return 0
-    if target_type == 3:
-        data_in = dict(sessionKey=session, messageChain=messageinfo)
-        data_in.update(target)
-    else:
-        data_in = dict(sessionKey=session,
-                       target=target,
-                       messageChain=messageinfo)
-    res = r.request('post', url, json=data_in)
-    res = json.loads(res.text)
+        elif target_type == 3 and message_type == 2:
+            #print('6')
+            url = 'http://' + host + '/sendTempMessage'
+            messageinfo = []
+            if path == 0:
+                messagechain = dict(type='Image', url=message)
+                messageinfo.append(messagechain.copy())
+            elif path != 0:
+                messagechain = dict(type='Image', path=message)
+                messageinfo.append(messagechain.copy())
+        else:
+            return 0
+        if target_type == 3:
+            data_in = dict(sessionKey=session, messageChain=messageinfo)
+            data_in.update(target)
+        else:
+            data_in = dict(sessionKey=session,
+                        target=target,
+                        messageChain=messageinfo)
+        res = r.request('post', url, json=data_in)
+        res = json.loads(res.text)
     if res['code'] == 0:
         return res['messageId']
 
 
 #若了解mah的消息链后，可以用此函数发送消息链
 #返回值为本次发送的消息id
-def Send_Message_Chain(data, target, target_type, messagechain):
+def Send_Message_Chain(data, targets, target_type, messagechain):
+    targetlist=[]
+    if type(targets)==type([]):
+        targetlist.extend(targets)
+    else:
+        targetlist.append(targets)
+        
     host = data['host']
     session = data['session']
-    if target_type == 1:
-        url = 'http://' + host + '/sendGroupMessage'
-    elif target_type == 2:
-        url = 'http://' + host + '/sendFriendMessage'
-    elif target_type == 3:
-        url = 'http://' + host + '/sendTempMessage'
-    else:
-        return 0
-    if target_type == 3:
-        data_in = dict(sessionKey=session, messageChain=messagechain)
-        data_in.update(target)
-    else:
-        data_in = dict(sessionKey=session,
-                       target=target,
-                       messageChain=messagechain)
-    res = r.request('post', url, json=data_in)
-    res = json.loads(res.text)
+
+    for target in targetlist:
+        if target_type == 1:
+            url = 'http://' + host + '/sendGroupMessage'
+        elif target_type == 2:
+            url = 'http://' + host + '/sendFriendMessage'
+        elif target_type == 3:
+            url = 'http://' + host + '/sendTempMessage'
+        else:
+            return 0
+        if target_type == 3:
+            data_in = dict(sessionKey=session, messageChain=messagechain)
+            data_in.update(target)
+        else:
+            data_in = dict(sessionKey=session,
+                        target=target,
+                        messageChain=messagechain)
+        res = r.request('post', url, json=data_in)
+        res = json.loads(res.text)
     if res['code'] == 0:
         return res['messageId']
 
