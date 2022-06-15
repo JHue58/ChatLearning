@@ -51,6 +51,8 @@ def Get_Session(data, getsession=0):
     host = data['host']
     verifyKey = data['Key']
     qq = data['qq']
+    if verifyKey=='':
+        return 0
     url = 'http://' + host + '/verify'
     data_in = dict(verifyKey=verifyKey)
     try:
@@ -77,7 +79,7 @@ def Fetch_Message(data, deal=1):
         raise ConnectionError('未与api-http取得连接，或mirai未登录')
     host = data['host']
     session = data['session']
-    url = 'http://' + host + '/fetchMessage' + '?sessionKey=' + session + '&count=10'
+    url = 'http://' + host + '/fetchMessage?' + 'count=10'+ '&sessionKey=' + session 
     res = r.request('get', url)
     res = json.loads(res.text)
     Message = res['data']

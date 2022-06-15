@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import datetime
+from distutils.log import fatal
 import pickle
 import json
 import os
@@ -1683,7 +1684,8 @@ def getcommand_chat():
     global data
     global adminsendmode
     data = simuse.Get_data()  # Test
-    data = simuse.Get_Session(data)  # Test
+    if data["Key"] != "":
+        data = simuse.Get_Session(data)  # Test
     while 1:
         if adminsendmode == 1:
             print('none')
@@ -1860,7 +1862,9 @@ if __name__ == '__main__':
         FastDeletesign = 0
     adminsign = 0
     data = simuse.Get_data()
-    data = simuse.Get_Session(data)
+    fatal(data)
+    if data["Key"] != "":
+        data = simuse.Get_Session(data)
     if learningsign == 1:
         learningsign = 0
         tempsign = learning(learningsign, mergesign, 0)
