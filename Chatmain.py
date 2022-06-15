@@ -1862,7 +1862,6 @@ if __name__ == '__main__':
         FastDeletesign = 0
     adminsign = 0
     data = simuse.Get_data()
-    fatal(data)
     if data["Key"] != "":
         data = simuse.Get_Session(data)
     if learningsign == 1:
