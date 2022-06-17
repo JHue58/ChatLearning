@@ -25,11 +25,11 @@
 
 ```json
 {
- "Key": "xxxxx", //在mirai-api-http中设置的密钥
- "host": "127.0.0.1", //mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
- "port": "8080", //mirai-api-http中设置的端口
- "qq": "xxx",  //在mirai登陆的QQ号
- "session": "xxx" //无需修改
+ "Key": "xxxxx", // 在mirai-api-http中设置的密钥,若使用singleMode也不需要校验,设置为""即可
+ "host": "127.0.0.1", // mirai-api-http中设置的地址（若设置成0.0.0.0，请填写127.0.0.1）
+ "port": "8080", // mirai-api-http中设置的端口
+ "qq": "xxx",  // 在mirai登陆的QQ号
+ "session": "xxx" // 无需修改
 }
 ```
 

@@ -487,7 +487,8 @@ def listening(data):
 
 def main():
     data = simuse.Get_data()
-    data = simuse.Get_Session(data)
+    if data["Key"] != "":
+        data = simuse.Get_Session(data)
     listening(data)
     return None
 

@@ -92,7 +92,8 @@ def Subadmin(group, sender):
     group=int(group)
     print('群{}进入管理模式,操作者：{}'.format(group, sender))
     data = simuse.Get_data()
-    data = simuse.Get_Session(data)
+    if data["Key"] != "":
+        data = simuse.Get_Session(data)
     learning_config = ChatLearning.getconfig()
     reply_config = [ChatReply.getconfig(3), ChatReply.getconfig(1)]
     learning_close_sign = 0
@@ -118,7 +119,8 @@ def Subadmin(group, sender):
 
 def main():
     data = simuse.Get_data()
-    data = simuse.Get_Session(data)
+    if data["Key"] != "":
+        data = simuse.Get_Session(data)
     while 1:
         time.sleep(1)
         subadmindict = getconfig()
