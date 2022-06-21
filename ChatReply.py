@@ -38,23 +38,32 @@ def DelType(tempdict, answerlist):
                 i.pop('url')
             except:
                 pass
+
             try:
-                questiondict = tempdict[str(answertext)]
+                weight=answerdict['same']+1
             except:
-                try:
-                    new_answerlist.remove(answerdict)
-                except:
-                    pass
-                num += 1
-                deltype = deltype + i['type'] + ' '
+                weight=1
+            
             try:
-                if questiondict['freq'] < freqdict[i['type']]:
-                    new_answerlist.remove(answerdict)
-                    num += 1
-                    deltype = deltype + i['type'] + ' '
-                    continue
+                if weight < freqdict[i['type']]:
+                    try:
+                        questiondict = tempdict[str(answertext)]
+                        if questiondict['freq'] < freqdict[i['type']]:
+                            new_answerlist.remove(answerdict)
+                            num += 1
+                            deltype = deltype + i['type'] + ' '
+                            continue
+                    except:
+                        new_answerlist.remove(answerdict)
+                        num +=1
+                        deltype = deltype + i['type'] + ' '
+                        continue
+                    else:
+                        continue
             except:
-                continue
+                pass
+
+
     if num != 0:
         print('已过滤{}个不符合发送要求的{}'.format(num, ','.join(set(deltype.split()))))
     return new_answerlist
@@ -86,13 +95,13 @@ def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender,messageId):
             global RecallList
             simuse.Recall_Message(data, SourceId)
             time.sleep(1)
-            RecallList.append(simuse.Send_Message(data, group, 1, '已从词库内删除！', 1))
+            RecallList.append(simuse.Send_Message(data, group, 1, getconfig(16)['deletesuccess'], 1))
         elif Delete_Sign == 0:
             RecallList.append(
-                simuse.Send_Message(data, group, 1, '删除失败，该消息已不在缓存内', 1))
+                simuse.Send_Message(data, group, 1, getconfig(16)['deletetemperror'], 1))
         elif Delete_Sign == -1:
             RecallList.append(
-                simuse.Send_Message(data, group, 1, '删除失败，词库中已无法找到该答案', 1))
+                simuse.Send_Message(data, group, 1, getconfig(16)['deletefinderror'], 1))
         RecallList.append(messageId)
         return 1
     else:
@@ -354,7 +363,7 @@ def replyanswer(data, group, answer):  # 发送答案
         return None
 
     try:
-        answer = random.choice(answer)  # 尝试从答案列表中随机抽取一个答案，若答案列表为空，则不回复
+        answer = random_weight(answer)  # 尝试从答案列表中随机抽取一个答案，若答案列表为空，则不回复
         answer = answer['answertext']
     except:
         print('无答案，不给予回复')
@@ -423,6 +432,26 @@ def replyanswer(data, group, answer):  # 发送答案
         #print('->',end='')
     else:
         print('答案发送失败')
+
+
+# 以same作为权重选择
+def random_weight(answerlist):
+
+    same_weight_multiple = 1 # 权重乘值
+    same_weight_plus = 1 # 权重加值
+
+    same_list=[]
+    for answerdict in answerlist:
+        try:
+            same_list.append((answerdict["same"]+same_weight_plus)*same_weight_multiple)
+        except:
+            same_list.append((0+same_weight_plus)*same_weight_multiple)
+    answer = random.choices(answerlist,weights=same_list,k=1)[0]
+    # print("权重选择器选择：",answer)
+    if answer!=None:
+        return answer
+    else:
+        return random.choice(answerlist)
 
 
 def listening(data):

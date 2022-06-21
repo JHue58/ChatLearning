@@ -443,7 +443,7 @@ def filtercontrol(data, sender):
     ExitChain=[{'type':'Plain','text':'exit'}]
     while 1:
         time.sleep(1)
-        tips = '请选择你的操作\n1.添加需过滤的关键字\n2.添加敏感关键字\n3.添加黑名单账号\n4.查看\n5.退出管理模式'
+        tips = '请选择你的操作\n0.返回\n1.添加需过滤的关键字\n2.添加敏感关键字\n3.添加黑名单账号\n4.查看'
         simuse.Send_Message(data, sender, 2, tips, 1)
         while 1:
             command = ChatAdmin.get_admin_command(data, sender=sender)
@@ -504,7 +504,7 @@ def filtercontrol(data, sender):
             simuse.Send_Message(data, sender, 2, '添加完毕', 1)
         elif command == str(4):
             simuse.Send_Message(data, sender, 2,
-                                '请输入需要查看的内容\n1.过滤的关键字\n2.敏感的关键字\n3.黑名单\n4.返回',
+                                '请输入需要查看的内容\n0.返回\n1.过滤的关键字\n2.敏感的关键字\n3.黑名单',
                                 1)
             while 1:
                 Filterconfig = blackcheck()

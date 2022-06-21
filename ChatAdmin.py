@@ -343,7 +343,7 @@ def listening(data, adminlist, group):
                 command = messagechain[0]
                 if command['type'] == 'Plain' and command['text'] == 'admin':
                     exitadmin()
-                    simuse.Send_Message(data, i['sender'], 2, '退出管理模式', 1)
+                    #simuse.Send_Message(data, i['sender'], 2, '退出管理模式', 1)
                     break
                 question = messagechain
                 getanswer(data, i['sender'], group, question)  # 获取答案
@@ -357,7 +357,7 @@ def tui(data, adminlist, group):
     while 1:
         time.sleep(1)
         if exitadmin(1) == 0:
-            print('退出管理模式')
+            #print('退出管理模式')
             return None
     #return None
 
@@ -388,14 +388,13 @@ def main(data, adminlist, group, fromchat):
     #print(getfilelist())
     if not (group in getfilelist()):
         print('<-群定位失败，未找到群', group)
-        print('<-退出管理模式')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2,
-                                '群定位失败，未找到群' + str(group) + '\n' + '退出管理模式', 1)
+                                '群定位失败，未找到群' + str(group), 1)
         return None
     print('<-定位到群', group)
     if fromchat != 0:
-        tips = '定位到群' + str(group) + '\n' + '请发送“问题”，发送admin可退出管理模式'
+        tips = '定位到群' + str(group) + '\n' + '请发送“问题”，发送admin可退出'
         simuse.Send_Message(data, fromchat, 2, tips, 1)
     print('请使用管理员QQ', getconfig(1), '向bot发送消息')
     tui(data, adminlist, group)

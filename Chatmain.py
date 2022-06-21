@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import datetime
-from distutils.log import fatal
 import pickle
 import json
 import os
@@ -178,31 +177,31 @@ def RunAutoTask():
 
 def AutoTaskLog(function):
     def wrapper(Task):
-        print('开始执行自动任务{}'.format(Task.TaskName))
+        print('开始执行自动任务"{}"'.format(Task.TaskName))
         with open('AutoTask/Tasklog.log', 'a',
                     encoding='utf-8-sig') as file:
             nowtime = datetime.datetime.now().strftime(
                 '%Y-%m-%d %H:%M:%S')
-            file.write(nowtime + ' 开始执行自动任务{}'.format(Task.TaskName) +
+            file.write(nowtime + ' 开始执行自动任务"{}"'.format(Task.TaskName) +
                         '\n')
         try:
             function(Task)
         except:
-            print('自动任务{}执行出错，异常已记录'.format(Task.TaskName))
+            print('自动任务"{}"执行出错，异常已记录'.format(Task.TaskName))
             with open('AutoTask/Tasklog.log', 'a',
                         encoding='utf-8-sig') as file:
                 nowtime = datetime.datetime.now().strftime(
                     '%Y-%m-%d %H:%M:%S')
-                file.write(nowtime + ' 自动任务{}执行出错：\n'.format(Task.TaskName) +traceback.format_exc()+
+                file.write(nowtime + ' 自动任务"{}"执行出错：\n'.format(Task.TaskName) +traceback.format_exc()+
                             '\n')
             raise
         else:
-            print('自动任务{}执行完毕'.format(Task.TaskName))
+            print('自动任务"{}"执行完毕'.format(Task.TaskName))
             with open('AutoTask/Tasklog.log', 'a',
                         encoding='utf-8-sig') as file:
                 nowtime = datetime.datetime.now().strftime(
                     '%Y-%m-%d %H:%M:%S')
-                file.write(nowtime + ' 自动任务{}执行完毕'.format(Task.TaskName) +
+                file.write(nowtime + ' 自动任务"{}"执行完毕'.format(Task.TaskName) +
                             '\n')
     return wrapper
 
@@ -431,7 +430,6 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
         file = open('config.clc', 'r', encoding='utf-8-sig')
         config = json.load(file)
         file.close()
-        config = eval(config)
         config['fastdelete'] = 1
         file = open('config.clc', 'w', encoding='utf-8-sig')
         json.dump(config, file, indent=3, ensure_ascii=False)
@@ -446,7 +444,6 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
         file = open('config.clc', 'r', encoding='utf-8-sig')
         config = json.load(file)
         file.close()
-        config = eval(config)
         config['fastdelete'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
         json.dump(config, file, indent=3, ensure_ascii=False)
@@ -602,80 +599,93 @@ def admin(adminsign, fromchat=0):
         time.sleep(0.8)
         replysign = reply(replysign, fromchat)
         reply_close_sign = 1
+    print('<-进入管理模式')
+    print('请不要操作控制台！！！')
     if adminsign == 0:
-        time.sleep(0.8)
-        print('<-进入管理模式')
-        print('请不要操作控制台！！！')
-        #print('拥有词库的群号:')
-        #print(ChatAdmin.getfilelist())
-        tips = '请发送需要操作的序号\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置\n4.自动清理词库'
-        simuse.Send_Message(data, fromchat, 2, tips, 1)
-        command = getcommand_chat_foradmin()
-        choice = command[0]
-        sender = command[1]
-        if choice == str(1):
-            ChatAllfind.findallcontrol(data, fromchat)
-            print(('<-退出管理模式'))
-            simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-            #return adminsign
-        elif choice == str(2):
-            if fromchat != 0:
-                tips = '进入管理模式' + '\n' + '拥有词库的群号' + '\n' + str(
-                    ChatAdmin.getfilelist()) + '\n' + '请发送需要选择的群号'
-                simuse.Send_Message(data, fromchat, 2, tips, 1)
-            print('请使用管理员QQ', ChatAdmin.getconfig(1), '向bot发送需要选择的群号')
-            #adminsendmode=1
-            time.sleep(0.5)
-            #adminsendmode=0
+        while True:
+            time.sleep(0.8)  
+            #print('拥有词库的群号:')
+            #print(ChatAdmin.getfilelist())
+            tips = '请发送需要操作的序号\n0.退出管理模式\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置\n4.自动清理词库\n5.添加自动任务\n6.添加自定义回复'
+            simuse.Send_Message(data, fromchat, 2, tips, 1)
             command = getcommand_chat_foradmin()
-            group = command[0]
+            choice = command[0]
             sender = command[1]
-            try:
-                group = str(group)
-            except:
-                print('参数错误')
-                print('<-退出管理模式')
+            if choice == str(0):
+                print(('<-退出管理模式'))
+                simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
+                break
+            elif choice == str(1):
+                ChatAllfind.findallcontrol(data, fromchat)
+                #return adminsign
+            elif choice == str(2):
                 if fromchat != 0:
-                    simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
-                return adminsign
-            file = open('config.clc', 'r', encoding='utf-8-sig')
-            config = json.load(file)
-            file.close()
-            config['admin'] = 1
-            file = open('config.clc', 'w', encoding='utf-8-sig')
-            json.dump(config, file, indent=3, ensure_ascii=False)
-            file.close()
-            ChatAdmin.main(data, config['Administrator'], group, sender)
-            #admin=My_Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
-            #adminsign=1
-            #admin.join()
-            #listen = My_Thread(target=getcommand_chat)
-            #listen.start()
-            #return adminsign
-        elif choice == str(3):
-            ChatFilter.filtercontrol(data, fromchat)
-            print('<-退出管理模式')
-            simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-            #return adminsign
-        elif choice == str(4):
-            simuse.Send_Message(
-                data, fromchat, 2,
-                '此操作将会删除词库中仅出现过单次的条目和被过滤的条目，且操作不可逆！！\n请输入“确定”确认删除', 1)
-            command = getcommand_chat_foradmin()
-            if command[0] == '确定':
+                    tips = '进入管理模式' + '\n' + '拥有词库的群号' + '\n' + str(
+                        ChatAdmin.getfilelist()) + '\n' + '请发送需要选择的群号'
+                    simuse.Send_Message(data, fromchat, 2, tips, 1)
+                print('请使用管理员QQ', ChatAdmin.getconfig(1), '向bot发送需要选择的群号')
+                #adminsendmode=1
+                time.sleep(0.5)
+                #adminsendmode=0
+                command = getcommand_chat_foradmin()
+                group = command[0]
                 sender = command[1]
-                ChatDelete.Delete(data, sender)
-                print('<-退出管理模式')
-                simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
+                try:
+                    group = str(group)
+                except:
+                    print('参数错误')
+                    if fromchat != 0:
+                        simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+                file = open('config.clc', 'r', encoding='utf-8-sig')
+                config = json.load(file)
+                file.close()
+                config['admin'] = 1
+                file = open('config.clc', 'w', encoding='utf-8-sig')
+                json.dump(config, file, indent=3, ensure_ascii=False)
+                file.close()
+                ChatAdmin.main(data, config['Administrator'], group, sender)
+                #admin=My_Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
+                #adminsign=1
+                #admin.join()
+                #listen = My_Thread(target=getcommand_chat)
+                #listen.start()
+                #return adminsign
+            elif choice == str(3):
+                ChatFilter.filtercontrol(data, fromchat)
+                #return adminsign
+            elif choice == str(4):
+                simuse.Send_Message(
+                    data, fromchat, 2,
+                    '此操作将会删除词库中仅出现过单次的条目和被过滤的条目，且操作不可逆！！\n请输入“确定”确认删除', 1)
+                command = getcommand_chat_foradmin()
+                if command[0] == '确定':
+                    sender = command[1]
+                    ChatDelete.Delete(data, sender)
+                else:
+                    continue
+            elif choice == str(5):
+                simuse.Send_Message(data,fromchat,2,"请输入任务名称",1)
+                TaskName = getcommand_chat_foradmin()[0]
+                simuse.Send_Message(data,fromchat,2,"请输入自动任务语法",1)
+                TaskText = getcommand_chat_foradmin()[0]
+                print(TaskText)
+                Task = TimeTask(TaskName,TaskText)
+                if Task.CheckTask()==0:
+                    print(Task.ErrorTips)
+                    simuse.Send_Message(data, fromchat, 2, Task.ErrorTips, 1)
+                    continue
+                TaskDict[TaskName] = copy.deepcopy(Task)
+                print('添加成功！\n' + Task.TaskInfo())
+                simuse.Send_Message(data, fromchat, 2, '添加成功！\n'+Task.TaskInfo(), 1)
+                continue
+            
+            elif choice == str(6):
+                ChatLearning.custom_answer(data,fromchat)
+                continue
+
             else:
-                print('<-退出管理模式')
-                simuse.Send_Message(data, fromchat, 2, '退出管理模式', 1)
-        else:
-            print('参数错误')
-            print('<-退出管理模式')
-            if fromchat != 0:
-                simuse.Send_Message(data, fromchat, 2, '参数错误,退出管理模式', 1)
-            #return adminsign
+                print('参数错误')
+                continue
         if learning_close_sign == 1:
             time.sleep(0.8)
             tempsign = learning(learningsign, mergesign, fromchat)
@@ -1861,9 +1871,19 @@ if __name__ == '__main__':
     except:
         FastDeletesign = 0
     adminsign = 0
-    data = simuse.Get_data()
+    try:
+        data = simuse.Get_data()
+    except json.decoder.JSONDecodeError:
+        print('data.json文件出错，请仔细检查格式(不可添加注释)')
+        os.system('pause')
+        exit()
     if data["Key"] != "":
-        data = simuse.Get_Session(data)
+        try:
+            data = simuse.Get_Session(data)
+        except KeyError as e:
+            print('取得session失败，但已与api-http取得连接(host,port正常)。\n可能的问题：\n1.Key不正确\n2.api-http出现异常')
+            os.system('pause')
+            exit()
     if learningsign == 1:
         learningsign = 0
         tempsign = learning(learningsign, mergesign, 0)

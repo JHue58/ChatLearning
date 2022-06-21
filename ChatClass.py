@@ -15,7 +15,7 @@ import requests
 
 import simuse
 
-version = '2.9.5'
+version = '2.9.7'
 
 
 # 控制台指令类
@@ -137,13 +137,16 @@ class TimeTask():
 
     runday=''
 
-    def __init__(self,TaskName:str) -> None:
+    def __init__(self,TaskName:str , TaskText:str=None) -> None:
         self.Default()
-        TaskPath='AutoTask/{}.txt'.format(TaskName)
+    
         self.TaskName=TaskName
-
-        with open(TaskPath,'r',encoding='utf-8') as TaskFile:
-            TextList=TaskFile.readlines()
+        if TaskText==None:
+            TaskPath='AutoTask/{}.txt'.format(TaskName)
+            with open(TaskPath,'r',encoding='utf-8') as TaskFile:
+                TextList=TaskFile.readlines()
+        else:
+            TextList = TaskText.split('\n')
         for lines in TextList:
             lines = ' '.join(lines.split())
             if lines=='':
@@ -415,6 +418,11 @@ class Update():
             config['voicecharerror']='存在违规字符，转换失败'
             config['voicecderror']='转换冷却中'
             config['voicelengtherror']='长度超过限制'
+        if self.version < 297:
+            print('正在更新config, -> 297 请勿中途退出')
+            config['deletesuccess']='已从词库内删除！'
+            config['deletetemperror']='删除失败，该消息已不在缓存内'
+            config['deletefinderror']='删除失败，词库中已无法找到该答案'
             
             
         return config

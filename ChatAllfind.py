@@ -215,8 +215,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'XXX'
-    secret_key = 'XXX'
+    secret_id = 'xxx'
+    secret_key = 'xxx'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)
@@ -664,9 +664,9 @@ def findallcontrol(data, sender, group=0):
     while 1:
         time.sleep(1)
         if group == 0:
-            tips = '请选择你的操作\n1.查找问题\n2.查找答案\n3.查看某个群的所有词库\n4.退出管理模式'
+            tips = '请选择你的操作\n0.返回\n1.查找问题\n2.查找答案\n3.查看某个群的所有词库'
         else:
-            tips = '进入管理模式\n请选择你的操作\n1.查找问题\n2.查找答案\n3.查看所有词库\n4.退出管理模式'
+            tips = '进入管理模式\n请选择你的操作\n1.查找问题\n2.查找答案\n3.查看所有词库\n4.返回'
         simuse.Send_Message(data, target, target_type, tips, 1)
         while 1:
             command = ChatAdmin.get_admin_command(data,

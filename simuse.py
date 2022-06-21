@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from typing import Type
 
@@ -61,7 +62,10 @@ def Get_Session(data, getsession=0):
         return 1
     else:
         res = json.loads(res.text)
-        session = res['session']
+        try:
+            session = res['session']
+        except:
+            raise KeyError('取得session失败')
         code = Check_Session(host, session, qq)
         if (getsession == 0 and code == 0):
             data.update(session=session)
