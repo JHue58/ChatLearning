@@ -1,14 +1,15 @@
+import json
 import os
 import pickle
 import time
-import json
 
-
+import ChatClass
+from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     #print(config)
     try:
@@ -21,7 +22,7 @@ def getconfig():
 def Merge(Mergedict, filename):
     version_error = 0
     repeatquestion_num = 0
-    cldict = pickle.load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
     #print(Mergedict)
     try:
         repeatquestion = Mergedict.keys() & cldict.keys()
@@ -75,7 +76,7 @@ def getfile():
             pass
         if not (i[:-3] in tagdict.keys()):
             Mergedict = Merge(Mergedict, i)
-    pickle.dump(Mergedict, open('WordStock/' + 'Merge.cl', 'wb'))
+    pickle_dump(Mergedict, open('WordStock/' + 'Merge.cl', 'wb'))
     for i in Taglist:
         print('Tag:{} 合并'.format(i))
         Mergedict_Tag = {}
@@ -83,7 +84,7 @@ def getfile():
             if k[:-3] in str(tagdict.keys()):
                 if i in tagdict[k[:-3]]:
                     Mergedict_Tag = Merge(Mergedict_Tag, k)
-        pickle.dump(Mergedict_Tag, open('WordStock/' + '{}.cl'.format(i),
+        pickle_dump(Mergedict_Tag, open('WordStock/' + '{}.cl'.format(i),
                                         'wb'))
 
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '词库合并完成')
@@ -92,9 +93,13 @@ def getfile():
 
 
 def main():
+    getfile()
+    now_time = int(time.time())
     while 1:
         config = getconfig()
-        if config[0] == 0:
+        if config[0] == 0 or ChatClass.stop_run():
             return None
-        getfile()
-        time.sleep(config[1])
+        if int(time.time()) - now_time >= config[1]:
+            getfile()
+            now_time = int(time.time())
+        time.sleep(0.5)

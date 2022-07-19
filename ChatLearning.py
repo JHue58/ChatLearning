@@ -1,19 +1,21 @@
 # Demo阶段
 import copy
+import json
 import pickle
 import time
-import json
 from re import I
 
-import ChatFilter
 import ChatAdmin
+import ChatClass
+import ChatFilter
 import ChatMerge
 import simuse
+from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     learning = config['learning']
     interval = config['interval']
@@ -55,7 +57,7 @@ def creatquestion(question, group):  # 记录问题
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
               "\n相同问题 已记录重复", filename)
     #print(tempdict)
-    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
     return tempquestion  # 返回未去除“url”的消息链，为记录答案做准备
 
 
@@ -70,7 +72,7 @@ def creatanswer(question, answer, group):  # 记录答案
     question = str(question)
     answer = str(answer)
     filename = str(group) + ".cl"
-    tempdict = pickle.load(open('WordStock/' + filename, 'rb'))  # 读取缓存的词库
+    tempdict = pickle_load(open('WordStock/' + filename, 'rb'))  # 读取缓存的词库
     answertime = int(time.time())
     answerdict = {"answertext": "", "time": ""}
     answerdict["answertext"] = answer
@@ -114,7 +116,7 @@ def creatanswer(question, answer, group):  # 记录答案
     else:  # 答案列表为空时一定是新答案，所以直接记录
         questiondict["answer"].append(answerdict.copy())
     tempdict[question] = questiondict
-    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
           filename)
 
@@ -158,7 +160,7 @@ def listening(data):
     while 1:
         config = getconfig()
         interval = config[0]
-        if config[1] == 0:
+        if config[1] == 0 or ChatClass.stop_run():
             return None
         #print(sign)
         textdict = {}
@@ -198,132 +200,136 @@ def listening(data):
         time.sleep(0.5)
 
 
-
-
-def custom_answer(data,fromchat):
-    cl_file_text='拥有的词库:\n'
-    cl_list=ChatAdmin.getfilelist()
+def custom_answer(data, fromchat):
+    cl_file_text = '拥有的词库:\n'
+    cl_list = ChatAdmin.getfilelist()
     for i in cl_list:
-        cl_file_text+=i+'\n'
-    simuse.Send_Message(data,fromchat,2,cl_file_text,1)
+        cl_file_text += i + '\n'
+    simuse.Send_Message(data, fromchat, 2, cl_file_text, 1)
     time.sleep(0.5)
-    simuse.Send_Message(data,fromchat,2,"请输入需要新增回复的词库昵称(不存在将会新建词库)",1)
+    simuse.Send_Message(data, fromchat, 2, "请输入需要新增回复的词库昵称(不存在将会新建词库)", 1)
     while True:
-        filename = ChatAdmin.get_admin_command(data,sender=fromchat)
-        if filename!=None:
+        filename = ChatAdmin.get_admin_command(data, sender=fromchat)
+        if filename != None:
             break
         time.sleep(0.5)
 
-    filename+='.cl'
-    have_cl=True
-    
+    filename += '.cl'
+    have_cl = True
+
     try:
         cldict = pickle.load(open('WordStock/' + filename, 'rb'))
     except:
         time.sleep(0.5)
-        simuse.Send_Message(data,fromchat,2,"词库不存在，将被创建",1)
-        have_cl=False
+        simuse.Send_Message(data, fromchat, 2, "词库不存在，将被创建", 1)
+        have_cl = False
         cldict = {}
 
     while True:
         time.sleep(0.5)
-        simuse.Send_Message(data,fromchat,2,"请输入问题",1)
+        simuse.Send_Message(data, fromchat, 2, "请输入问题", 1)
         while True:
-            question = ChatAdmin.get_admin_question(data,fromchat)
-            if question!=None:
+            question = ChatAdmin.get_admin_question(data, fromchat)
+            if question != None:
                 break
             time.sleep(0.5)
-            
+
         for i in question:
             try:
                 i.pop('url')
             except:
                 pass
-                
-        have_question=True
+
+        have_question = True
         try:
             questiondict = cldict[str(question)]
             answerlist = questiondict['answer']
         except:
             if have_cl:
                 time.sleep(0.5)
-                simuse.Send_Message(data,fromchat,2,"问题不存在，将被创建",1)
-            answerlist=[]
-            questiondict = {'time':int(time.time()),'answer':answerlist,'freq':9999}
-            have_question=False
-        
+                simuse.Send_Message(data, fromchat, 2, "问题不存在，将被创建", 1)
+            answerlist = []
+            questiondict = {
+                'time': int(time.time()),
+                'answer': answerlist,
+                'freq': 9999
+            }
+            have_question = False
+
         while True:
             time.sleep(0.5)
-            simuse.Send_Message(data,fromchat,2,"请输入答案",1)
+            simuse.Send_Message(data, fromchat, 2, "请输入答案", 1)
             while True:
-                answer = ChatAdmin.get_admin_question(data,fromchat)
-                if answer!=None:
+                answer = ChatAdmin.get_admin_question(data, fromchat)
+                if answer != None:
                     break
             time.sleep(0.5)
-            simuse.Send_Message(data,fromchat,2,"请输入答案的权重(这是一个非负的整数,越大表明抽中该答案的概率越大)",1)
+            simuse.Send_Message(data, fromchat, 2,
+                                "请输入答案的权重(这是一个非负的整数,越大表明抽中该答案的概率越大)", 1)
             while True:
                 while True:
-                    weight = ChatAdmin.get_admin_command(data,sender=fromchat)
-                    if weight!=None:
+                    weight = ChatAdmin.get_admin_command(data, sender=fromchat)
+                    if weight != None:
                         break
                     time.sleep(0.5)
                 try:
                     weight = int(weight)
                 except:
-                    simuse.Send_Message(data,fromchat,2,"权重必须是一个非负的整数，请重新输入",1)
+                    simuse.Send_Message(data, fromchat, 2,
+                                        "权重必须是一个非负的整数，请重新输入", 1)
                     continue
-                if weight<0:
-                    simuse.Send_Message(data,fromchat,2,"权重必须是一个非负的整数，请重新输入",1)
+                if weight < 0:
+                    simuse.Send_Message(data, fromchat, 2,
+                                        "权重必须是一个非负的整数，请重新输入", 1)
                     continue
                 break
 
             if have_question:
                 for answerdict in answerlist:
-                    if answerdict["answertext"]==str(answer):
-                        answerdict['same']=weight
+                    if answerdict["answertext"] == str(answer):
+                        answerdict['same'] = weight
                         time.sleep(0.5)
-                        simuse.Send_Message(data,fromchat,2,"问题中已存在该答案，已将权重修改为新值",1)
+                        simuse.Send_Message(data, fromchat, 2,
+                                            "问题中已存在该答案，已将权重修改为新值", 1)
                         break
                 else:
-                    answerdict={'answertext':str(answer),'time':int(time.time()),'same':weight}
+                    answerdict = {
+                        'answertext': str(answer),
+                        'time': int(time.time()),
+                        'same': weight
+                    }
                     answerlist.append(answerdict)
                     time.sleep(0.5)
-                    simuse.Send_Message(data,fromchat,2,"添加完毕！",1)
+                    simuse.Send_Message(data, fromchat, 2, "添加完毕！", 1)
             else:
-                answerdict={'answertext':str(answer),'time':int(time.time()),'same':weight}
+                answerdict = {
+                    'answertext': str(answer),
+                    'time': int(time.time()),
+                    'same': weight
+                }
                 answerlist.append(answerdict)
-                cldict[str(question)]=questiondict
+                cldict[str(question)] = questiondict
 
                 time.sleep(0.5)
-                simuse.Send_Message(data,fromchat,2,"添加完毕！",1)
+                simuse.Send_Message(data, fromchat, 2, "添加完毕！", 1)
 
-            pickle.dump(cldict, open('WordStock/' + filename, 'wb'))
+            pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
 
             time.sleep(0.5)
-            simuse.Send_Message(data,fromchat,2,"请选择：\n0.退出\n1.为该问题继续添加答案\n2.为该词库添加新的问答",1)
+            simuse.Send_Message(data, fromchat, 2,
+                                "请选择：\n0.退出\n1.为该问题继续添加答案\n2.为该词库添加新的问答", 1)
             while True:
-                command = ChatAdmin.get_admin_command(data,sender=fromchat)
-                if command!=None:
+                command = ChatAdmin.get_admin_command(data, sender=fromchat)
+                if command != None:
                     break
 
-            if command==str(0):
+            if command == str(0):
                 ChatMerge.getfile()
                 return None
-            elif command==str(1):
+            elif command == str(1):
                 continue
-            elif command==str(2):
+            elif command == str(2):
                 break
-
-    
-
-
-    
-        
-
-
-    
-
-    
 
 
 def main():

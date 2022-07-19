@@ -1,15 +1,16 @@
 import copy
+import json
 import os
 import time
-import json
 
 import ChatAdmin
 import simuse
+from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     return config['blackfreq']
 
@@ -121,7 +122,7 @@ def getnode(data, Filterconfig, filterlist, sender):
     if node == 'all':
         filterlist.clear()
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
         time.sleep(0.5)
         simuse.Send_Message(data, sender, 2, '已清空', 1)
@@ -166,7 +167,7 @@ def getnode(data, Filterconfig, filterlist, sender):
         filterlist.remove(i)
     #print(filterlist)
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
     file.close()
     if templist != []:
         if sendtext != '':
@@ -221,7 +222,7 @@ def replyblack(data, Filterconfig, sender, blackdict):
     if node == 'all':
         blackdict.clear()
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
         time.sleep(0.5)
         simuse.Send_Message(data, sender, 2, '已清空', 1)
@@ -252,11 +253,11 @@ def replyblack(data, Filterconfig, sender, blackdict):
     poperror = ''
     for i in nodelist:
         try:
-            blackdict.pop(i)
+            blackdict.pop(str(i))
         except:
             poperror = poperror + str(i) + ' '
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
     file.close()
     time.sleep(0.5)
     if poperror == '':
@@ -275,7 +276,7 @@ def blackcheck():
             Filterconfig = json.load(file)
         except json.decoder.JSONDecodeError:
             file.close()
-            file=open('Filter.clc', 'r', encoding='utf-8-sig')
+            file = open('Filter.clc', 'r', encoding='utf-8-sig')
             Filterconfig = eval(file.read())
         file.close()
         return Filterconfig
@@ -287,12 +288,13 @@ def blackcheck():
             'blackdict': {},
             'type': ['At', 'AtAll', 'Quote', 'Poke']
         }
-        json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
         return Filterconfig
 
 
 def sensitivecheck(question, sender, group):
+    sender = str(sender)
     for i in question:
         try:
             i.pop('url')
@@ -384,7 +386,7 @@ def creatfilter(question, addfilterlist=0):
         filterlist.append(question)
         filterlist = list(set(filterlist))
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
     else:
         Filterconfig = blackcheck()
@@ -398,7 +400,7 @@ def creatfilter(question, addfilterlist=0):
             filterlist.append(i['answertext'])
         filterlist = list(set(filterlist))
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
         #print(filterlist)
 
@@ -418,7 +420,7 @@ def creatsensitive(question):
     filterlist.append(question)
     filterlist = list(set(filterlist))
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
     file.close()
 
 
@@ -427,23 +429,23 @@ def creatblack(sender, list=0):
     blackdict = Filterconfig['blackdict']
     if list != 0:
         for i in sender:
-            blackdict[i] = 999
+            blackdict[i] = 99999
     elif sender in blackdict.keys():
         blackdict[sender] += 1
     else:
         blackdict[sender] = 1
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json.dump(Filterconfig,file,indent=3,ensure_ascii=False)
+    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
     file.close()
     if list == 0:
         return blackdict[sender]
 
 
 def filtercontrol(data, sender):
-    ExitChain=[{'type':'Plain','text':'exit'}]
+    ExitChain = [{'type': 'Plain', 'text': 'exit'}]
     while 1:
         time.sleep(1)
-        tips = '请选择你的操作\n0.返回\n1.添加需过滤的关键字\n2.添加敏感关键字\n3.添加黑名单账号\n4.查看'
+        tips = '请选择你的操作\n0.返回\n1.添加需过滤的关键字\n2.添加敏感关键字\n3.添加黑名单账号\n4.查看,删除'
         simuse.Send_Message(data, sender, 2, tips, 1)
         while 1:
             command = ChatAdmin.get_admin_command(data, sender=sender)
@@ -457,7 +459,7 @@ def filtercontrol(data, sender):
                     question = ChatAdmin.get_admin_question(data, sender)
                     if question != None:
                         break
-                if question==ExitChain:break
+                if question == ExitChain: break
                 try:
                     creatfilter(question)
                 except:
@@ -471,7 +473,7 @@ def filtercontrol(data, sender):
                     question = ChatAdmin.get_admin_question(data, sender)
                     if question != None:
                         break
-                if question==ExitChain:break
+                if question == ExitChain: break
                 try:
                     creatsensitive(question)
                 except:
@@ -503,27 +505,28 @@ def filtercontrol(data, sender):
             creatblack(memberlist, list=1)
             simuse.Send_Message(data, sender, 2, '添加完毕', 1)
         elif command == str(4):
-            simuse.Send_Message(data, sender, 2,
-                                '请输入需要查看的内容\n0.返回\n1.过滤的关键字\n2.敏感的关键字\n3.黑名单',
-                                1)
-            while 1:
-                Filterconfig = blackcheck()
-                node = ChatAdmin.get_admin_command(data, sender=sender)
-                if node != None:
+            while True:
+                simuse.Send_Message(data, sender, 2,
+                                    '请输入需要查看的内容\n0.返回\n1.过滤的关键字\n2.敏感的关键字\n3.黑名单',
+                                    1)
+                while 1:
+                    Filterconfig = blackcheck()
+                    node = ChatAdmin.get_admin_command(data, sender=sender)
+                    if node != None:
+                        break
+                if node == str(1):
+                    filterlist = Filterconfig['filter']
+                    replyanswer(data, sender, filterlist)
+                    getnode(data, Filterconfig, filterlist, sender)
+                elif node == str(2):
+                    sensitivelist = Filterconfig['sensitive']
+                    replyanswer(data, sender, sensitivelist)
+                    getnode(data, Filterconfig, sensitivelist, sender)
+                elif node == str(3):
+                    blackdict = Filterconfig['blackdict']
+                    replyblack(data, Filterconfig, sender, blackdict)
+                else:
                     break
-            if node == str(1):
-                filterlist = Filterconfig['filter']
-                replyanswer(data, sender, filterlist)
-                getnode(data, Filterconfig, filterlist, sender)
-            elif node == str(2):
-                sensitivelist = Filterconfig['sensitive']
-                replyanswer(data, sender, sensitivelist)
-                getnode(data, Filterconfig, sensitivelist, sender)
-            elif node == str(3):
-                blackdict = Filterconfig['blackdict']
-                replyblack(data, Filterconfig, sender, blackdict)
-            else:
-                continue
 
         else:
             return None
@@ -559,5 +562,5 @@ def Merge_Filter():
     Filterlist_origin = list(set(Filterlist_origin))
     FilterConfig['filter'] = Filterlist_origin
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json.dump(FilterConfig,file,indent=3,ensure_ascii=False)
+    json_dump(FilterConfig, file, indent=3, ensure_ascii=False)
     file.close()

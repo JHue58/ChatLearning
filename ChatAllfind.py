@@ -10,7 +10,7 @@ from qcloud_cos import CosConfig, CosS3Client
 import ChatAdmin
 import ChatMerge
 import simuse
-from ChatClass import Version
+from ChatClass import Version, json_dump, json_load, pickle_dump, pickle_load
 
 
 def getcllist():
@@ -356,7 +356,7 @@ def delcl(data, sender, lines_dict, nodelist, target_type=0, group=0):
 
     delsign = 0
     for group in changedict:
-        cldict_orign = pickle.load(
+        cldict_orign = pickle_load(
             open('WordStock/' + str(group) + '.cl', 'rb'))
         cldict = copy.deepcopy(cldict_orign)
         questionlist = list(cldict_orign.keys())
@@ -377,7 +377,7 @@ def delcl(data, sender, lines_dict, nodelist, target_type=0, group=0):
             if answerlist == []:
                 cldict.pop(question)
         cldict_orign = cldict
-        pickle.dump(cldict_orign, open('WordStock/' + str(group) + '.cl',
+        pickle_dump(cldict_orign, open('WordStock/' + str(group) + '.cl',
                                        'wb'))
     if changedict != {} and nofoundlines == []:
         print('删除{}个条目成功'.format(delsign))
@@ -575,7 +575,7 @@ def findallanswer(data, sender, cllist, answer, group=0, target_type=0):
     for i in cllist:
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
-        cldict = pickle.load(open('WordStock/' + i, 'rb'))
+        cldict = pickle_load(open('WordStock/' + i, 'rb'))
         for l in answer:
             for k in cldict:
                 questiondict = cldict[k]

@@ -5,25 +5,25 @@ import pickle
 import random
 import time
 import traceback
+from tkinter import E
 
 import requests
 
 import ChatAllfind
+import ChatClass
 import ChatFilter
 import simuse
+from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 nowtime = time.time()
 
 
 def RandomStop():
     replywait = getconfig(15)
-    StopTime=replywait[0]
-    RandomArea=random.uniform(-replywait[1],replywait[1])
-    print('WaitTime:{}'.format(StopTime+RandomArea))
-    time.sleep(StopTime+RandomArea)
-
-
-
+    StopTime = replywait[0]
+    RandomArea = random.uniform(-replywait[1], replywait[1])
+    print('WaitTime:{}'.format(StopTime + RandomArea))
+    time.sleep(StopTime + RandomArea)
 
 
 def DelType(tempdict, answerlist):
@@ -40,10 +40,10 @@ def DelType(tempdict, answerlist):
                 pass
 
             try:
-                weight=answerdict['same']+1
+                weight = answerdict['same'] + 1
             except:
-                weight=1
-            
+                weight = 1
+
             try:
                 if weight < freqdict[i['type']]:
                     try:
@@ -55,7 +55,7 @@ def DelType(tempdict, answerlist):
                             continue
                     except:
                         new_answerlist.remove(answerdict)
-                        num +=1
+                        num += 1
                         deltype = deltype + i['type'] + ' '
                         continue
                     else:
@@ -63,13 +63,14 @@ def DelType(tempdict, answerlist):
             except:
                 pass
 
-
     if num != 0:
         print('已过滤{}个不符合发送要求的{}'.format(num, ','.join(set(deltype.split()))))
     return new_answerlist
 
 
-def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender,messageId):
+def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender,
+                      messageId):
+    global RecallList
     try:
         First_index = messagechain[0]
     except:
@@ -83,27 +84,73 @@ def Judge_Fast_Delete(data, TempMessage, group, messagechain, sender,messageId):
                     IS_ME = 1
             if i['type'] == 'Plain' and IS_ME == 1:
                 if i['text'].lower() == ' !delete' or i['text'].lower(
-                ) == ' ！delete' or i['text'].lower()==' !d' or i['text'].lower()==' ！d':
+                ) == ' ！delete' or i['text'].lower(
+                ) == ' !d' or i['text'].lower() == ' ！d':
                     if getconfig(13) == 0:
-                            if not (sender in getconfig(14)):
-                                return 1                    
+                        if not (sender in getconfig(14)):
+                            return 1
                     Delete_Sign = Fast_Delete(TempMessage, group, SourceId)
                     break
         else:
             return 0
         if Delete_Sign == 1:
-            global RecallList
             simuse.Recall_Message(data, SourceId)
             time.sleep(1)
-            RecallList.append(simuse.Send_Message(data, group, 1, getconfig(16)['deletesuccess'], 1))
+            RecallList.append(
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletesuccess'], 1))
         elif Delete_Sign == 0:
             RecallList.append(
-                simuse.Send_Message(data, group, 1, getconfig(16)['deletetemperror'], 1))
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletetemperror'], 1))
         elif Delete_Sign == -1:
             RecallList.append(
-                simuse.Send_Message(data, group, 1, getconfig(16)['deletefinderror'], 1))
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletefinderror'], 1))
         RecallList.append(messageId)
         return 1
+
+    elif First_index['type'] == 'Plain':
+        for i in messagechain:
+            if i['type'] == 'Plain':
+                if i['text'][:2].lower() == '!d' or i['text'][:2].lower(
+                ) == '！d':
+                    if getconfig(13) == 0:
+                        if not (sender in getconfig(14)):
+                            return 1
+
+                    try:
+                        MessageNum = int(i['text'][3:])
+                        IDdict = TempMessage[group]
+                    except:
+                        return 0
+
+                    try:
+                        SourceId = list(IDdict.keys())[-MessageNum]
+                        Delete_Sign = Fast_Delete(TempMessage, group, SourceId)
+                    except:
+                        Delete_Sign = 0
+
+                    break
+        else:
+            return 0
+        if Delete_Sign == 1:
+            simuse.Recall_Message(data, SourceId)
+            time.sleep(1)
+            RecallList.append(
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletesuccess'], 1))
+        elif Delete_Sign == 0:
+            RecallList.append(
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletetemperror'], 1))
+        elif Delete_Sign == -1:
+            RecallList.append(
+                simuse.Send_Message(data, group, 1,
+                                    getconfig(16)['deletefinderror'], 1))
+        RecallList.append(messageId)
+        return 1
+
     else:
         return 0
 
@@ -118,7 +165,7 @@ def Fast_Delete(TempMessage, group, SourceId):
     IS_FIND = 0
     for filename in filelist:
         THIS_IS_FIND = 0
-        cldict = pickle.load(open('WordStock/' + filename, 'rb'))
+        cldict = pickle_load(open('WordStock/' + filename, 'rb'))
         try:
             questiondict = cldict[IDlist[0]]
         except:
@@ -133,7 +180,7 @@ def Fast_Delete(TempMessage, group, SourceId):
                     cldict.pop(IDlist[0])
                 break
         if THIS_IS_FIND == 1:
-            pickle.dump(cldict, open('WordStock/' + filename, 'wb'))
+            pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
     if IS_FIND == 1:
         IDdict.pop(SourceId)
         return 1
@@ -156,12 +203,19 @@ def talkvoice(data, group, messagechain):
                 text = text.strip(' ')
             except:
                 pass
-            if text[:3] == '快说 ':
-                text = text[3:]
+
+            voiceCommand = getconfig(16)['voicecommand']
+            if text[:len(voiceCommand)] == voiceCommand:
+                text = text[len(voiceCommand):]
                 if len(text) > 50:
                     print('长度超过限制')
-                    simuse.Send_Message(data, group, 1, getconfig(16)['voicelengtherror'], 1)
+                    simuse.Send_Message(data, group, 1,
+                                        getconfig(16)['voicelengtherror'], 1)
                     return None
+                try:
+                    text = textChange(text)
+                except Exception as e:
+                    print(e)
                 if canToVoice(text):
                     try:
                         if CanSendTask(nowtime, 10):
@@ -176,17 +230,46 @@ def talkvoice(data, group, messagechain):
                         else:
                             print('转换冷却中')
                             simuse.Send_Message(data, group, 1,
-                                                getconfig(16)['voicecderror'], 1)
+                                                getconfig(16)['voicecderror'],
+                                                1)
                             return 1
                     except:
                         print('转换语音失败')
                         return None
                 else:
                     print('存在违规字符，转换失败')
-                    simuse.Send_Message(data, group, 1, getconfig(16)['voicecharerror'], 1)
+                    simuse.Send_Message(data, group, 1,
+                                        getconfig(16)['voicecharerror'], 1)
                     return None
         except:
             return None
+
+
+def textChange(text: str):
+
+    usualchar = list('，？！~·.?!-')
+    usualchar_2 = list('（）()《》<>“”‘’' + "'" + '"')
+    num = {
+        '0': '零',
+        '1': '一',
+        '2': '二',
+        '3': '三',
+        '4': '四',
+        '5': '五',
+        '6': '六',
+        '7': '七',
+        '8': '八',
+        '9': '九'
+    }
+
+    for i in usualchar:
+        text = text.replace(i, ',')
+    for i in usualchar_2:
+        text = text.replace(i, '')
+    for i in num.keys():
+        text = text.replace(i, num[i])
+
+    return text
 
 
 def canToVoice(text):
@@ -215,7 +298,7 @@ def CanSendTask(nowtime, cd):
 
 def Plain_Voice(data, text):
     # 检查训练集是否在服务器中
-    pturl="http://124.222.165.166:19630/Ptlist"
+    pturl = "http://124.222.165.166:19630/Ptlist"
     try:
         ptres = requests.request('get', pturl, timeout=20)
         ptres = json.loads(ptres.text)
@@ -251,7 +334,7 @@ def runchance(replychance):
 
 def getconfig(choice):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     if choice == 1:
         grouplist = config['replygrouplist']
@@ -417,7 +500,7 @@ def replyanswer(data, group, answer):  # 发送答案
                     break
 
     # 添加随机阻塞，增加真实感
-    if voicereplysign==0:
+    if voicereplysign == 0:
         RandomStop()
 
     number = simuse.Send_Message_Chain(data, group, 1,
@@ -437,18 +520,19 @@ def replyanswer(data, group, answer):  # 发送答案
 # 以same作为权重选择
 def random_weight(answerlist):
 
-    same_weight_multiple = 1 # 权重乘值
-    same_weight_plus = 1 # 权重加值
+    same_weight_multiple = 1  # 权重乘值
+    same_weight_plus = 1  # 权重加值
 
-    same_list=[]
+    same_list = []
     for answerdict in answerlist:
         try:
-            same_list.append((answerdict["same"]+same_weight_plus)*same_weight_multiple)
+            same_list.append(
+                (answerdict["same"] + same_weight_plus) * same_weight_multiple)
         except:
-            same_list.append((0+same_weight_plus)*same_weight_multiple)
-    answer = random.choices(answerlist,weights=same_list,k=1)[0]
+            same_list.append((0 + same_weight_plus) * same_weight_multiple)
+    answer = random.choices(answerlist, weights=same_list, k=1)[0]
     # print("权重选择器选择：",answer)
-    if answer!=None:
+    if answer != None:
         return answer
     else:
         return random.choice(answerlist)
@@ -456,6 +540,7 @@ def random_weight(answerlist):
 
 def listening(data):
     global RecallList
+    ReplyCd = {}
     RecallList = []
     AfterSecond = 0
     TempMessage = {}
@@ -467,7 +552,7 @@ def listening(data):
                 simuse.Recall_Message(data, messageid)
             AfterSecond = 0
             RecallList = []
-        if getconfig(3) == 0:
+        if getconfig(3) == 0 or ChatClass.stop_run():
             return None
         message = simuse.Fetch_Message(data)  # 监听消息链
         if type(message) == type(0):
@@ -480,6 +565,21 @@ def listening(data):
                     getconfig(1).index(group)
                 except:
                     continue
+
+                # Cd检测
+                try:
+                    GroupTime = ReplyCd[group]
+                    now_time = int(time.time())
+                    cd = getconfig(16)['replycd']
+                    if now_time - GroupTime < cd:
+                        print('群{}处于回复冷却中,剩余{}秒'.format(
+                            group, cd - now_time + GroupTime))
+                        continue
+                except:
+                    pass
+
+                
+
                 messagechain = i['messagechain']
                 messageSource = messagechain[0]
                 messageId = messageSource['id']
@@ -487,7 +587,7 @@ def listening(data):
                 if talkvoice(data, group, messagechain) == 1:
                     continue
                 if Judge_Fast_Delete(data, TempMessage, group, messagechain,
-                                     i['sender'],messageId) == 1:
+                                     i['sender'], messageId) == 1:
                     continue
                 question = messagechain
                 answer = getanswer(group, question)  # 获取答案
@@ -495,6 +595,9 @@ def listening(data):
                     reply_answer_info = replyanswer(data, group,
                                                     answer)  # 让bot回复
                     if reply_answer_info != None:
+                        # 发送成功后开始计算Cd
+                        ReplyCd[group] = int(time.time())
+                        
                         reply_answer = reply_answer_info[0]
                         SourceId = reply_answer_info[1]
                         if reply_answer != None:

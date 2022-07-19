@@ -1,14 +1,17 @@
 import asyncio
 import base64
+import copy
 import datetime
-import pickle
+import glob
 import json
 import os
+import pickle
+import platform
+import subprocess
 import sys
 import time
-import wave
-import copy
 import traceback
+import wave
 
 import nest_asyncio
 import requests
@@ -18,6 +21,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import ChatAdmin
 import ChatAllfind
 import ChatCheck
+import ChatClass
 import ChatDelete
 import ChatFilter
 import ChatLearning
@@ -25,7 +29,8 @@ import ChatMerge
 import ChatReply
 import ChatSubadmin
 import simuse
-from ChatClass import My_Thread, Update, Version, commandclass, TimeTask
+from ChatClass import (My_Thread, TimeTask, Update, Version, commandclass,
+                       json_dump, json_load, pickle_dump, pickle_load)
 
 nest_asyncio.apply()
 
@@ -35,7 +40,7 @@ def hello():
     if not (os.path.exists('AutoTask')):
         os.makedirs('AutoTask')
         with open('AutoTask/看我看我.txt', 'wb') as file:
-            str =b'\'\'\'\xe8\xbf\x99\xe6\x98\xaf\xe4\xb8\x80\xe4\xb8\xaa\xe5\xae\x9a\xe6\x97\xb6\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\xa8\xa1\xe6\x9d\xbf\xef\xbc\x8c\xe7\xa8\x8b\xe5\xba\x8f\xe4\xbc\x9a\xe8\x87\xaa\xe5\x8a\xa8\xe8\xa7\xa3\xe6\x9e\x90\xe5\xb8\xa6\xe6\xa0\x87\xe8\xae\xb0\xe7\x9a\x84\xe8\xa1\x8c\'\'\'\r\n\'\'\'\xe8\xaf\xb7\xe5\x88\x9b\xe5\xbb\xba\xe4\xb8\x80\xe4\xb8\xaa\xe6\x96\xb0\xe7\x9a\x84txt\xe6\x96\x87\xe4\xbb\xb6\xe6\x9d\xa5\xe8\x87\xaa\xe5\xae\x9a\xe4\xb9\x89\xe4\xbd\xa0\xe7\x9a\x84\xe4\xbb\xbb\xe5\x8a\xa1\xef\xbc\x8c\xe6\x96\x87\xe4\xbb\xb6\xe5\x90\x8d\xe5\x8d\xb3\xe6\x98\xaf\xe4\xbb\xbb\xe5\x8a\xa1\xe5\x90\x8d\'\'\'\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"#"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\x89\xa7\xe8\xa1\x8c\xe6\x97\xa5\xe6\x9c\x9f\'\'\r\n\xe5\xa6\x82"\xe6\xaf\x8f\xe6\x97\xa5"\xef\xbc\x9a\r\n#everyday\r\n\xe6\x88\x96\xe6\x98\xaf"\xe5\x91\xa8\xe4\xb8\x80 \xe5\x91\xa8\xe6\x97\xa5"\xef\xbc\x9a\r\n#w1 w7\r\n\xe4\xba\xa6\xe6\x88\x96\xe6\x98\xaf"\xe5\x85\xb7\xe4\xbd\x93\xe6\x97\xa5\xe6\x9c\x9f"(\xe4\xb8\x8d\xe8\xb6\xb3\xe5\x8d\x81\xe4\xbd\x8d\xe8\xaf\xb7\xe8\xa1\xa50\xef\xbc\x8c\xe5\xa6\x825\xe2\x86\x9205)\xef\xbc\x9a\r\n#2022-08-30\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"@"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe6\x89\xa7\xe8\xa1\x8c\xe7\xbb\x93\xe6\x9e\x9c\xe5\x8f\x91\xe9\x80\x81\xe7\x9a\x84QQ\xe5\x8f\xb7\r\n\xe5\xa6\x82\xef\xbc\x9a\r\n@123456\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"*"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\x89\xa7\xe8\xa1\x8c\xe6\x97\xb6\xe9\x97\xb4\r\n\xe5\xa6\x82(\xe8\xaf\xb7\xe4\xbd\xbf\xe7\x94\xa8\xe8\x8b\xb1\xe6\x96\x87\xe5\x86\x92\xe5\x8f\xb7\xe5\x93\xa6)\xef\xbc\x9a\r\n*05:05\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"/"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe6\x89\x80\xe9\x9c\x80\xe6\x89\xa7\xe8\xa1\x8c\xe7\x9a\x84\xe6\x8c\x87\xe4\xbb\xa4\r\n\xe5\xa6\x82(\xe4\xb8\x80\xe4\xb8\xaa\xe6\x8c\x87\xe4\xbb\xa4\xe5\xaf\xb9\xe5\xba\x94\xe4\xb8\x80\xe8\xa1\x8c)\xef\xbc\x9a\r\n/check\r\n/autodelete\r\n\r\n\xe4\xbb\xa5\xe4\xb8\x8b\xe6\x98\xaf\xe7\xa4\xba\xe4\xbe\x8b\xef\xbc\x88\xe6\xaf\x8f\xe5\xa4\xa9\xe7\x9a\x8412\xe7\x82\xb9\xe5\x92\x8c23\xe7\x82\xb959\xe5\x88\x86\xef\xbc\x8c\xe6\x89\xa7\xe8\xa1\x8ccheck\xef\xbc\x8cgrouplist\xe6\x8c\x87\xe4\xbb\xa4\xef\xbc\x8c\xe5\xb9\xb6\xe5\xb0\x86\xe7\xbb\x93\xe6\x9e\x9c\xe5\x8f\x91\xe9\x80\x81\xe7\xbb\x99123456\xef\xbc\x89\xef\xbc\x9a\r\n#everyday\r\n@123456\r\n*12:00 23:59\r\n/check\r\n/grouplist\r\n\r\n\r\n-------------------\r\n\xe5\x9c\xa8\xe8\x87\xaa\xe5\x8a\xa8\xe4\xbb\xbb\xe5\x8a\xa1\xe4\xb8\xad\xe6\x9c\x89\xe4\xb8\x80\xe4\xba\x9b\xe7\x89\xb9\xe6\xae\x8a\xe6\x8c\x87\xe4\xbb\xa4\xef\xbc\x9a\r\n\xe8\x87\xaa\xe5\x8a\xa8\xe6\xb8\x85\xe7\x90\x86\xe8\xaf\x8d\xe5\xba\x93"autodelete"\r\n\xe5\x8f\x91\xe9\x80\x81\xe7\xbe\xa4\xe6\xb6\x88\xe6\x81\xaf"sendgroupmessage <\xe7\xbe\xa4\xe5\x8f\xb7> <\xe6\xb6\x88\xe6\x81\xaf>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe7\xbe\xa4\xe5\x9b\xbe\xe7\x89\x87"sendgroupmessageimage <\xe7\xbe\xa4\xe5\x8f\xb7> <\xe5\x9b\xbe\xe7\x89\x87\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe7\xbb\x9d\xe5\xaf\xb9\xe8\xb7\xaf\xe5\xbe\x84>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe5\xa5\xbd\xe5\x8f\x8b\xe6\xb6\x88\xe6\x81\xaf"sendfriendmessage <\xe5\xa5\xbd\xe5\x8f\x8bQQ> <\xe6\xb6\x88\xe6\x81\xaf>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe5\xa5\xbd\xe5\x8f\x8b\xe5\x9b\xbe\xe7\x89\x87"sendfriendmessageimage <\xe5\xa5\xbd\xe5\x8f\x8bQQ> <\xe5\x9b\xbe\xe7\x89\x87\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe7\xbb\x9d\xe5\xaf\xb9\xe8\xb7\xaf\xe5\xbe\x84>"\r\n\xe5\x9c\xa8<\xe6\xb6\x88\xe6\x81\xaf>\xe8\xbf\x99\xe4\xb8\xaa\xe5\x8f\x82\xe6\x95\xb0\xe4\xb8\xad\xef\xbc\x8c\xe5\x8f\xaf\xe4\xbb\xa5\xe9\x99\x84\xe5\xb8\xa6\xe4\xb8\x80\xe4\xba\x9b\xe6\x8c\x87\xe5\xae\x9a\xe7\x9a\x84\xe6\xa0\x87\xe8\xae\xb0\xef\xbc\x8c\xe7\xa8\x8b\xe5\xba\x8f\xe4\xbc\x9a\xe5\xb0\x86\xe8\xbf\x99\xe4\xba\x9b\xe6\xa0\x87\xe8\xae\xb0\xe6\x9b\xbf\xe6\x8d\xa2\xe6\x88\x90\xe7\x9b\xb8\xe5\xba\x94\xe7\x9a\x84\xe7\xbb\x93\xe6\x9e\x9c\xef\xbc\x9a\r\n\xe5\xbd\x93\xe5\x89\x8d\xe5\xb9\xb4\xef\xbc\x9a{year}\r\n\xe5\xbd\x93\xe5\x89\x8d\xe6\x9c\x88\xef\xbc\x9a{month}\r\n\xe5\xbd\x93\xe5\x89\x8d\xe6\x97\xa5\xef\xbc\x9a{day}\r\n\xe6\x8d\xa2\xe8\xa1\x8c\xef\xbc\x9a{n}\r\n\xe5\xa6\x82\xef\xbc\x9a\r\n/sendgroupmessage 123456 \xe4\xbb\x8a\xe5\xa4\xa9\xe6\x98\xaf{year}\xe5\xb9\xb4{month}\xe6\x9c\x88{day}\xe6\x97\xa5\xef\xbc\x81{n}\xe5\xa4\xa7\xe5\xae\xb6\xe5\xa5\xbd\xe5\x95\x8a\xef\xbc\x81\r\n-------------------\r\n\r\n'
+            str = b'\'\'\'\xe8\xbf\x99\xe6\x98\xaf\xe4\xb8\x80\xe4\xb8\xaa\xe5\xae\x9a\xe6\x97\xb6\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\xa8\xa1\xe6\x9d\xbf\xef\xbc\x8c\xe7\xa8\x8b\xe5\xba\x8f\xe4\xbc\x9a\xe8\x87\xaa\xe5\x8a\xa8\xe8\xa7\xa3\xe6\x9e\x90\xe5\xb8\xa6\xe6\xa0\x87\xe8\xae\xb0\xe7\x9a\x84\xe8\xa1\x8c\'\'\'\r\n\'\'\'\xe8\xaf\xb7\xe5\x88\x9b\xe5\xbb\xba\xe4\xb8\x80\xe4\xb8\xaa\xe6\x96\xb0\xe7\x9a\x84txt\xe6\x96\x87\xe4\xbb\xb6\xe6\x9d\xa5\xe8\x87\xaa\xe5\xae\x9a\xe4\xb9\x89\xe4\xbd\xa0\xe7\x9a\x84\xe4\xbb\xbb\xe5\x8a\xa1\xef\xbc\x8c\xe6\x96\x87\xe4\xbb\xb6\xe5\x90\x8d\xe5\x8d\xb3\xe6\x98\xaf\xe4\xbb\xbb\xe5\x8a\xa1\xe5\x90\x8d\'\'\'\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"#"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\x89\xa7\xe8\xa1\x8c\xe6\x97\xa5\xe6\x9c\x9f\'\'\r\n\xe5\xa6\x82"\xe6\xaf\x8f\xe6\x97\xa5"\xef\xbc\x9a\r\n#everyday\r\n\xe6\x88\x96\xe6\x98\xaf"\xe5\x91\xa8\xe4\xb8\x80 \xe5\x91\xa8\xe6\x97\xa5"\xef\xbc\x9a\r\n#w1 w7\r\n\xe4\xba\xa6\xe6\x88\x96\xe6\x98\xaf"\xe5\x85\xb7\xe4\xbd\x93\xe6\x97\xa5\xe6\x9c\x9f"(\xe4\xb8\x8d\xe8\xb6\xb3\xe5\x8d\x81\xe4\xbd\x8d\xe8\xaf\xb7\xe8\xa1\xa50\xef\xbc\x8c\xe5\xa6\x825\xe2\x86\x9205)\xef\xbc\x9a\r\n#2022-08-30\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"@"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe6\x89\xa7\xe8\xa1\x8c\xe7\xbb\x93\xe6\x9e\x9c\xe5\x8f\x91\xe9\x80\x81\xe7\x9a\x84QQ\xe5\x8f\xb7\r\n\xe5\xa6\x82\xef\xbc\x9a\r\n@123456\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"*"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe7\x9a\x84\xe6\x89\xa7\xe8\xa1\x8c\xe6\x97\xb6\xe9\x97\xb4\r\n\xe5\xa6\x82(\xe8\xaf\xb7\xe4\xbd\xbf\xe7\x94\xa8\xe8\x8b\xb1\xe6\x96\x87\xe5\x86\x92\xe5\x8f\xb7\xe5\x93\xa6)\xef\xbc\x9a\r\n*05:05\r\n\r\n\'\'\xe5\xbc\x80\xe5\xa4\xb4\xe4\xbd\xbf\xe7\x94\xa8"/"\xe6\x9d\xa5\xe6\xa0\x87\xe8\xae\xb0\xe4\xbb\xbb\xe5\x8a\xa1\xe6\x89\x80\xe9\x9c\x80\xe6\x89\xa7\xe8\xa1\x8c\xe7\x9a\x84\xe6\x8c\x87\xe4\xbb\xa4\r\n\xe5\xa6\x82(\xe4\xb8\x80\xe4\xb8\xaa\xe6\x8c\x87\xe4\xbb\xa4\xe5\xaf\xb9\xe5\xba\x94\xe4\xb8\x80\xe8\xa1\x8c)\xef\xbc\x9a\r\n/check\r\n/autodelete\r\n\r\n\xe4\xbb\xa5\xe4\xb8\x8b\xe6\x98\xaf\xe7\xa4\xba\xe4\xbe\x8b\xef\xbc\x88\xe6\xaf\x8f\xe5\xa4\xa9\xe7\x9a\x8412\xe7\x82\xb9\xe5\x92\x8c23\xe7\x82\xb959\xe5\x88\x86\xef\xbc\x8c\xe6\x89\xa7\xe8\xa1\x8ccheck\xef\xbc\x8cgrouplist\xe6\x8c\x87\xe4\xbb\xa4\xef\xbc\x8c\xe5\xb9\xb6\xe5\xb0\x86\xe7\xbb\x93\xe6\x9e\x9c\xe5\x8f\x91\xe9\x80\x81\xe7\xbb\x99123456\xef\xbc\x89\xef\xbc\x9a\r\n#everyday\r\n@123456\r\n*12:00 23:59\r\n/check\r\n/grouplist\r\n\r\n\r\n-------------------\r\n\xe5\x9c\xa8\xe8\x87\xaa\xe5\x8a\xa8\xe4\xbb\xbb\xe5\x8a\xa1\xe4\xb8\xad\xe6\x9c\x89\xe4\xb8\x80\xe4\xba\x9b\xe7\x89\xb9\xe6\xae\x8a\xe6\x8c\x87\xe4\xbb\xa4\xef\xbc\x9a\r\n\xe8\x87\xaa\xe5\x8a\xa8\xe6\xb8\x85\xe7\x90\x86\xe8\xaf\x8d\xe5\xba\x93"autodelete"\r\n\xe5\x8f\x91\xe9\x80\x81\xe7\xbe\xa4\xe6\xb6\x88\xe6\x81\xaf"sendgroupmessage <\xe7\xbe\xa4\xe5\x8f\xb7> <\xe6\xb6\x88\xe6\x81\xaf>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe7\xbe\xa4\xe5\x9b\xbe\xe7\x89\x87"sendgroupmessageimage <\xe7\xbe\xa4\xe5\x8f\xb7> <\xe5\x9b\xbe\xe7\x89\x87\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe7\xbb\x9d\xe5\xaf\xb9\xe8\xb7\xaf\xe5\xbe\x84>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe5\xa5\xbd\xe5\x8f\x8b\xe6\xb6\x88\xe6\x81\xaf"sendfriendmessage <\xe5\xa5\xbd\xe5\x8f\x8bQQ> <\xe6\xb6\x88\xe6\x81\xaf>"\r\n\xe5\x8f\x91\xe9\x80\x81\xe5\xa5\xbd\xe5\x8f\x8b\xe5\x9b\xbe\xe7\x89\x87"sendfriendmessageimage <\xe5\xa5\xbd\xe5\x8f\x8bQQ> <\xe5\x9b\xbe\xe7\x89\x87\xe6\x96\x87\xe4\xbb\xb6\xe7\x9a\x84\xe7\xbb\x9d\xe5\xaf\xb9\xe8\xb7\xaf\xe5\xbe\x84>"\r\n\xe5\x9c\xa8<\xe6\xb6\x88\xe6\x81\xaf>\xe8\xbf\x99\xe4\xb8\xaa\xe5\x8f\x82\xe6\x95\xb0\xe4\xb8\xad\xef\xbc\x8c\xe5\x8f\xaf\xe4\xbb\xa5\xe9\x99\x84\xe5\xb8\xa6\xe4\xb8\x80\xe4\xba\x9b\xe6\x8c\x87\xe5\xae\x9a\xe7\x9a\x84\xe6\xa0\x87\xe8\xae\xb0\xef\xbc\x8c\xe7\xa8\x8b\xe5\xba\x8f\xe4\xbc\x9a\xe5\xb0\x86\xe8\xbf\x99\xe4\xba\x9b\xe6\xa0\x87\xe8\xae\xb0\xe6\x9b\xbf\xe6\x8d\xa2\xe6\x88\x90\xe7\x9b\xb8\xe5\xba\x94\xe7\x9a\x84\xe7\xbb\x93\xe6\x9e\x9c\xef\xbc\x9a\r\n\xe5\xbd\x93\xe5\x89\x8d\xe5\xb9\xb4\xef\xbc\x9a{year}\r\n\xe5\xbd\x93\xe5\x89\x8d\xe6\x9c\x88\xef\xbc\x9a{month}\r\n\xe5\xbd\x93\xe5\x89\x8d\xe6\x97\xa5\xef\xbc\x9a{day}\r\n\xe6\x8d\xa2\xe8\xa1\x8c\xef\xbc\x9a{n}\r\n\xe5\xa6\x82\xef\xbc\x9a\r\n/sendgroupmessage 123456 \xe4\xbb\x8a\xe5\xa4\xa9\xe6\x98\xaf{year}\xe5\xb9\xb4{month}\xe6\x9c\x88{day}\xe6\x97\xa5\xef\xbc\x81{n}\xe5\xa4\xa7\xe5\xae\xb6\xe5\xa5\xbd\xe5\x95\x8a\xef\xbc\x81\r\n-------------------\r\n\r\n'
             file.write(str)
         print('在目录下的AutoTask文件夹内看看定时任务的说明吧！')
 
@@ -61,8 +66,11 @@ def hello():
     update.Cl_version()
     config = update.Config_version()
     config['version'] = Version()
+
+    config['stopsign'] = 0
+
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     ChatFilter.Merge_Filter()
     print('欢迎使用ChatLearning应用 版本号：', Version())
@@ -75,8 +83,120 @@ def unknowcommand(command):
     pass
 
 
+def stop_all_thread():
+
+    config = ChatReply.getconfig(16)
+    config["stopsign"] = 1
+    json_dump(config,
+              open('config.clc', 'w', encoding='utf-8-sig'),
+              indent=3,
+              ensure_ascii=False)
+
+    try:
+        listen_t.join()
+        reply_t.join()
+        merge_t.join()
+        autotask_t.join()
+        learning_t.join()
+        subadmin_t.join()
+    except NameError:
+        pass
+
+    config = ChatReply.getconfig(16)
+    config["stopsign"] = 0
+    json_dump(config,
+              open('config.clc', 'w', encoding='utf-8-sig'),
+              indent=3,
+              ensure_ascii=False)
+
+
 def exit():
+    print('等待程序退出……')
+    stop_all_thread()
     sys.exit(0)
+
+
+def down_new_version():
+    #global data
+    if my_name == 'Chatmain.py':
+        print('该版本暂不支持')
+        #return None
+
+    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    download = Update(config['version'])
+
+    sign = download.down_new_file()
+
+    if sign == None:
+        print('网络连接出错')
+    elif sign[0] == 0:
+        print('已是最新版本')
+    elif sign[0] == 1:
+        print('新版本已就绪，正在准备重启')
+        stop_all_thread()
+        restart(sign[1])
+        sys.exit()
+
+
+def restart(version):
+    new_name = 'ChatLearning_new'
+    if system == 'Windows':
+        old_name = 'ChatLearning_v{}.exe'.format(version)
+    elif system == 'Linux':
+        old_name = 'ChatLearning_v{}'.format(version)
+    time.sleep(2)
+    #os.remove('ChatLearning.exe')
+
+    if system == 'Windows':
+        b = open("upgrade.bat", 'w')
+        TempList = "@echo off\n"
+        TempList += "if not exist " + new_name + " exit \n"  #判断是否有新版本的程序，没有就退出更新。
+        TempList += "echo 正在更新至最新版本...\n"
+        #TempList += "timeout /t 2 /nobreak\n"  #等待2秒
+        TempList += "copy  " + new_name + " " + old_name + '\n'  #复制新版本程序
+        TempList += "del " + new_name + "\n"  #删除旧程序
+        TempList += "echo 更新完成，正在启动...\n"
+        #TempList += "timeout /t 3 /nobreak\n"
+        TempList += "start  " + old_name + "\n"  #"start 1.bat\n"
+        TempList += "exit"
+        b.write(TempList)
+        b.close()
+        shell = subprocess.Popen("upgrade.bat")
+    elif system == 'Linux':
+        linux_command = json_load(
+            open('command.json', 'r', encoding='utf-8-sig'))
+        start_command = linux_command['start']
+        per_command = linux_command['permission']
+        per_command_list = per_command.split(' ')
+        sh_command = linux_command['shell']
+        sh_command_list = sh_command.split(' ')
+        for i in per_command_list:
+            if i == '{}':
+                per_command_list[per_command_list.index('{}')] = "upgrade.sh"
+        for i in sh_command_list:
+            if i == '{}':
+                sh_command_list[sh_command_list.index('{}')] = "upgrade.sh"
+        b = open("upgrade.sh", 'w')
+        TempList = "if [ ! -f ChatLearning_new ];then exit;fi\n"  #判断是否有新版本的程序，没有就退出更新。
+        TempList += "echo 正在更新至最新版本...\n"
+        TempList += per_command.format("ChatLearning_new") + "\n"
+        #TempList += "timeout /t 2 /nobreak\n"  #等待2秒
+        TempList += "cp  " + new_name + " " + old_name + '\n'  #复制新版本程序
+        TempList += "rm " + new_name + "\n"  #删除旧程序
+        TempList += "echo 更新完成，正在启动...\n"
+        TempList += per_command.format(
+            "ChatLearning_v{}".format(version)) + "\n"
+        #TempList += "timeout /t 3 /nobreak\n"
+        TempList += start_command.format(old_name) + "\n"  #"start 1.bat\n"
+        TempList += "exit"
+        b.write(TempList)
+        b.close()
+        subprocess.Popen(per_command_list)
+        shell = subprocess.Popen(sh_command_list)
+
+    while True:
+        if shell.poll() != None:
+            break
 
 
 def ReplyWait(args: str, fromchat=0):
@@ -111,11 +231,11 @@ def ReplyWait(args: str, fromchat=0):
         return None
     replystoptime = [BenchmarkTime, RandomTime]
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['replywait'] = replystoptime
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     print('已将回复等待时间设置为{:g}±{:g}秒'.format(BenchmarkTime, RandomTime))
     if fromchat != 0:
         simuse.Send_Message(
@@ -128,7 +248,7 @@ def GetAutoTask():
         Taskdict = pickle.load(open('AutoTask/AutoTask.clc', 'rb'))
     except:
         Taskdict = {}
-        pickle.dump(Taskdict, open('AutoTask/AutoTask.clc', 'wb'))
+        pickle_dump(Taskdict, open('AutoTask/AutoTask.clc', 'wb'))
     return Taskdict
 
 
@@ -166,7 +286,9 @@ def GetAutoTaskInfo(fromchat=0):
 def RunAutoTask():
     global TaskDict
     while 1:
-        pickle.dump(TaskDict, open('AutoTask/AutoTask.clc', 'wb'))
+        if ChatClass.stop_run():
+            return None
+        pickle_dump(TaskDict, open('AutoTask/AutoTask.clc', 'wb'))
         time.sleep(1)
         if TaskDict == {}:
             continue
@@ -175,34 +297,32 @@ def RunAutoTask():
             if Task.ISTaskTime() == 1:
                 RunTaskCommand(Task)
 
+
 def AutoTaskLog(function):
+
     def wrapper(Task):
         print('开始执行自动任务"{}"'.format(Task.TaskName))
-        with open('AutoTask/Tasklog.log', 'a',
-                    encoding='utf-8-sig') as file:
-            nowtime = datetime.datetime.now().strftime(
-                '%Y-%m-%d %H:%M:%S')
-            file.write(nowtime + ' 开始执行自动任务"{}"'.format(Task.TaskName) +
-                        '\n')
+        with open('AutoTask/Tasklog.log', 'a', encoding='utf-8-sig') as file:
+            nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            file.write(nowtime + ' 开始执行自动任务"{}"'.format(Task.TaskName) + '\n')
         try:
             function(Task)
         except:
             print('自动任务"{}"执行出错，异常已记录'.format(Task.TaskName))
             with open('AutoTask/Tasklog.log', 'a',
-                        encoding='utf-8-sig') as file:
-                nowtime = datetime.datetime.now().strftime(
-                    '%Y-%m-%d %H:%M:%S')
-                file.write(nowtime + ' 自动任务"{}"执行出错：\n'.format(Task.TaskName) +traceback.format_exc()+
-                            '\n')
+                      encoding='utf-8-sig') as file:
+                nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                file.write(nowtime + ' 自动任务"{}"执行出错：\n'.format(Task.TaskName) +
+                           traceback.format_exc() + '\n')
             raise
         else:
             print('自动任务"{}"执行完毕'.format(Task.TaskName))
             with open('AutoTask/Tasklog.log', 'a',
-                        encoding='utf-8-sig') as file:
-                nowtime = datetime.datetime.now().strftime(
-                    '%Y-%m-%d %H:%M:%S')
+                      encoding='utf-8-sig') as file:
+                nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 file.write(nowtime + ' 自动任务"{}"执行完毕'.format(Task.TaskName) +
-                            '\n')
+                           '\n')
+
     return wrapper
 
 
@@ -233,7 +353,7 @@ def RunTaskCommand(Task):
             commandchoice(TaskCommand)
     if Task.ISDisposable == 1:
         TaskDict.pop(Task.TaskName)
-        
+
 
 def AutoDelete(fromchat):
     global data
@@ -306,12 +426,12 @@ def sendfriendmessageimage(arglist):
 
 def AutoTaskCommand(fromchat=0):
     global data
-    command={}
-    command['autodelete']='#自动清理词库'
-    command['sendfriendmessage <好友QQ> <消息>']='#发送好友消息'
-    command['sendfriendmessageimage <好友QQ> <图片绝对路径>']='#发送好友图片消息'
-    command['sendgroupmessage <群号> <消息>']='#发送群聊消息'
-    command['sendgroupmessageimage <群号> <消息>']='#发送群聊图片消息'
+    command = {}
+    command['autodelete'] = '#自动清理词库'
+    command['sendfriendmessage <好友QQ> <消息>'] = '#发送好友消息'
+    command['sendfriendmessageimage <好友QQ> <图片绝对路径>'] = '#发送好友图片消息'
+    command['sendgroupmessage <群号> <消息>'] = '#发送群聊消息'
+    command['sendgroupmessageimage <群号> <消息>'] = '#发送群聊图片消息'
     print('指令列表：')
     sendtext = ''
     for i in command:
@@ -320,7 +440,6 @@ def AutoTaskCommand(fromchat=0):
     print('\n')
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, sendtext, 1)
-
 
 
 def uploadwav(data, fromchat=0):
@@ -402,21 +521,49 @@ def testvoice(data, text, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '转换失败，存在不支持的字符', 1)
 
 
+def SetReplyCd(data, Cd, fromchat=0):
+    try:
+        Cd = int(Cd)
+    except:
+        print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    if Cd < 1:
+        print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return None
+    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config['replycd'] = Cd
+    json_dump(config,
+              open('config.clc', 'w', encoding='utf-8-sig'),
+              indent=3,
+              ensure_ascii=False)
+    print('回复的冷却时间已设置为{}秒'.format(Cd))
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, '回复的冷却时间已设置为{}秒'.format(Cd), 1)
+
+
 def SetTempMessage(data, num, fromchat=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     try:
         num = int(num)
     except:
         print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
     if num < 1:
         print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
     config['tempmessagenum'] = num
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     print('每个群的消息缓存已设置为{}条'.format(num))
     if fromchat != 0:
@@ -428,11 +575,11 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
     global data
     if FastDeletesign == 0:
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['fastdelete'] = 1
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-快速删除已设置为所有人可用')
         if fromchat != 0:
@@ -442,11 +589,11 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
     else:
         FastDeletesign = 0
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['fastdelete'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-快速删除已设置为仅管理员可用')
         if fromchat != 0:
@@ -456,7 +603,7 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
 
 def blackfreq(data, num, fromchat=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     try:
         num = int(num)
@@ -468,7 +615,7 @@ def blackfreq(data, num, fromchat=0):
         return None
     config['blackfreq'] = num
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     print('黑名单容错次数已设置为{}次'.format(num))
     if fromchat != 0:
@@ -500,11 +647,11 @@ def setvoicept(data, ptname, fromchat=0):
                                 '该训练集不存在\n服务器中存在的训练集：\n' + sendptlist, 1)
         return None
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['synthesizer'] = ptname
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     print('训练集已更改为{}'.format(ptname))
     if fromchat != 0:
@@ -513,11 +660,11 @@ def setvoicept(data, ptname, fromchat=0):
 
 def remerge():
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['merge'] = 1
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     merge = My_Thread(target=ChatMerge.main)
     merge.start()
@@ -526,7 +673,7 @@ def remerge():
 def globe(globesign=0, get=0, fromchat=0):
     global data
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     if get == 1:
         return config['sendmode']
@@ -543,7 +690,7 @@ def globe(globesign=0, get=0, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '已关闭全局模式', 1)
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     return globesign
 
@@ -569,11 +716,11 @@ def setadmin(adminnum, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['Administrator'] = adminlist
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     print('管理员QQ号已设置为', adminlist)
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '管理员QQ号已设置为' + str(adminlist),
@@ -603,10 +750,10 @@ def admin(adminsign, fromchat=0):
     print('请不要操作控制台！！！')
     if adminsign == 0:
         while True:
-            time.sleep(0.8)  
+            time.sleep(0.8)
             #print('拥有词库的群号:')
             #print(ChatAdmin.getfilelist())
-            tips = '请发送需要操作的序号\n0.退出管理模式\n1.在所有群内查找\n2.在指定群内查找\n3.过滤设置\n4.自动清理词库\n5.添加自动任务\n6.添加自定义回复'
+            tips = '请发送需要操作的序号\n0.退出管理模式\n1.在所有群内查找\n2.在指定群内查找\n3.过滤,黑名单设置\n4.自动清理词库\n5.添加自动任务\n6.添加自定义回复'
             simuse.Send_Message(data, fromchat, 2, tips, 1)
             command = getcommand_chat_foradmin()
             choice = command[0]
@@ -637,11 +784,11 @@ def admin(adminsign, fromchat=0):
                     if fromchat != 0:
                         simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
                 file = open('config.clc', 'r', encoding='utf-8-sig')
-                config = json.load(file)
+                config = json_load(file)
                 file.close()
                 config['admin'] = 1
                 file = open('config.clc', 'w', encoding='utf-8-sig')
-                json.dump(config, file, indent=3, ensure_ascii=False)
+                json_dump(config, file, indent=3, ensure_ascii=False)
                 file.close()
                 ChatAdmin.main(data, config['Administrator'], group, sender)
                 #admin=My_Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
@@ -664,23 +811,24 @@ def admin(adminsign, fromchat=0):
                 else:
                     continue
             elif choice == str(5):
-                simuse.Send_Message(data,fromchat,2,"请输入任务名称",1)
+                simuse.Send_Message(data, fromchat, 2, "请输入任务名称", 1)
                 TaskName = getcommand_chat_foradmin()[0]
-                simuse.Send_Message(data,fromchat,2,"请输入自动任务语法",1)
+                simuse.Send_Message(data, fromchat, 2, "请输入自动任务语法", 1)
                 TaskText = getcommand_chat_foradmin()[0]
                 print(TaskText)
-                Task = TimeTask(TaskName,TaskText)
-                if Task.CheckTask()==0:
+                Task = TimeTask(TaskName, TaskText)
+                if Task.CheckTask() == 0:
                     print(Task.ErrorTips)
                     simuse.Send_Message(data, fromchat, 2, Task.ErrorTips, 1)
                     continue
                 TaskDict[TaskName] = copy.deepcopy(Task)
                 print('添加成功！\n' + Task.TaskInfo())
-                simuse.Send_Message(data, fromchat, 2, '添加成功！\n'+Task.TaskInfo(), 1)
+                simuse.Send_Message(data, fromchat, 2,
+                                    '添加成功！\n' + Task.TaskInfo(), 1)
                 continue
-            
+
             elif choice == str(6):
-                ChatLearning.custom_answer(data,fromchat)
+                ChatLearning.custom_answer(data, fromchat)
                 continue
 
             else:
@@ -709,7 +857,7 @@ def get_group_perm(data, group):
 def grouplist(fromchat=0):
     global data
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     learninggrouplist = config['learninggrouplist']
     replygrouplist = config['replygrouplist']
@@ -752,11 +900,11 @@ def learninginterval(interval, fromchat=0):
         simuse.Send_Message(data, fromchat, 2,
                             '已设置词库链学习间隔时间' + str(interval) + '秒', 1)
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['interval'] = interval
     file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file2, indent=3, ensure_ascii=False)
+    json_dump(config, file2, indent=3, ensure_ascii=False)
 
 
 def replychance(chance, fromchat=0):
@@ -811,7 +959,7 @@ def replychance(chance, fromchat=0):
             replydict[str(i)] = single_chance
         config['singlereplychance'] = replydict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -838,7 +986,7 @@ def replychance(chance, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         try:
             replydict = config['singlereplychance']
@@ -860,7 +1008,7 @@ def replychance(chance, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['singlereplychance'] = replydict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -883,11 +1031,11 @@ def replychance(chance, fromchat=0):
             simuse.Send_Message(data, fromchat, 2,
                                 '已设置回复的触发概率' + str(chance) + '%', 1)
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['replychance'] = chance
         file2 = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file2, indent=3, ensure_ascii=False)
+        json_dump(config, file2, indent=3, ensure_ascii=False)
 
 
 def voicereplychance(chance, fromchat=0):
@@ -942,7 +1090,7 @@ def voicereplychance(chance, fromchat=0):
             replydict[str(i)] = single_chance
         config['singlevoicereplychance'] = replydict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -969,7 +1117,7 @@ def voicereplychance(chance, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         try:
             replydict = config['singlevoicereplychance']
@@ -991,7 +1139,7 @@ def voicereplychance(chance, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['singlevoicereplychance'] = replydict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1015,11 +1163,11 @@ def voicereplychance(chance, fromchat=0):
             simuse.Send_Message(data, fromchat, 2,
                                 '已设置语音回复的触发概率' + str(chance) + '%', 1)
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['voicereplychance'] = chance
         file2 = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file2, indent=3, ensure_ascii=False)
+        json_dump(config, file2, indent=3, ensure_ascii=False)
         file2.close()
 
 
@@ -1048,7 +1196,7 @@ def addgroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['learninggrouplist'].extend(grouplist)
         config['learninggrouplist'] = list(set(config['learninggrouplist']))
@@ -1056,7 +1204,7 @@ def addgroup(args, fromchat=0):
             config['replygrouplist'].extend(grouplist)
             config['replygrouplist'] = list(set(config['replygrouplist']))
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         if args[:10] == 'learnings ':
             print('<-添加完毕 已同时加入回复列表')
@@ -1087,12 +1235,12 @@ def addgroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['replygrouplist'].extend(grouplist)
         config['replygrouplist'] = list(set(config['replygrouplist']))
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -1118,13 +1266,13 @@ def addgroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['unmergegrouplist'].extend(grouplist)
         config['unmergegrouplist'] = list(set(config['unmergegrouplist']))
         config['merge'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -1167,7 +1315,7 @@ def addgroup(args, fromchat=0):
                 return None
         config['subadmin'] = Subadmindict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -1214,7 +1362,7 @@ def addgroup(args, fromchat=0):
             Tagdict[str(i)] = list(set(Taglist))
         config['tag'] = Tagdict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-添加完毕')
         if fromchat != 0:
@@ -1240,8 +1388,8 @@ def addgroup(args, fromchat=0):
         except UnicodeDecodeError:
             print('读取错误，请检查文件编码是否为UTF-8')
             if fromchat != 0:
-                simuse.Send_Message(data, fromchat, 2,
-                                    '读取错误，请检查文件编码是否为UTF-8', 1)
+                simuse.Send_Message(data, fromchat, 2, '读取错误，请检查文件编码是否为UTF-8',
+                                    1)
             return None
         if Task.CheckTask() == 0:
             print(Task.ErrorTips)
@@ -1283,7 +1431,7 @@ def removegroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         sendtext = ''
         for i in grouplist:
@@ -1296,7 +1444,7 @@ def removegroup(args, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1322,7 +1470,7 @@ def removegroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         sendtext = ''
         for i in grouplist:
@@ -1335,7 +1483,7 @@ def removegroup(args, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1361,7 +1509,7 @@ def removegroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         sendtext = ''
         for i in grouplist:
@@ -1375,7 +1523,7 @@ def removegroup(args, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['merge'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1402,7 +1550,7 @@ def removegroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         try:
             subadmindict = config['subadmin']
@@ -1424,7 +1572,7 @@ def removegroup(args, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['subadmin'] = subadmindict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1451,7 +1599,7 @@ def removegroup(args, fromchat=0):
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         try:
             Tagdict = config['tag']
@@ -1482,7 +1630,7 @@ def removegroup(args, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['tag'] = Tagdict
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-移除完毕')
         if fromchat != 0:
@@ -1520,36 +1668,36 @@ def removegroup(args, fromchat=0):
 
 
 def learning(learningsign, mergesign, fromchat=0):
-    global data
+    global data, learning_t, merge_t
     if learningsign == 0 and mergesign == 0:
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['learning'] = 1
         config['merge'] = 1
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-开始记录')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开始记录', 1)
-        learning = My_Thread(target=ChatLearning.main)
-        merge = My_Thread(target=ChatMerge.main)
+        learning_t = My_Thread(target=ChatLearning.main)
+        merge_t = My_Thread(target=ChatMerge.main)
         learningsign = 1
         mergesign = 1
-        learning.start()
-        merge.start()
+        learning_t.start()
+        merge_t.start()
         return learningsign, mergesign
     else:
         learningsign = 0
         mergesign = 0
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['learning'] = 0
         config['merge'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-停止记录')
         if fromchat != 0:
@@ -1558,30 +1706,30 @@ def learning(learningsign, mergesign, fromchat=0):
 
 
 def reply(replysign, fromchat=0):
-    global data
+    global data, reply_t
     if replysign == 0:
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['reply'] = 1
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-开启回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开启回复功能', 1)
-        reply = My_Thread(target=ChatReply.main)
+        reply_t = My_Thread(target=ChatReply.main)
         replysign = 1
-        reply.start()
+        reply_t.start()
         return replysign
     else:
         replysign = 0
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['reply'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-关闭回复功能')
         if fromchat != 0:
@@ -1593,11 +1741,11 @@ def voicereply(voicereplysign, fromchat=0):
     global data
     if voicereplysign == 0:
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['voicereply'] = 1
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-开启语音回复功能')
         if fromchat != 0:
@@ -1607,11 +1755,11 @@ def voicereply(voicereplysign, fromchat=0):
     else:
         voicereplysign = 0
         file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json.load(file)
+        config = json_load(file)
         file.close()
         config['voicereply'] = 0
         file = open('config.clc', 'w', encoding='utf-8-sig')
-        json.dump(config, file, indent=3, ensure_ascii=False)
+        json_dump(config, file, indent=3, ensure_ascii=False)
         file.close()
         print('<-关闭语音回复功能')
         if fromchat != 0:
@@ -1630,11 +1778,11 @@ def merge(time, fromchat=0):
         simuse.Send_Message(data, fromchat, 2, '已设置总词库更新时间' + str(time) + '秒',
                             1)
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     config['mergetime'] = time
     file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file2, indent=3, ensure_ascii=False)
+    json_dump(config, file2, indent=3, ensure_ascii=False)
     file2.close()
 
 
@@ -1677,12 +1825,12 @@ def typefreq(data, args, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     freqdict = config['typefreq']
     freqdict[type] = freq
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config, file, indent=3, ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
     print('<-已设置{}回复阈值'.format(type), freq, '次')
     if fromchat != 0:
@@ -1697,6 +1845,8 @@ def getcommand_chat():
     if data["Key"] != "":
         data = simuse.Get_Session(data)  # Test
     while 1:
+        if ChatClass.stop_run():
+            return None
         if adminsendmode == 1:
             print('none')
             break
@@ -1736,12 +1886,13 @@ def getcommand_chat_foradmin():
 
 
 async def getcommand_tui():
-    listen = My_Thread(target=getcommand_chat)
-    listen.start()
-    subadmin = My_Thread(target=ChatSubadmin.main)
-    subadmin.start()
-    autotask = My_Thread(target=RunAutoTask)
-    autotask.start()
+    global listen_t, subadmin_t, autotask_t
+    listen_t = My_Thread(target=getcommand_chat)
+    listen_t.start()
+    subadmin_t = My_Thread(target=ChatSubadmin.main)
+    subadmin_t.start()
+    autotask_t = My_Thread(target=RunAutoTask)
+    autotask_t.start()
     session = PromptSession()
     while 1:
         #time.sleep(3)
@@ -1784,6 +1935,8 @@ def commandchoice(command, fromchat=0):
             commandlist.commandhelp(fromchat)
     elif command[:10] == 'replywait ':
         ReplyWait(command[10:], fromchat)
+    elif command[:8] == 'replycd ':
+        SetReplyCd(data, command[8:], fromchat)
     elif command[:5] == 'reply':
         if command == 'reply':
             replysign = reply(replysign, fromchat)
@@ -1846,6 +1999,10 @@ def commandchoice(command, fromchat=0):
         GetAutoTaskInfo(fromchat)
     elif command == 'autotaskcommand':
         AutoTaskCommand(fromchat)
+
+
+#    elif command == 'download':
+#        down_new_version()
     elif command == 'exit':
         exit()
     elif command == 'help' or command == '?' or command == '？':
@@ -1853,8 +2010,45 @@ def commandchoice(command, fromchat=0):
     else:
         commandlist.commandhelp(fromchat)
 
-
 if __name__ == '__main__':
+    # 更新判断
+    global my_name, system, update_sign
+    update_sign = False
+    my_path = sys.argv[0]
+    system = platform.system()
+
+    if os.path.isfile("upgrade.bat"):
+        os.remove("upgrade.bat")
+        update_sign = True
+    if os.path.isfile("upgrade.sh"):
+        os.remove("upgrade.sh")
+        update_sign = True
+    if system == 'Windows':
+        my_name = my_path[my_path.rfind('\\') + 1:]
+        exelist = glob.glob("*.exe")
+    elif system == 'Linux':
+        my_name = my_path[my_path.rfind('/') + 1:]
+        exelist = glob.glob("*")
+    #print(exelist)
+    #print(my_name)
+
+    for i in exelist:
+        if os.path.isdir(i):
+            continue
+        if i == my_name:
+            continue
+        index = i.find('ChatLearning')
+        if index != -1:
+            index += len('ChatLearning')
+            index2 = i.find('.exe')
+            if index2 != '-1':
+                lip = i[index:index2]
+            else:
+                lip = i[index:]
+            print(lip)
+            if lip != '_v' + ChatClass.version:
+                os.remove(i)
+
     global TaskDict
     hello()
     adminsendmode = 0
@@ -1881,7 +2075,9 @@ if __name__ == '__main__':
         try:
             data = simuse.Get_Session(data)
         except KeyError as e:
-            print('取得session失败，但已与api-http取得连接(host,port正常)。\n可能的问题：\n1.Key不正确\n2.api-http出现异常')
+            print(
+                '取得session失败，但已与api-http取得连接(host,port正常)。\n可能的问题：\n1.Key不正确\n2.api-http出现异常'
+            )
             os.system('pause')
             exit()
     if learningsign == 1:

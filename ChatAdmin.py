@@ -1,10 +1,10 @@
 #import asyncio
 import copy
+import json
 import os
 import pickle
 import threading
 import time
-import json
 
 #import nest_asyncio
 from prompt_toolkit import PromptSession
@@ -13,6 +13,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import ChatFilter
 import ChatMerge
 import simuse
+from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 #nest_asyncio.apply()
 
@@ -77,13 +78,13 @@ def get_admin_command(data, adminlist=0, sender=0, group=0):
 
 def exitadmin(getadminsign=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     if getadminsign == 1:
         return config['admin']
     config['admin'] = 0
     file = open('config.clc', 'w', encoding='utf-8-sig')
-    json.dump(config,file,indent=3,ensure_ascii=False)
+    json_dump(config, file, indent=3, ensure_ascii=False)
     file.close()
 
 
@@ -106,7 +107,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
             time.sleep(0.8)
         tempdict.pop(question)
         filename = str(group) + '.cl'  # 读取已缓存的词库
-        pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
+        pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
     if node == str(-1) or node == '–1':
@@ -155,7 +156,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
     if answerlist == []:
         tempdict.pop(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    pickle.dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
     if templist != []:
         if sendtext != '':
             simuse.Send_Message(
@@ -183,7 +184,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
 
 def getconfig(adminnum=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json.load(file)
+    config = json_load(file)
     file.close()
     if adminnum == 1:
         return config['Administrator']
@@ -302,7 +303,7 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
             continue
     question = str(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    tempdict = pickle.load(open('WordStock/' + filename, 'rb'))
+    tempdict = pickle_load(open('WordStock/' + filename, 'rb'))
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
         #print(question)
         questiondict = tempdict[question]
@@ -389,8 +390,8 @@ def main(data, adminlist, group, fromchat):
     if not (group in getfilelist()):
         print('<-群定位失败，未找到群', group)
         if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2,
-                                '群定位失败，未找到群' + str(group), 1)
+            simuse.Send_Message(data, fromchat, 2, '群定位失败，未找到群' + str(group),
+                                1)
         return None
     print('<-定位到群', group)
     if fromchat != 0:

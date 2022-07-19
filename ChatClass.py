@@ -1,4 +1,6 @@
-from asyncio import Task
+import copy
+import datetime
+import json
 import os
 import pickle
 import platform
@@ -7,15 +9,58 @@ import shutil
 import threading
 import time
 import traceback
-import json
-import datetime
-import copy
+from asyncio import Task
 
 import requests
+#import tqdm
 
 import simuse
 
-version = '2.9.7'
+version = '2.9.8'
+
+
+def pickle_dump(obj, file):
+    while True:
+        try:
+            pickle.dump(obj, file)
+            break
+        except:
+            time.sleep(0.1)
+            continue
+    return True
+
+
+def pickle_load(file):
+    while True:
+        try:
+            obj = pickle.load(file)
+            break
+        except:
+            time.sleep(0.1)
+            continue
+    return obj
+
+
+def json_dump(obj, file, indent=3, ensure_ascii=False):
+    while True:
+        try:
+            json.dump(obj, file, indent=indent, ensure_ascii=ensure_ascii)
+            break
+        except:
+            time.sleep(0.1)
+            continue
+    return True
+
+
+def json_load(file):
+    while True:
+        try:
+            obj = json.load(file)
+            break
+        except:
+            time.sleep(0.1)
+            continue
+    return obj
 
 
 # 控制台指令类
@@ -30,6 +75,7 @@ class commandclass():
     commandtips['reply -s <％> <群号>'] = '#单独设定回复触发几率'
     commandtips['reply -d <群号>'] = '#清除单独设定的回复触发几率'
     commandtips['replywait <基准时间> <浮动时间>'] = '#设定回复的等待时间'
+    commandtips['replycd <秒>'] = '#设定回复的冷却时间'
     commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
     commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
     commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
@@ -122,125 +168,138 @@ class commandclass():
 # 定时任务类
 class TimeTask():
 
-    TaskName=''
+    TaskName = ''
 
-    ISDisposable=1
+    ISDisposable = 1
 
-    Tips={}
-    ErrorTips=''
+    Tips = {}
+    ErrorTips = ''
 
-    SendList=[]
-    TimeList=[]
-    DayList=[]
-    TaskList=[]
-    TimeList_Origin=[]
+    SendList = []
+    TimeList = []
+    DayList = []
+    TaskList = []
+    TimeList_Origin = []
 
-    runday=''
+    runday = ''
+    AfterDay = 0
 
-    def __init__(self,TaskName:str , TaskText:str=None) -> None:
+    def __init__(self, TaskName: str, TaskText: str = None) -> None:
         self.Default()
-    
-        self.TaskName=TaskName
-        if TaskText==None:
-            TaskPath='AutoTask/{}.txt'.format(TaskName)
-            with open(TaskPath,'r',encoding='utf-8') as TaskFile:
-                TextList=TaskFile.readlines()
+
+        self.TaskName = TaskName
+        if TaskText == None:
+            TaskPath = 'AutoTask/{}.txt'.format(TaskName)
+            with open(TaskPath, 'r', encoding='utf-8') as TaskFile:
+                TextList = TaskFile.readlines()
         else:
             TextList = TaskText.split('\n')
         for lines in TextList:
             lines = ' '.join(lines.split())
-            if lines=='':
+            if lines == '':
                 continue
 
-            if lines[0]=='#':
+            if lines[0] == '#':
                 self.DayList.extend(lines[1:].split(' '))
-            elif lines[0]=='*':
+            elif lines[0] == '*':
                 self.TimeList.extend(lines[1:].split(' '))
-            elif lines[0]=='@':
+            elif lines[0] == '@':
                 self.SendList.extend(lines[1:].split(' '))
-            elif lines[0]=='/':
+            elif lines[0] == '/':
                 self.TaskList.append(lines[1:])
 
-        self.TimeList_Origin=copy.deepcopy(self.TimeList)
+        self.TimeList_Origin = copy.deepcopy(self.TimeList)
 
     # 初始化
     def Default(self):
-        self.TaskName=''
-        self.ISDisposable=1
-        self.Tips={}
-        self.ErrorTips=''
-        self.SendList=[]
-        self.TimeList=[]
-        self.DayList=[]
-        self.TaskList=[]
-        self.runday=datetime.datetime.now().strftime('%d')
+        self.TaskName = ''
+        self.ISDisposable = 1
+        self.Tips = {}
+        self.ErrorTips = ''
+        self.SendList = []
+        self.TimeList = []
+        self.DayList = []
+        self.TaskList = []
+        self.runday = datetime.datetime.now().strftime('%d')
 
     # 解析任务
     def CheckTask(self) -> bool:
-        week=['w1','w2','w3','w4','w5','w6','w7']
-        week_C=['周一','周二','周三','周四','周五','周六','周日']
+        week = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7']
+        week_C = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
-        SendTips=''
-        DayTips=''
-        TimeTips=''
-        TaskTips=''
+        SendTips = ''
+        DayTips = ''
+        TimeTips = ''
+        TaskTips = ''
 
         # 解析发送结果QQ
         for sendqq in self.SendList:
             try:
                 int(sendqq)
             except:
-                SendTips='SendError'
+                SendTips = 'SendError'
             else:
-                SendTips=SendTips+sendqq+' '
-
+                SendTips = SendTips + sendqq + ' '
 
         # 解析日期
         for days in self.DayList:
-            if days=='everyday':
-                DayTips=DayTips+'每日 '
-                self.ISDisposable=0
+            if days == 'everyday':
+                DayTips = DayTips + '每日 '
+                self.ISDisposable = 0
                 break
             elif days in week:
-                self.ISDisposable=0
-                DayTips=DayTips+week_C[week.index(days)]+' '
+                self.ISDisposable = 0
+                DayTips = DayTips + week_C[week.index(days)] + ' '
+            elif days[0] == 'x':
+                try:
+                    if int(days[1:]) <= 0:
+                        continue
+                    DayTips = DayTips + '每' + str(int(days[1:])) + '天' + ' '
+                    self.ISDisposable = 0
+                except:
+                    continue
             else:
                 try:
-                    datetime.datetime.strptime(days,'%Y-%m-%d')
+                    datetime.datetime.strptime(days, '%Y-%m-%d')
                 except:
                     continue
                 else:
-                    DayTips=DayTips+days+' '
-        
+                    DayTips = DayTips + days + ' '
+
         # 解析时间
         for times in self.TimeList:
             try:
-                datetime.datetime.strptime(times,'%H:%M')
+                datetime.datetime.strptime(times, '%H:%M')
             except:
                 continue
             else:
-                TimeTips=TimeTips+times+' '
-        
+                TimeTips = TimeTips + times + ' '
+
         # 解析指令
         for task in self.TaskList:
-            TaskTips=TaskTips+task+'\n'
+            TaskTips = TaskTips + task + '\n'
 
-        Tips='无法解析任务的 '
+        Tips = '无法解析任务的 '
 
-        if SendTips=='SendError':
-            Tips=Tips+'执行结果反馈QQ号 '
-        if DayTips=='':
-            Tips=Tips+'执行日期 '
-        if TimeTips=='':
-            Tips=Tips+'执行时间 '
-        if TaskTips=='':
-            Tips=Tips+'执行指令 '
+        if SendTips == 'SendError':
+            Tips = Tips + '执行结果反馈QQ号 '
+        if DayTips == '':
+            Tips = Tips + '执行日期 '
+        if TimeTips == '':
+            Tips = Tips + '执行时间 '
+        if TaskTips == '':
+            Tips = Tips + '执行指令 '
 
-        if Tips!='无法解析任务的 ':
-            self.ErrorTips=Tips
+        if Tips != '无法解析任务的 ':
+            self.ErrorTips = Tips
             return 0
         else:
-            self.Tips={"执行结果反馈QQ号":SendTips,"执行日期":DayTips,"执行时间":TimeTips,"执行指令":TaskTips}
+            self.Tips = {
+                "执行结果反馈QQ号": SendTips,
+                "执行日期": DayTips,
+                "执行时间": TimeTips,
+                "执行指令": TaskTips
+            }
             return 1
 
     # 重写__repr__
@@ -249,47 +308,52 @@ class TimeTask():
 
     # 返回任务详情
     def TaskInfo(self):
-        String="任务名称:"+self.TaskName+"\n执行结果反馈QQ号:"+self.Tips["执行结果反馈QQ号"]+"\n执行日期:"+self.Tips["执行日期"]+"\n执行时间:"+self.Tips["执行时间"]+"\n执行指令:\n"+self.Tips["执行指令"]
-        return String    
-
+        String = "任务名称:" + self.TaskName + "\n执行结果反馈QQ号:" + self.Tips[
+            "执行结果反馈QQ号"] + "\n执行日期:" + self.Tips[
+                "执行日期"] + "\n执行时间:" + self.Tips[
+                    "执行时间"] + "\n执行指令:\n" + self.Tips["执行指令"]
+        return String
 
     # 判断是否达到任务执行时间
-    def ISTaskTime(self)->bool:
+    def ISTaskTime(self) -> bool:
 
-        nowtime=datetime.datetime.now().strftime('%H:%M')
-        nowday=datetime.datetime.now().strftime('%Y-%m-%d')
-        weekday=datetime.datetime.now().weekday()+1
-        today=datetime.datetime.now().strftime('%d')
+        nowtime = datetime.datetime.now().strftime('%H:%M')
+        nowday = datetime.datetime.now().strftime('%Y-%m-%d')
+        weekday = datetime.datetime.now().weekday() + 1
+        today = datetime.datetime.now().strftime('%d')
 
         #判断日期是否变化
-        if today!=self.runday:
-            self.TimeList=copy.deepcopy(self.TimeList_Origin)
-            self.runday=today
+        if today != self.runday:
+            self.TimeList = copy.deepcopy(self.TimeList_Origin)
+            self.runday = today
+            self.AfterDay += 1
 
-        daysign=0
+        daysign = 0
 
         for days in self.DayList:
-            if days=='everyday':
-                daysign=1
-            elif days=='w'+str(weekday):
-                daysign=1
-            elif days==nowday:
-                daysign=1
+            if days == 'everyday':
+                daysign = 1
+            elif days == 'w' + str(weekday):
+                daysign = 1
+            elif days == 'x' + str(self.AfterDay) and self.AfterDay > 0:
+                daysign = 1
+                self.AfterDay = 0
+            elif days == nowday:
+                daysign = 1
 
-        if daysign==1:
+        if daysign == 1:
             for Time in self.TimeList:
-                if Time==nowtime:
+                if Time == nowtime:
                     self.TimeList.remove(Time)
                     return 1
         else:
             return 0
-        
 
 
 # 多线程类的复写
 class My_Thread(threading.Thread):
     Trynum = 0
-    
+
     # 常驻为守护线程
     daemon = True
 
@@ -336,12 +400,61 @@ def Version():
     return version
 
 
+def stop_run():
+
+    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    sign = config["stopsign"]
+
+    if sign == 0:
+        return False
+    elif sign == 1:
+        return True
+
+
 # 更新类
 class Update():
 
     def __init__(self, config_version) -> None:
         self.version = config_version
         self.version = int(self.version.replace('.', ''))
+
+    # def down_new_file(self, data={'qq': '123456'}):
+    #     url = 'http://124.222.165.166:19630/Update'
+    #     try:
+    #         res = requests.request('get', url=url, timeout=20)
+    #         res = json.loads(res.text)
+    #     except:
+    #         return None
+
+    #     server_version = int(res['version'].replace('.', ''))
+    #     server_version_format = res['version']
+
+    #     if server_version > self.version:
+    #         try:
+    #             url = "http://124.222.165.166:19630/DownLoadFile"
+    #             data_in = {
+    #                 'version': self.version,
+    #                 'system': platform.system(),
+    #                 'qq': data['qq']
+    #             }
+    #             res = requests.request('post', url, json=data_in, stream=True)
+    #         except:
+    #             return None
+    #         print('正在下载……')
+    #         total = int(res.headers.get('content-length', 0))
+    #         with open('ChatLearning_new', 'wb') as file, tqdm.tqdm(
+    #                 desc='ChatLearning_v{}'.format(server_version_format),
+    #                 total=total,
+    #                 unit='iB',
+    #                 unit_scale=True,
+    #                 unit_divisor=1024) as bar:
+    #             for file_data in res.iter_content(chunk_size=1024):
+    #                 size = file.write(file_data)
+    #                 bar.update(size)
+
+    #         return 1, server_version_format
+    #     else:
+    #         return 0, server_version_format
 
     # 2.7.0前版本更新需要更换词库的缓存形式
     def ClChange(self):
@@ -362,7 +475,7 @@ class Update():
             dicts = file.read()
             dicts = eval(dicts)
             file.close()
-            pickle.dump(dicts, open(i, 'wb'))
+            pickle_dump(dicts, open(i, 'wb'))
         print('准备完毕！')
 
     def Cl_version(self):
@@ -382,12 +495,12 @@ class Update():
         if self.version < 280:
             print('正在更新词库版本,{} -> 280 请勿中途退出'.format(self.version))
             for i in cllist:
-                dicts = pickle.load(open(i, 'rb'))
+                dicts = pickle_load(open(i, 'rb'))
                 for k in dicts.keys():
                     questiondict = dicts[k]
                     if not ('freq' in questiondict.keys()):
                         questiondict['freq'] = 1
-                pickle.dump(dicts, open(i, 'wb'))
+                pickle_dump(dicts, open(i, 'wb'))
                 shutil.move(i, 'WordStock/' + i)
 
     def Config_version(self):
@@ -414,15 +527,19 @@ class Update():
             config['fastdelete'] = 0
         if self.version < 295:
             print('正在更新config, -> 295 请勿中途退出')
-            config['replywait']=[0,0]
-            config['voicecharerror']='存在违规字符，转换失败'
-            config['voicecderror']='转换冷却中'
-            config['voicelengtherror']='长度超过限制'
+            config['replywait'] = [0, 0]
+            config['voicecharerror'] = '存在违规字符，转换失败'
+            config['voicecderror'] = '转换冷却中'
+            config['voicelengtherror'] = '长度超过限制'
         if self.version < 297:
             print('正在更新config, -> 297 请勿中途退出')
-            config['deletesuccess']='已从词库内删除！'
-            config['deletetemperror']='删除失败，该消息已不在缓存内'
-            config['deletefinderror']='删除失败，词库中已无法找到该答案'
-            
-            
+            config['deletesuccess'] = '已从词库内删除！'
+            config['deletetemperror'] = '删除失败，该消息已不在缓存内'
+            config['deletefinderror'] = '删除失败，词库中已无法找到该答案'
+        if self.version < 298:
+            print('正在更新config, -> 298 请勿中途退出')
+            config['replycd'] = 3
+            config['stopsign'] = 0
+            config['voicecommand'] = '快说 '
+
         return config
