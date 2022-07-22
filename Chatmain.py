@@ -2035,7 +2035,7 @@ if __name__ == '__main__':
     for i in exelist:
         if os.path.isdir(i):
             continue
-        if i == my_name:
+        if i == my_name or i=='ChatLearning.py':
             continue
         index = i.find('ChatLearning')
         if index != -1:
@@ -2045,7 +2045,7 @@ if __name__ == '__main__':
                 lip = i[index:index2]
             else:
                 lip = i[index:]
-            print(lip)
+            #print(lip)
             if lip != '_v' + ChatClass.version:
                 os.remove(i)
 
