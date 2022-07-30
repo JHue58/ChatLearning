@@ -15,7 +15,7 @@ def getconfig():
     return config['blackfreq']
 
 
-def replyanswer(data, sender, filterlist):  # 发送答案
+def replyanswer(data, sender, filterlist,Accuratedict = None):  # 发送答案
     nodelist = []
     #answer=eval(answer)
     for i in filterlist:  # 去除答案中的imageId，不去除mirai api http会无法回复
@@ -86,7 +86,18 @@ def replyanswer(data, sender, filterlist):  # 发送答案
                 pass
             #print(i)
         index = {'type': 'Plain', 'text': ''}
-        index['text'] = '\n标记:' + str(filterlist.index(i))
+        try:
+            accurate = Accuratedict[i]
+            if accurate == True:
+                accurate_tip='是'
+            else:
+                accurate_tip='否'
+        except:
+            accurate_tip = '否'
+        if Accuratedict!= None:
+            index['text'] = '\n标记:{}\n精确匹配:{}' .format(str(filterlist.index(i)),accurate_tip)
+        else:
+            index['text'] = '\n标记:{}' .format(str(filterlist.index(i)))
         if changelist != []:
             #print(changelist)
             messagechain = copy.deepcopy(changelist)
@@ -111,7 +122,7 @@ def replyanswer(data, sender, filterlist):  # 发送答案
     return len(filterlist)
 
 
-def getnode(data, Filterconfig, filterlist, sender):
+def getnode(data, Filterconfig, filterlist, sender,Accuratedict = None):
     #await asyncio.sleep(waittime)
     #simuse.Send_Message(data, sender, 2, '请输入需删除的答案标记'+'\n'+'(输入-1可取消,all清空所有,多个用空格隔开)：', 1)
     print('请在聊天窗口发送需删除的标记(发送-1可取消，多个用空格隔开)')
@@ -121,6 +132,8 @@ def getnode(data, Filterconfig, filterlist, sender):
             break
     if node == 'all':
         filterlist.clear()
+        if Accuratedict!= None:
+            Accuratedict.clear()
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
         json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
@@ -165,6 +178,8 @@ def getnode(data, Filterconfig, filterlist, sender):
     for i in templist:
         #print(i)
         filterlist.remove(i)
+        if Accuratedict!= None:
+            Accuratedict.pop(i)
     #print(filterlist)
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
     json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
@@ -330,7 +345,7 @@ def sensitivecheck(question, sender, group):
 
 
 def filtercheck(question, sender='|回复过滤', group='|回复过滤', display=True):
-    command = ['!learning', 'learning', '!reply', 'reply', '!admin', 'admin']
+    command = ['!learning', 'learning', '!reply', 'reply', '!admin', 'admin','!d','！d']
     text = ''
     for i in question:  # 去除作为问题中的变动因素“url”
         try:
@@ -338,6 +353,7 @@ def filtercheck(question, sender='|回复过滤', group='|回复过滤', display
         except:
             continue
     Filterconfig = blackcheck()
+    Accuratedict = Filterconfig['Accuratedict']
     #print(question)
     for i in question:
         if i['type'] == 'Plain':
@@ -346,15 +362,19 @@ def filtercheck(question, sender='|回复过滤', group='|回复过滤', display
                 k = eval(k)
                 for j in k:
                     if j['type'] == 'Plain':
-                        if i['text'].find(j['text']) != -1:
+                        try:
+                            accurated =  Accuratedict[str(k)]
+                        except:
+                            accurated = False
+                        if i['text'].find(j['text']) != -1 and accurated==False:
                             if display == True:
-                                print('已过滤，原因：与过滤名单模糊匹配',
+                                print('已过滤，原因：与过滤字典模糊匹配',
                                       '发送者{}'.format(sender),
                                       '来自群{}'.format(group))
                             return 0
     if str(question) in Filterconfig['filter']:
         if display == True:
-            print('已过滤，原因：与过滤名单匹配', '发送者{}'.format(sender),
+            print('已过滤，原因：与过滤字典精确匹配', '发送者{}'.format(sender),
                   '来自群{}'.format(group))
         return 0
     elif text in command:
@@ -366,13 +386,13 @@ def filtercheck(question, sender='|回复过滤', group='|回复过滤', display
         for i in question:
             if i['type'] in Filterconfig['type']:
                 if display == True:
-                    print('已过滤，原因：与过滤名单中消息类型匹配', '发送者{}'.format(sender),
+                    print('已过滤，原因：与过滤字典中消息类型匹配', '发送者{}'.format(sender),
                           '来自群{}'.format(group))
                 return 0
         return 1
 
 
-def creatfilter(question, addfilterlist=0):
+def creatfilter(question, addfilterlist=0,accurate=False):
     if addfilterlist == 0:
         for i in question:  # 去除作为问题中的变动因素“url”
             try:
@@ -382,9 +402,17 @@ def creatfilter(question, addfilterlist=0):
         question = str(question)
         Filterconfig = blackcheck()
         filterlist = Filterconfig['filter']
+
+        try:
+            Accuratedict = Filterconfig['Accuratedict']
+        except:
+            Accuratedict = {}
+
         #print(filterlist)
         filterlist.append(question)
         filterlist = list(set(filterlist))
+        Accuratedict[question] = accurate
+        Filterconfig['Accuratedict'] = Accuratedict
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
         json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
@@ -445,7 +473,7 @@ def filtercontrol(data, sender):
     ExitChain = [{'type': 'Plain', 'text': 'exit'}]
     while 1:
         time.sleep(1)
-        tips = '请选择你的操作\n0.返回\n1.添加需过滤的关键字\n2.添加敏感关键字\n3.添加黑名单账号\n4.查看,删除'
+        tips = '请选择你的操作\n0.返回\n1.添加需过滤的关键字(模糊)\n2.添加需过滤的关键字(精确)\n3.添加敏感关键字\n4.添加黑名单账号\n5.查看,删除'
         simuse.Send_Message(data, sender, 2, tips, 1)
         while 1:
             command = ChatAdmin.get_admin_command(data, sender=sender)
@@ -467,6 +495,20 @@ def filtercontrol(data, sender):
                 else:
                     simuse.Send_Message(data, sender, 2, '添加成功！', 1)
         elif command == str(2):
+            simuse.Send_Message(data, sender, 2, '请发送需要过滤的关键字，发送“exit”结束', 1)
+            while 1:
+                while 1:
+                    question = ChatAdmin.get_admin_question(data, sender)
+                    if question != None:
+                        break
+                if question == ExitChain: break
+                try:
+                    creatfilter(question,accurate=True)
+                except:
+                    simuse.Send_Message(data, sender, 2, '添加失败', 1)
+                else:
+                    simuse.Send_Message(data, sender, 2, '添加成功！', 1)
+        elif command == str(3):
             simuse.Send_Message(data, sender, 2, '请发送敏感的关键字，发送“exit”结束', 1)
             while 1:
                 while 1:
@@ -480,7 +522,7 @@ def filtercontrol(data, sender):
                     simuse.Send_Message(data, sender, 2, '添加失败', 1)
                 else:
                     simuse.Send_Message(data, sender, 2, '添加成功！', 1)
-        elif command == str(3):
+        elif command == str(4):
             simuse.Send_Message(data, sender, 2, '请输入需要添加黑名单的账号', 1)
             while 1:
                 member = ChatAdmin.get_admin_command(data, sender=sender)
@@ -504,7 +546,7 @@ def filtercontrol(data, sender):
                 return None
             creatblack(memberlist, list=1)
             simuse.Send_Message(data, sender, 2, '添加完毕', 1)
-        elif command == str(4):
+        elif command == str(5):
             while True:
                 simuse.Send_Message(data, sender, 2,
                                     '请输入需要查看的内容\n0.返回\n1.过滤的关键字\n2.敏感的关键字\n3.黑名单',
@@ -516,10 +558,12 @@ def filtercontrol(data, sender):
                         break
                 if node == str(1):
                     filterlist = Filterconfig['filter']
-                    replyanswer(data, sender, filterlist)
-                    getnode(data, Filterconfig, filterlist, sender)
+                    Accuratedict = Filterconfig['Accuratedict']
+                    replyanswer(data, sender, filterlist,Accuratedict)
+                    getnode(data, Filterconfig, filterlist, sender,Accuratedict)
                 elif node == str(2):
                     sensitivelist = Filterconfig['sensitive']
+
                     replyanswer(data, sender, sensitivelist)
                     getnode(data, Filterconfig, sensitivelist, sender)
                 elif node == str(3):

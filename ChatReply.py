@@ -5,7 +5,10 @@ import pickle
 import random
 import time
 import traceback
-from tkinter import E
+import jieba
+jieba.setLogLevel(jieba.logging.INFO)
+import numpy as np
+import re
 
 import requests
 
@@ -332,7 +335,7 @@ def runchance(replychance):
     return chance
 
 
-def getconfig(choice):
+def getconfig(choice=16):
     file = open('config.clc', 'r', encoding='utf-8-sig')
     config = json_load(file)
     file.close()
@@ -387,11 +390,23 @@ def getconfig(choice):
 
 
 def getanswer(group, question):  # 从词库中获取答案
+    #是否为文字标志
+    IS_Plain = False
+    question_text = None
     for i in question:  # 去除作为问题中的变动因素“url”
+        if i['type']=='Plain':
+            IS_Plain = True
         try:
             i.pop('url')
         except:
             continue
+    if IS_Plain == True:
+        for i in question:
+            if i['type'] == 'Plain':
+                question_text = i['text']
+                break
+
+    
     if getconfig(2) == 1:
         Tagdict = getconfig(8)
         if str(group) in Tagdict.keys():
@@ -412,7 +427,17 @@ def getanswer(group, question):  # 从词库中获取答案
                 questiondict = tempdict[question]
                 answerlist.extend(
                     copy.deepcopy(DelType(tempdict, questiondict['answer'])))
-            except:
+            except KeyError:
+                if IS_Plain == True:
+                    question_str = regular_mate(tempdict,question_text)
+                    if question_str == None and getconfig()['cosmatch']==1:
+                        question_str = get_answer_vector(tempdict,question_text)
+                    if question_str!=None:
+                        questiondict = tempdict[question_str]
+                        answerlist.extend(copy.deepcopy(DelType(tempdict, questiondict['answer'])))
+                continue
+            except Exception as e:
+                print(e)
                 continue
 
     else:
@@ -425,7 +450,20 @@ def getanswer(group, question):  # 从词库中获取答案
             #print(question)
             questiondict = tempdict[question]
             answerlist = DelType(tempdict, questiondict['answer'])
-        except:
+        except KeyError:
+            if IS_Plain == True:
+                question_str = regular_mate(tempdict,question_text)
+                if question_str == None and getconfig()['cosmatch']==1:
+                    question_str = get_answer_vector(tempdict,question_text)
+                if question_str!=None:
+                    questiondict = tempdict[question_str]
+                    answerlist=DelType(tempdict, questiondict['answer'])
+                else:
+                    return -1
+                
+        
+        except Exception as e:
+            print(e)
             return -1
 
     #print(answerlist)
@@ -434,7 +472,7 @@ def getanswer(group, question):  # 从词库中获取答案
     return answerlist
 
 
-def replyanswer(data, group, answer):  # 发送答案
+def replyanswer(data, group, answer,Atme_Config):  # 发送答案
     global nowtime
     replydict = getconfig(9)
     if str(group) in replydict.keys():
@@ -503,6 +541,9 @@ def replyanswer(data, group, answer):  # 发送答案
     if voicereplysign == 0:
         RandomStop()
 
+    if Atme_Config[0] == 1:
+        answer.insert(0,{'type':'At','target':Atme_Config[2]})
+        answer.insert(1,{'type':'Plain','text':'\n'})
     number = simuse.Send_Message_Chain(data, group, 1,
                                        answer)  # 让bot发送随机抽取中的答案
     if number != None:
@@ -538,6 +579,135 @@ def random_weight(answerlist):
         return random.choice(answerlist)
 
 
+def regular_mate(cldict,question_text):
+
+    regular_dict={}
+    question = None
+    regular_flag = False
+
+    for i in cldict:
+        question_dict = cldict[i]
+        if question_dict['regular'] == True:
+            regular_dict[i] = copy.deepcopy(question_dict)
+    
+    if regular_dict == {}:
+        return question
+    
+    for i in regular_dict:
+        if regular_flag == True:
+            break
+        eval_i = eval(i)
+        for k in eval_i:
+            if k['type']=='Plain':
+                if re.search(k['text'],question_text)!=None:
+                    question = i
+                    print('正则匹配的问题',question)
+                    regular_flag = True
+                    break
+
+    return question
+
+
+
+def get_answer_vector(cldict,question_text):
+
+    cos_dict={}
+
+    for i in cldict:
+        eval_i = eval(i)
+        for k in eval_i:
+            if k['type'] == 'Plain' and cldict[i]['regular'] == False:
+                cos_dict[i]=get_word_vector(k['text'],question_text)
+                continue
+
+    question = max(cos_dict,key=cos_dict.get)
+
+    cosmatching = max(cos_dict.values())
+    
+
+    if cosmatching==0:
+        return None
+    else:
+        print('匹配的问题：',question)
+        if cosmatching>=getconfig()['cosmatching']:
+            print('句子相似度：',cosmatching)
+            return question
+        else:
+            print('句子相似度：',cosmatching,'小于设定阈值,取消发送')
+            return None
+
+    
+
+
+
+
+
+
+def get_word_vector(s1,s2):
+    s1 = s1.strip()
+    s2 = s2.strip()
+    #print(s1,s2)
+    pun_list = ['。', '，', '、', '？','?', '！','!', '；', '：', '“', '”', '‘', '’', '「', '」', '『', '』', '（', '）', '[', ']',
+                        '〔', '〕', '【', '】', '——', '—', '……', '…', '—', '-', '～', '·', '《', '》', '〈', '〉', '﹏﹏', '___',
+                        '.']
+    cut1 = [w for w in list(jieba.cut(s1, cut_all=False)) if w not in pun_list]
+    cut2 = [w for w in list(jieba.cut(s2, cut_all=False)) if w not in pun_list]
+
+
+    # 分词
+    #cut1 = jieba.cut(s1)
+    #cut2 = jieba.cut(s2)
+    list_word1 = (','.join(cut1)).split(',')
+    list_word2 = (','.join(cut2)).split(',')
+ 
+    # 列出所有的词,取并集
+    key_word = list(set(list_word1 + list_word2))
+    # 给定形状和类型的用0填充的矩阵存储向量
+    word_vector1 = np.zeros(len(key_word))
+    word_vector2 = np.zeros(len(key_word))
+ 
+    # 计算词频
+    # 依次确定向量的每个位置的值
+    for i in range(len(key_word)):
+        # 遍历key_word中每个词在句子中的出现次数
+        for j in range(len(list_word1)):
+            if key_word[i] == list_word1[j]:
+                word_vector1[i] += 1
+        for k in range(len(list_word2)):
+            if key_word[i] == list_word2[k]:
+                word_vector2[i] += 1
+ 
+    # 输出向量
+    #print(word_vector1)
+    #print(word_vector2)
+    return cos_dist(word_vector1, word_vector2)
+ 
+ 
+ 
+def cos_dist(vec1,vec2):
+    dist1=float(np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2)))
+    return dist1
+ 
+def filter_html(html):
+    dr = re.compile(r'<[^>]+>',re.S)
+    dd = dr.sub('',html).strip()
+    return dd
+
+def AtMe(data,messagechain,sender):
+
+    atmessage = {}
+    for i in messagechain:
+        if i['type'] == 'At' and str(i['target']) == data['qq']:
+            atmessage = i
+        if i['type'] == 'Plain':
+            i['text'] = i['text'].strip()
+    if atmessage == {}:
+        return None,messagechain,sender
+    messagechain.remove(atmessage)
+    return 1,messagechain,sender
+
+
+
 def listening(data):
     global RecallList
     ReplyCd = {}
@@ -561,6 +731,7 @@ def listening(data):
         for i in message:
             if i['type'] == 'GroupMessage':  # 判断监听到的消息是否为群消息
                 group = i['group']  # 记录群号
+                sender = i['sender']
                 try:
                     getconfig(1).index(group)
                 except:
@@ -589,11 +760,17 @@ def listening(data):
                 if Judge_Fast_Delete(data, TempMessage, group, messagechain,
                                      i['sender'], messageId) == 1:
                     continue
+
+                Atme_Config = AtMe(data,messagechain,sender)
+
+                if Atme_Config[0] == 1:
+                    messagechain = Atme_Config[1]
+                    
                 question = messagechain
                 answer = getanswer(group, question)  # 获取答案
                 if answer != -1 and answer != None:
                     reply_answer_info = replyanswer(data, group,
-                                                    answer)  # 让bot回复
+                                                    answer,Atme_Config)  # 让bot回复
                     if reply_answer_info != None:
                         # 发送成功后开始计算Cd
                         ReplyCd[group] = int(time.time())

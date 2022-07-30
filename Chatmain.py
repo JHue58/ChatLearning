@@ -101,6 +101,8 @@ def stop_all_thread():
         subadmin_t.join()
     except NameError:
         pass
+    except RuntimeError:
+        pass
 
     config = ChatReply.getconfig(16)
     config["stopsign"] = 0
@@ -198,6 +200,45 @@ def restart(version):
         if shell.poll() != None:
             break
 
+
+def cosmatch(fromchat=0):
+    global data
+    config = json_load(open('config.clc','r',encoding='utf-8-sig'))
+
+    if config['cosmatch']==0:
+        config['cosmatch']=1
+        json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+        print('已开启问题余弦相似度计算,请注意,将会消耗较多的计算机资源')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '已开启问题余弦相似度计算,请注意,将会消耗较多的计算机资源', 1)
+        return None
+    elif config['cosmatch']==1:
+        config['cosmatch']=0
+        json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+        print('已关闭问题余弦相似度计算')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '已关闭问题余弦相似度计算', 1)
+        return None
+
+def cosmatching(args,fromchat=0):
+    global data
+    try:
+        matching = float(args)
+        if matching>1 or matching<0:
+            raise Exception
+    except:
+        print('参数错误,匹配率的数值区间为[0-1]')
+        if fromchat!=0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误,匹配率的数值区间为[0-1]', 1)
+        return None
+
+    config = json_load(open('config.clc','r',encoding='utf-8-sig'))
+    config['cosmatching'] = matching
+    json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+    print('已将匹配率阈值设置为{}'.format(matching))
+    if fromchat!=0:
+        simuse.Send_Message(data, fromchat, 2, '已将匹配率阈值设置为{}'.format(matching), 1)
+    
 
 def ReplyWait(args: str, fromchat=0):
     global data
@@ -1949,6 +1990,13 @@ def commandchoice(command, fromchat=0):
             voicereplysign = voicereply(voicereplysign, fromchat)
         elif command[:11] == 'voicereply ':
             voicereplychance(command[11:], fromchat)
+        else:
+            commandlist.commandhelp(fromchat)
+    elif command[:8] == 'cosmatch':
+        if command == 'cosmatch':
+            cosmatch(fromchat)
+        elif command[:9] == 'cosmatch ':
+            cosmatching(command[9:],fromchat)
         else:
             commandlist.commandhelp(fromchat)
     elif command == 'uploadwav':

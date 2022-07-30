@@ -248,11 +248,25 @@ def custom_answer(data, fromchat):
             if have_cl:
                 time.sleep(0.5)
                 simuse.Send_Message(data, fromchat, 2, "问题不存在，将被创建", 1)
+            time.sleep(0.2)
+            simuse.Send_Message(data, fromchat, 2,
+                                "该问题是否为正则表达式?\n0.否\n1.是", 1)
+            while True:
+                command = ChatAdmin.get_admin_command(data, sender=fromchat)
+                if command != None:
+                    break            
+            if command == '1':
+                regular = True
+                simuse.Send_Message(data, fromchat, 2, "问题将被判定为正则表达式", 1)
+            else:
+                regular = False
+                simuse.Send_Message(data, fromchat, 2, "问题将被判定为非正则表达式", 1)
             answerlist = []
             questiondict = {
                 'time': int(time.time()),
                 'answer': answerlist,
-                'freq': 9999
+                'freq': 9999,
+                'regular':regular
             }
             have_question = False
 

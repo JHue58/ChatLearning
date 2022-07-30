@@ -2,6 +2,7 @@ import copy
 import datetime
 import json
 import os
+import sys
 import pickle
 import platform
 import re
@@ -11,12 +12,13 @@ import time
 import traceback
 from asyncio import Task
 
+
 import requests
 #import tqdm
 
 import simuse
 
-version = '2.9.8'
+version = '3.0.0'
 
 
 def pickle_dump(obj, file):
@@ -57,7 +59,7 @@ def json_load(file):
         try:
             obj = json.load(file)
             break
-        except:
+        except Exception:
             time.sleep(0.1)
             continue
     return obj
@@ -70,6 +72,7 @@ class commandclass():
     commandtips['learning'] = '#开启/关闭记录'
     commandtips['reply'] = '#开启/关闭回复'
     commandtips['voicereply'] = '#开启/关闭文字转语音回复'
+    commandtips['cosmatch'] = '#开启/关闭问题余弦相似度计算'
     commandtips['learning <秒>'] = '#设定词库链间隔时间'
     commandtips['reply <％>'] = '#设定回复的触发几率'
     commandtips['reply -s <％> <群号>'] = '#单独设定回复触发几率'
@@ -79,6 +82,7 @@ class commandclass():
     commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
     commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
     commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
+    commandtips['cosmatch <匹配率>'] = '#设定问题余弦相似度计算匹配率阈值'
     commandtips['merge <秒>'] = '#设定总词库更新时间'
     commandtips['typefreq <消息类型> <次数>'] = '#设定消息发送阈值'
     commandtips['add learning <群号>'] = '#添加开启记录的群'
@@ -387,6 +391,8 @@ class My_Thread(threading.Thread):
                 self.Raise_log('{}：与api-http连接被强制中断'.format(self._target))
                 New_Thread = My_Thread(target=self._target, args=self._args)
                 New_Thread.start()
+            except SystemExit:
+                sys.exit(0)
             except:
                 self.Raise_log(traceback.format_exc())
 
@@ -503,6 +509,19 @@ class Update():
                 pickle_dump(dicts, open(i, 'wb'))
                 shutil.move(i, 'WordStock/' + i)
 
+        # 3.0.0前版本更新需要为词库Key添加"regular"正则判断键
+        if self.version < 300:
+            print('正在更新词库版本,{} -> 300 请勿中途退出'.format(self.version))
+            for i in cllist:
+                dicts = pickle_load(open('WordStock/'+i, 'rb'))
+                for k in dicts.keys():
+                    questiondict = dicts[k]
+                    if not ('regular' in questiondict.keys()):
+                        questiondict['regular'] = False
+                pickle_dump(dicts, open('WordStock/'+i, 'wb'))
+
+        
+
     def Config_version(self):
 
         file = open('config.clc', 'r', encoding='utf-8-sig')
@@ -541,5 +560,9 @@ class Update():
             config['replycd'] = 3
             config['stopsign'] = 0
             config['voicecommand'] = '快说 '
+        if self.version < 300:
+            print('正在更新config, -> 300 请勿中途退出')
+            config['cosmatch'] = 0
+            config['cosmatching'] = 0.5
 
         return config
