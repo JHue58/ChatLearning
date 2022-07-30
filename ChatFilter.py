@@ -353,7 +353,10 @@ def filtercheck(question, sender='|回复过滤', group='|回复过滤', display
         except:
             continue
     Filterconfig = blackcheck()
-    Accuratedict = Filterconfig['Accuratedict']
+    try:
+        Accuratedict = Filterconfig['Accuratedict']
+    except KeyError:
+        Accuratedict = {}
     #print(question)
     for i in question:
         if i['type'] == 'Plain':
