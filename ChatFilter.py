@@ -133,7 +133,10 @@ def getnode(data, Filterconfig, filterlist, sender,Accuratedict = None):
     if node == 'all':
         filterlist.clear()
         if Accuratedict!= None:
-            Accuratedict.clear()
+            try:
+                Accuratedict.clear()
+            except:
+                pass
         file = open('Filter.clc', 'w', encoding='utf-8-sig')
         json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
         file.close()
@@ -179,7 +182,10 @@ def getnode(data, Filterconfig, filterlist, sender,Accuratedict = None):
         #print(i)
         filterlist.remove(i)
         if Accuratedict!= None:
-            Accuratedict.pop(i)
+            try:
+                Accuratedict.pop(i)
+            except:
+                pass
     #print(filterlist)
     file = open('Filter.clc', 'w', encoding='utf-8-sig')
     json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
@@ -561,7 +567,10 @@ def filtercontrol(data, sender):
                         break
                 if node == str(1):
                     filterlist = Filterconfig['filter']
-                    Accuratedict = Filterconfig['Accuratedict']
+                    try:
+                        Accuratedict = Filterconfig['Accuratedict']
+                    except:
+                        Accuratedict = {}
                     replyanswer(data, sender, filterlist,Accuratedict)
                     getnode(data, Filterconfig, filterlist, sender,Accuratedict)
                 elif node == str(2):

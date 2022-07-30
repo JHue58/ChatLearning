@@ -48,6 +48,7 @@ def creatquestion(question, group):  # 记录问题
         questiondict["freq"] = 1
         questiondict["time"] = questiontime
         questiondict["answer"] = answerlist
+        questiondict['regular'] = False
         tempdict[question] = questiondict
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n问题已记录",
               filename)

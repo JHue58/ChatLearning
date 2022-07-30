@@ -461,7 +461,8 @@ def getanswer(group, question):  # 从词库中获取答案
                     answerlist=DelType(tempdict, questiondict['answer'])
                 else:
                     return -1
-                
+            else:
+                return -1
         
         except Exception as e:
             print(e)
@@ -586,10 +587,14 @@ def regular_mate(cldict,question_text):
     question = None
     regular_flag = False
 
-    for i in cldict:
-        question_dict = cldict[i]
-        if question_dict['regular'] == True:
-            regular_dict[i] = copy.deepcopy(question_dict)
+    try:
+        for i in cldict:
+            question_dict = cldict[i]
+            if question_dict['regular'] == True:
+                regular_dict[i] = copy.deepcopy(question_dict)
+    except KeyError:
+        print('词库版本不匹配')
+        return question
     
     if regular_dict == {}:
         return question
