@@ -18,8 +18,23 @@ import ChatClass
 import ChatFilter
 import simuse
 from ChatClass import json_dump, json_load, pickle_dump, pickle_load
+from functools import wraps
 
 nowtime = time.time()
+
+
+
+def fn_timer(function):
+    @wraps(function)
+    def function_timer(*args, **kwargs):
+        print('-----Cosmatch INFO Start-----')
+        t0 = time.time()
+        result = function(*args, **kwargs)
+        t1 = time.time()
+        print ("%s: %.5f seconds" %('消耗用时', t1-t0))
+        print('-----Cosmatch INFO End-----')
+        return result
+    return function_timer
 
 
 def RandomStop():
@@ -394,6 +409,7 @@ def getanswer(group, question):  # 从词库中获取答案
     #是否为文字标志
     IS_Plain = False
     question_text = None
+    question_str = None
     for i in question:  # 去除作为问题中的变动因素“url”
         if i['type']=='Plain':
             IS_Plain = True
@@ -422,7 +438,7 @@ def getanswer(group, question):  # 从词库中获取答案
             try:
                 tempdict = pickle.load(open('WordStock/' + filename, 'rb'))
             except:
-                return None
+                return None,question_str
             try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
                 #print(question)
                 questiondict = tempdict[question]
@@ -446,7 +462,7 @@ def getanswer(group, question):  # 从词库中获取答案
         try:
             tempdict = pickle.load(open('WordStock/' + filename, 'rb'))
         except:
-            return None
+            return None,question_str
         try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
             #print(question)
             questiondict = tempdict[question]
@@ -460,28 +476,28 @@ def getanswer(group, question):  # 从词库中获取答案
                     questiondict = tempdict[question_str]
                     answerlist=DelType(tempdict, questiondict['answer'])
                 else:
-                    return -1
+                    return -1,question_str
             else:
-                return -1
+                return -1,question_str
         
         except Exception as e:
             print(e)
-            return -1
+            return -1,question_str
 
     #print(answerlist)
     if answerlist == []:
-        return -1
-    return answerlist
+        return -1,question_str
+    return answerlist,question_str
 
 
 def replyanswer(data, group, answer,Atme_Config):  # 发送答案
     global nowtime
     replydict = getconfig(9)
     if str(group) in replydict.keys():
-        if runchance(replydict[str(group)]) == 0:
+        if runchance(replydict[str(group)]) == 0 and Atme_Config[0]!=1:
             print('已获取答案，但不发送')
             return None
-    elif runchance(getconfig(4)) == 0:
+    elif runchance(getconfig(4)) == 0 and Atme_Config[0]!=1:
         print('已获取答案，但不发送')
         return None
 
@@ -614,17 +630,24 @@ def regular_mate(cldict,question_text):
     return question
 
 
-
+@fn_timer
 def get_answer_vector(cldict,question_text):
 
     cos_dict={}
+    set_cosmatching = getconfig()['cosmatching']
 
     for i in cldict:
         eval_i = eval(i)
         for k in eval_i:
             if k['type'] == 'Plain' and cldict[i]['regular'] == False:
-                cos_dict[i]=get_word_vector(k['text'],question_text)
+                matching = get_word_vector(k['text'],question_text)
+                if matching >= set_cosmatching:
+                    cos_dict[i] = matching
                 continue
+
+    if cos_dict == {}:
+        print('相似度计算引擎未找到相关问题(小于设定阈值{})'.format(set_cosmatching))
+        return None
 
     question = max(cos_dict,key=cos_dict.get)
 
@@ -632,15 +655,13 @@ def get_answer_vector(cldict,question_text):
     
 
     if cosmatching==0:
+        print('相似度计算引擎未找到相关问题')
         return None
     else:
         print('匹配的问题：',question)
-        if cosmatching>=getconfig()['cosmatching']:
-            print('句子相似度：',cosmatching)
-            return question
-        else:
-            print('句子相似度：',cosmatching,'小于设定阈值,取消发送')
-            return None
+        print('句子相似度：',cosmatching)
+        return question
+
 
     
 
@@ -707,6 +728,8 @@ def AtMe(data,messagechain,sender):
             atmessage = i
         if i['type'] == 'Plain':
             i['text'] = i['text'].strip()
+        if i['type'] == 'Quote':
+            i = {'type':'Plain','text':''}
     if atmessage == {}:
         return None,messagechain,sender
     messagechain.remove(atmessage)
@@ -773,7 +796,12 @@ def listening(data):
                     messagechain = Atme_Config[1]
                     
                 question = messagechain
-                answer = getanswer(group, question)  # 获取答案
+                answer_info = getanswer(group, question)  # 获取答案
+
+                answer = answer_info[0]
+                if answer_info[1]!=None:
+                    question = answer_info[1]
+
                 if answer != -1 and answer != None:
                     reply_answer_info = replyanswer(data, group,
                                                     answer,Atme_Config)  # 让bot回复

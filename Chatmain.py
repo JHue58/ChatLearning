@@ -2137,6 +2137,12 @@ if __name__ == '__main__':
         replysign = 0
         time.sleep(0.8)
         replysign = reply(replysign, 0)
+
+
+    platforms = ChatClass.Platform()
+
     TaskDict = GetAutoTask()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(getcommand_tui())
+
+    

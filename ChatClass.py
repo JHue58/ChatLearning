@@ -18,7 +18,7 @@ import requests
 
 import simuse
 
-version = '3.0.0'
+version = '3.0.1'
 
 
 def pickle_dump(obj, file):
@@ -63,6 +63,31 @@ def json_load(file):
             time.sleep(0.1)
             continue
     return obj
+
+class Platform:
+    plugin_thread = []
+    def __init__(self):
+        self.loadPlugins()
+
+    def loadPlugins(self):
+        try:
+            os.listdir("Clplugin")
+        except:
+            return None
+        for filename in os.listdir("Clplugin"):
+            if not filename.endswith(".py") or filename.startswith("_") or filename=='simuse.py':
+                continue
+            print(filename,'插件已加载')
+            threads = threading.Thread(target=self.runPlugin,args=(filename,))  #多线程并行载入插件
+            threads.start()  #运行
+            self.plugin_thread.append(threads)
+            #self.runPlugin(filename)
+    def runPlugin(self, filename):
+        pluginName=os.path.splitext(filename)[0]
+        plugin=__import__("Clplugin."+pluginName, fromlist=[pluginName])
+        #Errors may be occured. Handle it yourself.
+        plugin.run(self)
+
 
 
 # 控制台指令类
