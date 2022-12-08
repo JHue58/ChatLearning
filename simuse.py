@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from typing import Type
+
 
 import requests as r
 

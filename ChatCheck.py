@@ -136,6 +136,11 @@ def main(data, fromchat):
     intervaltip = '词库链间隔：{}秒'.format(config['interval'])
     blackfreqtip = '黑名单容错次数：{}次'.format(config['blackfreq'])
     tempmessagenumtip = '单个群最大消息缓存数：{}条'.format(config['tempmessagenum'])
+    botname = ''
+    for k in config['botname']:
+        botname+= k+' '
+    botnametip = f'bot昵称设定: {botname}'
+    replylengthtip = f'回复答案最大长度限制: {config["replylength"]}个字数'
     typefreqtip = '回复阈值设定：\n'
     singlereplytip = '指定群回复触发概率：\n'
     singlevoicereplytip = '指定群回复概率（语音）：\n'
@@ -164,7 +169,7 @@ def main(data, fromchat):
             check_version[1])
     else:
         versiontip = "未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' +cosmatchtip+'\n'+ replychancetip + '\n' + replywaittip + '\n' + replycdtip + '\n' +cosmatchingtip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip + '\n' + tempmessagenumtip
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' +cosmatchtip+'\n'+ replychancetip + '\n' + replywaittip + '\n' + replycdtip + '\n' +cosmatchingtip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip + '\n' + tempmessagenumtip + '\n' + botnametip + '\n' + replylengthtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]
     siglereply_message = [{'type': 'Plain', 'text': singlereplytip}]

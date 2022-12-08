@@ -28,6 +28,7 @@ import ChatLearning
 import ChatMerge
 import ChatReply
 import ChatSubadmin
+import ChatStock
 import simuse
 from ChatClass import (My_Thread, TimeTask, Update, Version, commandclass,
                        json_dump, json_load, pickle_dump, pickle_load)
@@ -585,6 +586,56 @@ def SetReplyCd(data, Cd, fromchat=0):
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '回复的冷却时间已设置为{}秒'.format(Cd), 1)
 
+
+def setReplyLength(data,length,fromchat):
+    try:
+        length = int(length)
+        if length < 1:
+            raise Exception('error')
+    except:
+        print('参数错误')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
+        return
+    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config['replylength'] = length
+    json_dump(config,
+              open('config.clc', 'w', encoding='utf-8-sig'),
+              indent=3,
+              ensure_ascii=False)
+    print(f'答案最大长度已经设置为 {length}')
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, f'答案最大长度已经设置为 {length}', 1)
+
+def setbotname(data,botname,fromchat=0):
+    botname_list = botname.split(' ')
+    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config['botname'] = botname_list
+    json_dump(config,
+              open('config.clc', 'w', encoding='utf-8-sig'),
+              indent=3,
+              ensure_ascii=False)
+    print(f'已将bot昵称设置为 {botname_list}')
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, f'已将bot昵称设置为 {botname_list}', 1)
+
+
+def importstock(data,filename,fromchat=0):
+    res = ChatStock.load_word_stock(filename)
+    if res == None:
+        print(f'未找到文件"{filename}"')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, f'未找到文件"{filename}"', 1)
+        return
+    add_res = ChatStock.create_word_stock(res,filename)
+    if add_res==None:
+        print('导入失败，未分析出可导入的词库')
+        if fromchat != 0:
+            simuse.Send_Message(data, fromchat, 2, '导入失败，未分析出可导入的词库', 1)
+        return
+    print(f'已导入问题{add_res[0]}个,答案{add_res[1]}个,词库已保存至{add_res[2]}')
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, f'已导入问题{add_res[0]}个,答案{add_res[1]}个,词库已保存至{add_res[2]}', 1)
 
 def SetTempMessage(data, num, fromchat=0):
     file = open('config.clc', 'r', encoding='utf-8-sig')
@@ -1834,6 +1885,8 @@ def check(fromchat=0):
     check.join()
 
 
+
+
 def typefreq(data, args, fromchat=0):
     typelist = [
         'Plain', 'Image', 'Face', 'FlashImage', 'Voice', 'Forward', 'App',
@@ -1978,6 +2031,8 @@ def commandchoice(command, fromchat=0):
         ReplyWait(command[10:], fromchat)
     elif command[:8] == 'replycd ':
         SetReplyCd(data, command[8:], fromchat)
+    elif command[:12] == 'replylength ':
+        setReplyLength(data,command[12:],fromchat)
     elif command[:5] == 'reply':
         if command == 'reply':
             replysign = reply(replysign, fromchat)
@@ -2041,6 +2096,10 @@ def commandchoice(command, fromchat=0):
         typefreq(data, command[9:], fromchat)
     elif command[:8] == 'settemp ':
         SetTempMessage(data, command[8:], fromchat)
+    elif command[:12] == 'importstock ':
+        importstock(data,command[12:],fromchat)
+    elif command[:11]== 'setbotname ':
+        setbotname(data,command[11:],fromchat)
     elif command == 'fastdelete':
         FastDeletesign = SetFastDeleteAdmin(FastDeletesign, fromchat)
     elif command == 'autotaskinfo':

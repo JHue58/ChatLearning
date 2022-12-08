@@ -18,50 +18,50 @@ import requests
 
 import simuse
 
-version = '3.0.1'
+version = '3.0.2'
 
+filename_set= set()
+
+
+def lock(filename):
+    while True:
+        if not(filename in filename_set):
+            break
+        time.sleep(0.1)
+    filename_set.add(filename)
+
+def release_lock(filename):
+    filename_set.remove(filename)
 
 def pickle_dump(obj, file):
-    while True:
-        try:
-            pickle.dump(obj, file)
-            break
-        except:
-            time.sleep(0.1)
-            continue
+    lock(file.name)
+    pickle.dump(obj, file)
+    release_lock(file.name)
+    file.close()
     return True
 
 
 def pickle_load(file):
-    while True:
-        try:
-            obj = pickle.load(file)
-            break
-        except:
-            time.sleep(0.1)
-            continue
+    lock(file.name)
+    obj = pickle.load(file)
+    release_lock(file.name)
+    file.close()
     return obj
 
 
 def json_dump(obj, file, indent=3, ensure_ascii=False):
-    while True:
-        try:
-            json.dump(obj, file, indent=indent, ensure_ascii=ensure_ascii)
-            break
-        except:
-            time.sleep(0.1)
-            continue
+    lock(file.name)
+    json.dump(obj, file, indent=indent, ensure_ascii=ensure_ascii)
+    release_lock(file.name)
+    file.close()
     return True
 
 
 def json_load(file):
-    while True:
-        try:
-            obj = json.load(file)
-            break
-        except Exception:
-            time.sleep(0.1)
-            continue
+    lock(file.name)
+    obj = json.load(file)
+    release_lock(file.name)
+    file.close()
     return obj
 
 class Platform:
@@ -104,6 +104,7 @@ class commandclass():
     commandtips['reply -d <群号>'] = '#清除单独设定的回复触发几率'
     commandtips['replywait <基准时间> <浮动时间>'] = '#设定回复的等待时间'
     commandtips['replycd <秒>'] = '#设定回复的冷却时间'
+    commandtips['replylength <字数>'] = '#设定回复答案的最大长度'
     commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
     commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
     commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
@@ -129,10 +130,12 @@ class commandclass():
     commandtips['grouplist'] = '#查看开启记录/回复的群列表'
     commandtips['globe'] = '#开启/关闭全局模式'
     commandtips['setadmin <QQ号>'] = '#设置管理员QQ号'
+    commandtips['setbotname <昵称>'] = '#设置bot昵称,空格隔开可设置多个'
     commandtips['setvoicept <训练集>'] = '#设置文字转语音回复的训练集'
     commandtips['settemp <条数>'] = '#设置单个群中消息缓存最大数目'
     commandtips['blackfreq <次数>'] = '#设置黑名单容错次数'
     commandtips['uploadwav'] = '#上传源音频文件'
+    commandtips['importstock <文件名>'] = '#导入词库'
     commandtips['autotaskcommand'] = '#查看定时任务的特殊指令'
     commandtips['admin'] = '#进入管理模式'
     commandtips['exit'] = '#退出程序'
@@ -589,5 +592,9 @@ class Update():
             print('正在更新config, -> 300 请勿中途退出')
             config['cosmatch'] = 0
             config['cosmatching'] = 0.5
+        if self.version < 302:
+            print('正在更新config, -> 302 请勿中途退出')
+            config['botname'] = ['我']
+            config['replylength'] = 100
 
         return config

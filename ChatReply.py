@@ -21,7 +21,7 @@ from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 from functools import wraps
 
 nowtime = time.time()
-
+max_cosmath_length = 50
 
 
 def fn_timer(function):
@@ -447,7 +447,7 @@ def getanswer(group, question):  # 从词库中获取答案
             except KeyError:
                 if IS_Plain == True:
                     question_str = regular_mate(tempdict,question_text)
-                    if question_str == None and getconfig()['cosmatch']==1:
+                    if question_str == None and getconfig()['cosmatch']==1 and len(question_text)<=max_cosmath_length:
                         question_str = get_answer_vector(tempdict,question_text)
                     if question_str!=None:
                         questiondict = tempdict[question_str]
@@ -470,7 +470,7 @@ def getanswer(group, question):  # 从词库中获取答案
         except KeyError:
             if IS_Plain == True:
                 question_str = regular_mate(tempdict,question_text)
-                if question_str == None and getconfig()['cosmatch']==1:
+                if question_str == None and getconfig()['cosmatch']==1 and len(question_text)<=max_cosmath_length:
                     question_str = get_answer_vector(tempdict,question_text)
                 if question_str!=None:
                     questiondict = tempdict[question_str]
@@ -490,8 +490,9 @@ def getanswer(group, question):  # 从词库中获取答案
     return answerlist,question_str
 
 
-def replyanswer(data, group, answer,Atme_Config):  # 发送答案
+def replyanswer(data, group, answer,Atme_Config,sender):  # 发送答案
     global nowtime
+    sender_name = simuse.Get_memberinfo(data,group,sender)['memberName']
     replydict = getconfig(9)
     if str(group) in replydict.keys():
         if runchance(replydict[str(group)]) == 0 and Atme_Config[0]!=1:
@@ -526,6 +527,16 @@ def replyanswer(data, group, answer,Atme_Config):  # 发送答案
     if ChatFilter.filtercheck(copy.deepcopy(answer)) == 0:
         return None
     print(answer, end='')
+
+    for i in answer:
+        if i['type'] == 'Plain':
+            i['text'] = i['text'].format(me=random.choice(getconfig(16)['botname']),name=sender_name,segment='\n')
+            if len(i['text'])>getconfig(16)['replylength']:
+                print('答案字数超过所设定字数,取消发送')
+                return None
+    
+    
+
 
     if getconfig(5) == 1:
         voicereplydict = getconfig(11)
@@ -630,6 +641,8 @@ def regular_mate(cldict,question_text):
     return question
 
 
+
+
 @fn_timer
 def get_answer_vector(cldict,question_text):
 
@@ -640,6 +653,8 @@ def get_answer_vector(cldict,question_text):
         eval_i = eval(i)
         for k in eval_i:
             if k['type'] == 'Plain' and cldict[i]['regular'] == False:
+                if len(k['text'])>max_cosmath_length:
+                    continue
                 matching = get_word_vector(k['text'],question_text)
                 if matching >= set_cosmatching:
                     cos_dict[i] = matching
@@ -804,7 +819,7 @@ def listening(data):
 
                 if answer != -1 and answer != None:
                     reply_answer_info = replyanswer(data, group,
-                                                    answer,Atme_Config)  # 让bot回复
+                                                    answer,Atme_Config,sender)  # 让bot回复
                     if reply_answer_info != None:
                         # 发送成功后开始计算Cd
                         ReplyCd[group] = int(time.time())
