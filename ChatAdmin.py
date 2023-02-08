@@ -77,15 +77,14 @@ def get_admin_command(data, adminlist=0, sender=0, group=0):
 
 
 def exitadmin(getadminsign=0):
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     if getadminsign == 1:
         return config['admin']
     config['admin'] = 0
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
 
 
 def getnode(data, tempdict, answerlist, group, sender, question):
@@ -107,7 +106,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
             time.sleep(0.8)
         tempdict.pop(question)
         filename = str(group) + '.cl'  # 读取已缓存的词库
-        pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
+        pickle_dump(tempdict, 'WordStock/' + filename)
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
     if node == str(-1) or node == '–1':
@@ -156,7 +155,7 @@ def getnode(data, tempdict, answerlist, group, sender, question):
     if answerlist == []:
         tempdict.pop(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, 'WordStock/' + filename)
     if templist != []:
         if sendtext != '':
             simuse.Send_Message(
@@ -183,9 +182,9 @@ def getnode(data, tempdict, answerlist, group, sender, question):
 
 
 def getconfig(adminnum=0):
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     if adminnum == 1:
         return config['Administrator']
     admin = config['admin']
@@ -303,7 +302,7 @@ def getanswer(data, sender, group, question):  # 从词库中获取答案
             continue
     question = str(question)
     filename = str(group) + '.cl'  # 读取已缓存的词库
-    tempdict = pickle_load(open('WordStock/' + filename, 'rb'))
+    tempdict = pickle_load('WordStock/' + filename)
     try:  # 检索问题，若词库中无该问题，则函数返回-1，若有，则返回所有答案（答案列表）
         #print(question)
         questiondict = tempdict[question]

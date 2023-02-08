@@ -11,9 +11,9 @@ from ChatClass import Version, json_dump, json_load, pickle_dump, pickle_load
 
 
 def getallconfig():
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     return config
 
 
@@ -36,7 +36,7 @@ def clcheck(filename, data, fromchat):
     question_num = 0
     answer_num = 0
     allanswerlist = []
-    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load('WordStock/' + filename)
     for i in cldict:
         question_num += 1
         questioninfo = cldict[i]
@@ -121,6 +121,11 @@ def main(data, fromchat):
         cosmatchtip = cosmatchtip.format('开启')
     else:
         cosmatchtip = cosmatchtip.format('关闭')
+    atreplytip = '艾特回复：{}'
+    if config['atreply'] == 1:
+        atreplytip = atreplytip.format('开启')
+    else:
+        atreplytip = atreplytip.format('关闭')
 
     replychancetip = '回复触发概率：{}%'.format(config['replychance'])
     replywaittip = '回复等待时间：{:g}±{:g}秒'.format(config['replywait'][0],
@@ -169,7 +174,7 @@ def main(data, fromchat):
             check_version[1])
     else:
         versiontip = "未连接至ChatLearning服务器"
-    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' +cosmatchtip+'\n'+ replychancetip + '\n' + replywaittip + '\n' + replycdtip + '\n' +cosmatchingtip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip + '\n' + tempmessagenumtip + '\n' + botnametip + '\n' + replylengthtip
+    situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' +cosmatchtip+'\n'+atreplytip+'\n'+ replychancetip + '\n' + replywaittip + '\n' + replycdtip + '\n' +cosmatchingtip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip + '\n' + tempmessagenumtip + '\n' + botnametip + '\n' + replylengthtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]
     siglereply_message = [{'type': 'Plain', 'text': singlereplytip}]

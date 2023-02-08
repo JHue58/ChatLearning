@@ -22,9 +22,9 @@ def getconfig():
 
 def Subreply(data, group):
     group = int(group)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     replygrouplist = config['replygrouplist']
     if group in replygrouplist:
         replygrouplist.remove(group)
@@ -33,9 +33,9 @@ def Subreply(data, group):
         replygrouplist.append(group)
         simuse.Send_Message(data, group, 1, '已开启本群回复', 1)
     config['replygrouplist'] = replygrouplist
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
 
 
 def Subreplychance(data, group, chance):
@@ -47,12 +47,12 @@ def Subreplychance(data, group, chance):
     if chance < 0 or chance > 100:
         simuse.Send_Message(data, group, 1, '参数错误', 1)
         return None
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     replydict = config['singlereplychance']
     replydict[group] = chance
     config['singlereplychance'] = replydict
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
     simuse.Send_Message(data, group, 1, '已设置回复概率{}%'.format(chance), 1)
@@ -67,12 +67,12 @@ def Subvoicereplychance(data, group, chance):
     if chance < 0 or chance > 100:
         simuse.Send_Message(data, group, 1, '参数错误', 1)
         return None
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     replydict = config['singlevoicereplychance']
     replydict[group] = chance
     config['singlevoicereplychance'] = replydict
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
     simuse.Send_Message(data, group, 1, '已设置语音回复概率{}%'.format(chance), 1)
@@ -80,9 +80,9 @@ def Subvoicereplychance(data, group, chance):
 
 def Sublearning(data, group):
     group = int(group)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     learninggrouplist = config['learninggrouplist']
     if group in learninggrouplist:
         learninggrouplist.remove(group)
@@ -91,9 +91,9 @@ def Sublearning(data, group):
         learninggrouplist.append(group)
         simuse.Send_Message(data, group, 1, '已开启本群记录', 1)
     config['learninggrouplist'] = learninggrouplist
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
 
 
 def Subadmin(group, sender):

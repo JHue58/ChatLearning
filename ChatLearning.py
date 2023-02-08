@@ -14,9 +14,9 @@ from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     learning = config['learning']
     interval = config['interval']
     grouplist = config['learninggrouplist']
@@ -58,7 +58,7 @@ def creatquestion(question, group):  # 记录问题
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
               "\n相同问题 已记录重复", filename)
     #print(tempdict)
-    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, 'WordStock/' + filename)
     return tempquestion  # 返回未去除“url”的消息链，为记录答案做准备
 
 
@@ -73,7 +73,7 @@ def creatanswer(question, answer, group):  # 记录答案
     question = str(question)
     answer = str(answer)
     filename = str(group) + ".cl"
-    tempdict = pickle_load(open('WordStock/' + filename, 'rb'))  # 读取缓存的词库
+    tempdict = pickle_load('WordStock/' + filename)  # 读取缓存的词库
     answertime = int(time.time())
     answerdict = {"answertext": "", "time": ""}
     answerdict["answertext"] = answer
@@ -117,7 +117,7 @@ def creatanswer(question, answer, group):  # 记录答案
     else:  # 答案列表为空时一定是新答案，所以直接记录
         questiondict["answer"].append(answerdict.copy())
     tempdict[question] = questiondict
-    pickle_dump(tempdict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(tempdict, 'WordStock/' + filename)
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
           filename)
 
@@ -328,7 +328,7 @@ def custom_answer(data, fromchat):
                 time.sleep(0.5)
                 simuse.Send_Message(data, fromchat, 2, "添加完毕！", 1)
 
-            pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
+            pickle_dump(cldict, 'WordStock/' + filename)
 
             time.sleep(0.5)
             simuse.Send_Message(data, fromchat, 2,

@@ -68,7 +68,7 @@ def Delete(data, sender):
 
 def Merge(Mergedict, filename):
     version_error = 0
-    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load('WordStock/' + filename)
     #print(Mergedict)
     try:
         repeatquestion = Mergedict.keys() & cldict.keys()
@@ -95,7 +95,7 @@ def Merge(Mergedict, filename):
 
 
 def Delete_freq(Mergedict, filename):
-    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load('WordStock/' + filename)
     freqdel_num = 0
     for question in Mergedict:
         questiondict = Mergedict[question]
@@ -105,12 +105,12 @@ def Delete_freq(Mergedict, filename):
                 freqdel_num += 1
             except:
                 continue
-    pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(cldict, 'WordStock/' + filename)
     return freqdel_num
 
 
 def Delete_Filter(filename):
-    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load('WordStock/' + filename)
     question_list = list(cldict.keys())
     filterdel_num = 0
     for question in question_list:
@@ -126,5 +126,5 @@ def Delete_Filter(filename):
             if ChatFilter.filtercheck(eval(answertext), display=False) == 0:
                 answerlist_origin.remove(answerdict)
                 filterdel_num += 1
-    pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(cldict, 'WordStock/' + filename)
     return filterdel_num

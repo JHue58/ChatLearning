@@ -184,7 +184,7 @@ def Fast_Delete(TempMessage, group, SourceId):
     IS_FIND = 0
     for filename in filelist:
         THIS_IS_FIND = 0
-        cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+        cldict = pickle_load('WordStock/' + filename)
         try:
             questiondict = cldict[IDlist[0]]
         except:
@@ -199,7 +199,7 @@ def Fast_Delete(TempMessage, group, SourceId):
                     cldict.pop(IDlist[0])
                 break
         if THIS_IS_FIND == 1:
-            pickle_dump(cldict, open('WordStock/' + filename, 'wb'))
+            pickle_dump(cldict, 'WordStock/' + filename)
     if IS_FIND == 1:
         IDdict.pop(SourceId)
         return 1
@@ -352,9 +352,9 @@ def runchance(replychance):
 
 
 def getconfig(choice=16):
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     if choice == 1:
         grouplist = config['replygrouplist']
         grouptuple = tuple(grouplist)
@@ -736,7 +736,6 @@ def filter_html(html):
     return dd
 
 def AtMe(data,messagechain,sender):
-
     atmessage = {}
     for i in messagechain:
         if i['type'] == 'At' and str(i['target']) == data['qq']:
@@ -808,6 +807,8 @@ def listening(data):
                 Atme_Config = AtMe(data,messagechain,sender)
 
                 if Atme_Config[0] == 1:
+                    if getconfig()['atreply'] == 0:
+                        continue
                     messagechain = Atme_Config[1]
                     
                 question = messagechain

@@ -18,50 +18,35 @@ import requests
 
 import simuse
 
-version = '3.0.2'
+version = '3.0.3'
 
-filename_set= set()
+lock = threading.Lock()
 
-
-def lock(filename):
-    while True:
-        if not(filename in filename_set):
-            break
-        time.sleep(0.1)
-    filename_set.add(filename)
-
-def release_lock(filename):
-    filename_set.remove(filename)
-
-def pickle_dump(obj, file):
-    lock(file.name)
-    pickle.dump(obj, file)
-    release_lock(file.name)
-    file.close()
+def pickle_dump(obj, path):
+    with lock:
+        with open(path,'wb') as file:
+            pickle.dump(obj, file)
     return True
 
 
-def pickle_load(file):
-    lock(file.name)
-    obj = pickle.load(file)
-    release_lock(file.name)
-    file.close()
+def pickle_load(path):
+    with lock:
+        with open(path,'rb') as file:
+            obj = pickle.load(file)
     return obj
 
 
-def json_dump(obj, file, indent=3, ensure_ascii=False):
-    lock(file.name)
-    json.dump(obj, file, indent=indent, ensure_ascii=ensure_ascii)
-    release_lock(file.name)
-    file.close()
+def json_dump(obj, path, indent=3, ensure_ascii=False):
+    with lock:
+        with open(path,'w',encoding='utf-8-sig') as file:
+            json.dump(obj, file, indent=indent, ensure_ascii=ensure_ascii)
     return True
 
 
-def json_load(file):
-    lock(file.name)
-    obj = json.load(file)
-    release_lock(file.name)
-    file.close()
+def json_load(path):
+    with lock:
+        with open(path,'r',encoding='utf-8-sig') as file:
+            obj = json.load(file)
     return obj
 
 class Platform:
@@ -100,6 +85,7 @@ class commandclass():
     commandtips['cosmatch'] = '#开启/关闭问题余弦相似度计算'
     commandtips['learning <秒>'] = '#设定词库链间隔时间'
     commandtips['reply <％>'] = '#设定回复的触发几率'
+    commandtips['atreply'] = '#开启/关闭艾特回复'
     commandtips['reply -s <％> <群号>'] = '#单独设定回复触发几率'
     commandtips['reply -d <群号>'] = '#清除单独设定的回复触发几率'
     commandtips['replywait <基准时间> <浮动时间>'] = '#设定回复的等待时间'
@@ -436,7 +422,7 @@ def Version():
 
 def stop_run():
 
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     sign = config["stopsign"]
 
     if sign == 0:
@@ -509,7 +495,7 @@ class Update():
             dicts = file.read()
             dicts = eval(dicts)
             file.close()
-            pickle_dump(dicts, open(i, 'wb'))
+            pickle_dump(dicts, i)
         print('准备完毕！')
 
     def Cl_version(self):
@@ -529,24 +515,24 @@ class Update():
         if self.version < 280:
             print('正在更新词库版本,{} -> 280 请勿中途退出'.format(self.version))
             for i in cllist:
-                dicts = pickle_load(open(i, 'rb'))
+                dicts = pickle_load(i)
                 for k in dicts.keys():
                     questiondict = dicts[k]
                     if not ('freq' in questiondict.keys()):
                         questiondict['freq'] = 1
-                pickle_dump(dicts, open(i, 'wb'))
+                pickle_dump(dicts, i)
                 shutil.move(i, 'WordStock/' + i)
 
         # 3.0.0前版本更新需要为词库Key添加"regular"正则判断键
         if self.version < 300:
             print('正在更新词库版本,{} -> 300 请勿中途退出'.format(self.version))
             for i in cllist:
-                dicts = pickle_load(open('WordStock/'+i, 'rb'))
+                dicts = pickle_load('WordStock/'+i)
                 for k in dicts.keys():
                     questiondict = dicts[k]
                     if not ('regular' in questiondict.keys()):
                         questiondict['regular'] = False
-                pickle_dump(dicts, open('WordStock/'+i, 'wb'))
+                pickle_dump(dicts, 'WordStock/'+i)
 
         
 
@@ -596,5 +582,8 @@ class Update():
             print('正在更新config, -> 302 请勿中途退出')
             config['botname'] = ['我']
             config['replylength'] = 100
+        if self.version < 303:
+            print('正在更新config, -> 303 请勿中途退出')
+            config['atreply'] = 1
 
         return config

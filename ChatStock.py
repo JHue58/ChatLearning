@@ -45,7 +45,7 @@ def create_word_stock(word_tock_tuple_list:list[tuple],filename:str):
     if question_count+answer_count == 0:
         return None
 
-    pickle_dump(cl_dict, open('WordStock/' + filename, 'wb'))
+    pickle_dump(cl_dict, 'WordStock/' + filename)
     return (question_count,answer_count,f'WordStock/{filename}')
 
 

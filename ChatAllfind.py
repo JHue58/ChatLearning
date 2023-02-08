@@ -215,8 +215,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'xxx'
-    secret_key = 'xxx'
+    secret_id = 'XX'
+    secret_key = 'XX'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)
@@ -357,7 +357,7 @@ def delcl(data, sender, lines_dict, nodelist, target_type=0, group=0):
     delsign = 0
     for group in changedict:
         cldict_orign = pickle_load(
-            open('WordStock/' + str(group) + '.cl', 'rb'))
+            'WordStock/' + str(group) + '.cl')
         cldict = copy.deepcopy(cldict_orign)
         questionlist = list(cldict_orign.keys())
         changelist = changedict[group]
@@ -377,8 +377,7 @@ def delcl(data, sender, lines_dict, nodelist, target_type=0, group=0):
             if answerlist == []:
                 cldict.pop(question)
         cldict_orign = cldict
-        pickle_dump(cldict_orign, open('WordStock/' + str(group) + '.cl',
-                                       'wb'))
+        pickle_dump(cldict_orign, 'WordStock/' + str(group) + '.cl')
     if changedict != {} and nofoundlines == []:
         print('删除{}个条目成功'.format(delsign))
         simuse.Send_Message(data, target, target_type,
@@ -575,7 +574,7 @@ def findallanswer(data, sender, cllist, answer, group=0, target_type=0):
     for i in cllist:
         findquestiondict = {}
         findquestion[i[:-3]] = findquestiondict
-        cldict = pickle_load(open('WordStock/' + i, 'rb'))
+        cldict = pickle_load('WordStock/' + i)
         for l in answer:
             for k in cldict:
                 questiondict = cldict[k]

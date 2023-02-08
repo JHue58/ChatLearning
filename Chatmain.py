@@ -70,9 +70,9 @@ def hello():
 
     config['stopsign'] = 0
 
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     ChatFilter.Merge_Filter()
     print('欢迎使用ChatLearning应用 版本号：', Version())
     #print('遇到问题和bug请在mirai论坛回复我或发送至我的邮箱1121917292@qq.com')
@@ -89,7 +89,7 @@ def stop_all_thread():
     config = ChatReply.getconfig(16)
     config["stopsign"] = 1
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
 
@@ -108,7 +108,7 @@ def stop_all_thread():
     config = ChatReply.getconfig(16)
     config["stopsign"] = 0
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
 
@@ -125,7 +125,7 @@ def down_new_version():
         print('该版本暂不支持')
         #return None
 
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     download = Update(config['version'])
 
     sign = download.down_new_file()
@@ -167,7 +167,7 @@ def restart(version):
         shell = subprocess.Popen("upgrade.bat")
     elif system == 'Linux':
         linux_command = json_load(
-            open('command.json', 'r', encoding='utf-8-sig'))
+            'command.json')
         start_command = linux_command['start']
         per_command = linux_command['permission']
         per_command_list = per_command.split(' ')
@@ -204,18 +204,18 @@ def restart(version):
 
 def cosmatch(fromchat=0):
     global data
-    config = json_load(open('config.clc','r',encoding='utf-8-sig'))
+    config = json_load('config.clc')
 
     if config['cosmatch']==0:
         config['cosmatch']=1
-        json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+        json_dump(config,'config.clc')
         print('已开启问题余弦相似度计算,请注意,将会消耗较多的计算机资源')
         if fromchat!=0:
             simuse.Send_Message(data, fromchat, 2, '已开启问题余弦相似度计算,请注意,将会消耗较多的计算机资源', 1)
         return None
     elif config['cosmatch']==1:
         config['cosmatch']=0
-        json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+        json_dump(config,'config.clc')
         print('已关闭问题余弦相似度计算')
         if fromchat!=0:
             simuse.Send_Message(data, fromchat, 2, '已关闭问题余弦相似度计算', 1)
@@ -233,9 +233,9 @@ def cosmatching(args,fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '参数错误,匹配率的数值区间为[0-1]', 1)
         return None
 
-    config = json_load(open('config.clc','r',encoding='utf-8-sig'))
+    config = json_load('config.clc')
     config['cosmatching'] = matching
-    json_dump(config,open('config.clc','w',encoding='utf-8-sig'))
+    json_dump(config,'config.clc')
     print('已将匹配率阈值设置为{}'.format(matching))
     if fromchat!=0:
         simuse.Send_Message(data, fromchat, 2, '已将匹配率阈值设置为{}'.format(matching), 1)
@@ -272,12 +272,12 @@ def ReplyWait(args: str, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, "时间不得为负数！", 1)
         return None
     replystoptime = [BenchmarkTime, RandomTime]
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['replywait'] = replystoptime
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
     print('已将回复等待时间设置为{:g}±{:g}秒'.format(BenchmarkTime, RandomTime))
     if fromchat != 0:
         simuse.Send_Message(
@@ -290,7 +290,7 @@ def GetAutoTask():
         Taskdict = pickle.load(open('AutoTask/AutoTask.clc', 'rb'))
     except:
         Taskdict = {}
-        pickle_dump(Taskdict, open('AutoTask/AutoTask.clc', 'wb'))
+        pickle_dump(Taskdict, 'AutoTask/AutoTask.clc')
     return Taskdict
 
 
@@ -330,7 +330,7 @@ def RunAutoTask():
     while 1:
         if ChatClass.stop_run():
             return None
-        pickle_dump(TaskDict, open('AutoTask/AutoTask.clc', 'wb'))
+        pickle_dump(TaskDict, 'AutoTask/AutoTask.clc')
         time.sleep(1)
         if TaskDict == {}:
             continue
@@ -576,10 +576,10 @@ def SetReplyCd(data, Cd, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     config['replycd'] = Cd
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
     print('回复的冷却时间已设置为{}秒'.format(Cd))
@@ -597,22 +597,39 @@ def setReplyLength(data,length,fromchat):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     config['replylength'] = length
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
     print(f'答案最大长度已经设置为 {length}')
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, f'答案最大长度已经设置为 {length}', 1)
 
+def atreply(data,fromchat=0):
+    config = json_load('config.clc')
+    text = '已{}艾特回复'
+    if config['atreply'] == 0:
+        config['atreply'] = 1
+        text = text.format('开启')
+    elif config['atreply'] == 1:
+        config['atreply'] = 0
+        text = text.format('关闭')
+    json_dump(config,
+              'config.clc',
+              indent=3,
+              ensure_ascii=False)
+    print(text)
+    if fromchat != 0:
+        simuse.Send_Message(data, fromchat, 2, text, 1)
+
 def setbotname(data,botname,fromchat=0):
     botname_list = botname.split(' ')
-    config = json_load(open('config.clc', 'r', encoding='utf-8-sig'))
+    config = json_load('config.clc')
     config['botname'] = botname_list
     json_dump(config,
-              open('config.clc', 'w', encoding='utf-8-sig'),
+              'config.clc',
               indent=3,
               ensure_ascii=False)
     print(f'已将bot昵称设置为 {botname_list}')
@@ -638,9 +655,9 @@ def importstock(data,filename,fromchat=0):
         simuse.Send_Message(data, fromchat, 2, f'已导入问题{add_res[0]}个,答案{add_res[1]}个,词库已保存至{add_res[2]}', 1)
 
 def SetTempMessage(data, num, fromchat=0):
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     try:
         num = int(num)
     except:
@@ -654,9 +671,9 @@ def SetTempMessage(data, num, fromchat=0):
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
     config['tempmessagenum'] = num
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     print('每个群的消息缓存已设置为{}条'.format(num))
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '每个群的消息缓存已设置为{}条'.format(num),
@@ -666,13 +683,13 @@ def SetTempMessage(data, num, fromchat=0):
 def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
     global data
     if FastDeletesign == 0:
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['fastdelete'] = 1
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+ 
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-快速删除已设置为所有人可用')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '快速删除已设置为所有人可用', 1)
@@ -680,13 +697,13 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
         return FastDeletesign
     else:
         FastDeletesign = 0
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['fastdelete'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-快速删除已设置为仅管理员可用')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '快速删除已设置为仅管理员可用', 1)
@@ -694,9 +711,9 @@ def SetFastDeleteAdmin(FastDeletesign, fromchat=0):
 
 
 def blackfreq(data, num, fromchat=0):
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     try:
         num = int(num)
     except:
@@ -706,9 +723,9 @@ def blackfreq(data, num, fromchat=0):
         print('参数错误')
         return None
     config['blackfreq'] = num
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     print('黑名单容错次数已设置为{}次'.format(num))
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '黑名单容错次数已设置为{}次'.format(num), 1)
@@ -738,35 +755,35 @@ def setvoicept(data, ptname, fromchat=0):
             simuse.Send_Message(data, fromchat, 2,
                                 '该训练集不存在\n服务器中存在的训练集：\n' + sendptlist, 1)
         return None
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['synthesizer'] = ptname
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     print('训练集已更改为{}'.format(ptname))
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '训练集已更改为{}'.format(ptname), 1)
 
 
 def remerge():
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['merge'] = 1
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     merge = My_Thread(target=ChatMerge.main)
     merge.start()
 
 
 def globe(globesign=0, get=0, fromchat=0):
     global data
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     if get == 1:
         return config['sendmode']
     if globesign == 0:
@@ -781,9 +798,9 @@ def globe(globesign=0, get=0, fromchat=0):
         print('<-已关闭全局模式')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '已关闭全局模式', 1)
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     return globesign
 
 
@@ -807,12 +824,12 @@ def setadmin(adminnum, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['Administrator'] = adminlist
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
     print('管理员QQ号已设置为', adminlist)
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '管理员QQ号已设置为' + str(adminlist),
@@ -875,13 +892,13 @@ def admin(adminsign, fromchat=0):
                     print('参数错误')
                     if fromchat != 0:
                         simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
-                file = open('config.clc', 'r', encoding='utf-8-sig')
-                config = json_load(file)
-                file.close()
+     
+                config = json_load('config.clc')
+
                 config['admin'] = 1
-                file = open('config.clc', 'w', encoding='utf-8-sig')
-                json_dump(config, file, indent=3, ensure_ascii=False)
-                file.close()
+
+                json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
                 ChatAdmin.main(data, config['Administrator'], group, sender)
                 #admin=My_Thread(target=ChatAdmin.main,args=(config['Administrator'],group))
                 #adminsign=1
@@ -948,9 +965,9 @@ def get_group_perm(data, group):
 
 def grouplist(fromchat=0):
     global data
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     learninggrouplist = config['learninggrouplist']
     replygrouplist = config['replygrouplist']
     unmergegrouplist = config['unmergegrouplist']
@@ -991,12 +1008,12 @@ def learninginterval(interval, fromchat=0):
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2,
                             '已设置词库链学习间隔时间' + str(interval) + '秒', 1)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['interval'] = interval
-    file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file2, indent=3, ensure_ascii=False)
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
 
 
 def replychance(chance, fromchat=0):
@@ -1050,9 +1067,9 @@ def replychance(chance, fromchat=0):
         for i in grouplist:
             replydict[str(i)] = single_chance
         config['singlereplychance'] = replydict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+ 
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1077,9 +1094,9 @@ def replychance(chance, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         try:
             replydict = config['singlereplychance']
         except:
@@ -1099,9 +1116,9 @@ def replychance(chance, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['singlereplychance'] = replydict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1122,12 +1139,12 @@ def replychance(chance, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2,
                                 '已设置回复的触发概率' + str(chance) + '%', 1)
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['replychance'] = chance
-        file2 = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file2, indent=3, ensure_ascii=False)
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
 
 
 def voicereplychance(chance, fromchat=0):
@@ -1181,9 +1198,9 @@ def voicereplychance(chance, fromchat=0):
         for i in grouplist:
             replydict[str(i)] = single_chance
         config['singlevoicereplychance'] = replydict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1208,9 +1225,9 @@ def voicereplychance(chance, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         try:
             replydict = config['singlevoicereplychance']
         except:
@@ -1230,9 +1247,9 @@ def voicereplychance(chance, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['singlevoicereplychance'] = replydict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1254,13 +1271,13 @@ def voicereplychance(chance, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2,
                                 '已设置语音回复的触发概率' + str(chance) + '%', 1)
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['voicereplychance'] = chance
-        file2 = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file2, indent=3, ensure_ascii=False)
-        file2.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
 
 
 def addgroup(args, fromchat=0):
@@ -1287,17 +1304,17 @@ def addgroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['learninggrouplist'].extend(grouplist)
         config['learninggrouplist'] = list(set(config['learninggrouplist']))
         if args[:10] == 'learnings ':
             config['replygrouplist'].extend(grouplist)
             config['replygrouplist'] = list(set(config['replygrouplist']))
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         if args[:10] == 'learnings ':
             print('<-添加完毕 已同时加入回复列表')
             if fromchat != 0:
@@ -1326,14 +1343,14 @@ def addgroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['replygrouplist'].extend(grouplist)
         config['replygrouplist'] = list(set(config['replygrouplist']))
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1357,15 +1374,15 @@ def addgroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['unmergegrouplist'].extend(grouplist)
         config['unmergegrouplist'] = list(set(config['unmergegrouplist']))
         config['merge'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1406,9 +1423,9 @@ def addgroup(args, fromchat=0):
                     simuse.Send_Message(data, fromchat, 2, '群不存在', 1)
                 return None
         config['subadmin'] = Subadmindict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1453,9 +1470,9 @@ def addgroup(args, fromchat=0):
             Taglist.append(tag)
             Tagdict[str(i)] = list(set(Taglist))
         config['tag'] = Tagdict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-添加完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '添加完毕', 1)
@@ -1522,9 +1539,9 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         sendtext = ''
         for i in grouplist:
             try:
@@ -1535,9 +1552,9 @@ def removegroup(args, fromchat=0):
                 continue
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1561,9 +1578,9 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         sendtext = ''
         for i in grouplist:
             try:
@@ -1574,9 +1591,9 @@ def removegroup(args, fromchat=0):
                 continue
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1600,9 +1617,9 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         sendtext = ''
         for i in grouplist:
             try:
@@ -1614,9 +1631,9 @@ def removegroup(args, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['merge'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1641,9 +1658,9 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         try:
             subadmindict = config['subadmin']
         except:
@@ -1663,9 +1680,9 @@ def removegroup(args, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['subadmin'] = subadmindict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1690,9 +1707,9 @@ def removegroup(args, fromchat=0):
             if fromchat != 0:
                 simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
             return None
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         try:
             Tagdict = config['tag']
         except:
@@ -1721,9 +1738,9 @@ def removegroup(args, fromchat=0):
         if sendtext != '':
             simuse.Send_Message(data, fromchat, 2, '群' + sendtext + '不存在', 1)
         config['tag'] = Tagdict
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-移除完毕')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '移除完毕', 1)
@@ -1762,14 +1779,14 @@ def removegroup(args, fromchat=0):
 def learning(learningsign, mergesign, fromchat=0):
     global data, learning_t, merge_t
     if learningsign == 0 and mergesign == 0:
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['learning'] = 1
         config['merge'] = 1
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-开始记录')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开始记录', 1)
@@ -1783,14 +1800,14 @@ def learning(learningsign, mergesign, fromchat=0):
     else:
         learningsign = 0
         mergesign = 0
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['learning'] = 0
         config['merge'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-停止记录')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '停止记录', 1)
@@ -1800,13 +1817,13 @@ def learning(learningsign, mergesign, fromchat=0):
 def reply(replysign, fromchat=0):
     global data, reply_t
     if replysign == 0:
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['reply'] = 1
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-开启回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开启回复功能', 1)
@@ -1816,13 +1833,13 @@ def reply(replysign, fromchat=0):
         return replysign
     else:
         replysign = 0
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['reply'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-关闭回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '关闭回复功能', 1)
@@ -1832,13 +1849,13 @@ def reply(replysign, fromchat=0):
 def voicereply(voicereplysign, fromchat=0):
     global data
     if voicereplysign == 0:
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['voicereply'] = 1
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-开启语音回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '开启语音回复功能', 1)
@@ -1846,13 +1863,13 @@ def voicereply(voicereplysign, fromchat=0):
         return voicereplysign
     else:
         voicereplysign = 0
-        file = open('config.clc', 'r', encoding='utf-8-sig')
-        config = json_load(file)
-        file.close()
+
+        config = json_load('config.clc')
+
         config['voicereply'] = 0
-        file = open('config.clc', 'w', encoding='utf-8-sig')
-        json_dump(config, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
         print('<-关闭语音回复功能')
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '关闭语音回复功能', 1)
@@ -1869,13 +1886,13 @@ def merge(time, fromchat=0):
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2, '已设置总词库更新时间' + str(time) + '秒',
                             1)
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     config['mergetime'] = time
-    file2 = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file2, indent=3, ensure_ascii=False)
-    file2.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
 
 
 def check(fromchat=0):
@@ -1918,14 +1935,14 @@ def typefreq(data, args, fromchat=0):
         if fromchat != 0:
             simuse.Send_Message(data, fromchat, 2, '参数错误', 1)
         return None
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     freqdict = config['typefreq']
     freqdict[type] = freq
-    file = open('config.clc', 'w', encoding='utf-8-sig')
-    json_dump(config, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(config, 'config.clc', indent=3, ensure_ascii=False)
+
     print('<-已设置{}回复阈值'.format(type), freq, '次')
     if fromchat != 0:
         simuse.Send_Message(data, fromchat, 2,
@@ -2100,6 +2117,8 @@ def commandchoice(command, fromchat=0):
         importstock(data,command[12:],fromchat)
     elif command[:11]== 'setbotname ':
         setbotname(data,command[11:],fromchat)
+    elif command == 'atreply':
+        atreply(data,fromchat)
     elif command == 'fastdelete':
         FastDeletesign = SetFastDeleteAdmin(FastDeletesign, fromchat)
     elif command == 'autotaskinfo':

@@ -9,9 +9,9 @@ from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     return config['blackfreq']
 
 
@@ -137,9 +137,7 @@ def getnode(data, Filterconfig, filterlist, sender,Accuratedict = None):
                 Accuratedict.clear()
             except:
                 pass
-        file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-        file.close()
+        json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
         time.sleep(0.5)
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
@@ -187,9 +185,9 @@ def getnode(data, Filterconfig, filterlist, sender,Accuratedict = None):
             except:
                 pass
     #print(filterlist)
-    file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
     if templist != []:
         if sendtext != '':
             simuse.Send_Message(
@@ -242,9 +240,9 @@ def replyblack(data, Filterconfig, sender, blackdict):
             break
     if node == 'all':
         blackdict.clear()
-        file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
         time.sleep(0.5)
         simuse.Send_Message(data, sender, 2, '已清空', 1)
         return None
@@ -277,9 +275,9 @@ def replyblack(data, Filterconfig, sender, blackdict):
             blackdict.pop(str(i))
         except:
             poperror = poperror + str(i) + ' '
-    file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
     time.sleep(0.5)
     if poperror == '':
         time.sleep(0.5)
@@ -302,15 +300,15 @@ def blackcheck():
         file.close()
         return Filterconfig
     except:
-        file = open('Filter.clc', 'w', encoding='utf-8-sig')
+
         Filterconfig = {
             'filter': [],
             'sensitive': [],
             'blackdict': {},
             'type': ['At', 'AtAll', 'Quote', 'Poke']
         }
-        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-        file.close()
+        json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
         return Filterconfig
 
 
@@ -422,9 +420,9 @@ def creatfilter(question, addfilterlist=0,accurate=False):
         filterlist = list(set(filterlist))
         Accuratedict[question] = accurate
         Filterconfig['Accuratedict'] = Accuratedict
-        file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
     else:
         Filterconfig = blackcheck()
         filterlist = Filterconfig['filter']
@@ -436,9 +434,9 @@ def creatfilter(question, addfilterlist=0,accurate=False):
                     continue
             filterlist.append(i['answertext'])
         filterlist = list(set(filterlist))
-        file = open('Filter.clc', 'w', encoding='utf-8-sig')
-        json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-        file.close()
+
+        json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
         #print(filterlist)
 
 
@@ -456,9 +454,9 @@ def creatsensitive(question):
     filterlist = Filterconfig['filter']
     filterlist.append(question)
     filterlist = list(set(filterlist))
-    file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
 
 
 def creatblack(sender, list=0):
@@ -471,9 +469,9 @@ def creatblack(sender, list=0):
         blackdict[sender] += 1
     else:
         blackdict[sender] = 1
-    file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json_dump(Filterconfig, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(Filterconfig, 'Filter.clc', indent=3, ensure_ascii=False)
+
     if list == 0:
         return blackdict[sender]
 
@@ -617,6 +615,6 @@ def Merge_Filter():
     Filterlist_origin.extend(Filterconfiglist)
     Filterlist_origin = list(set(Filterlist_origin))
     FilterConfig['filter'] = Filterlist_origin
-    file = open('Filter.clc', 'w', encoding='utf-8-sig')
-    json_dump(FilterConfig, file, indent=3, ensure_ascii=False)
-    file.close()
+
+    json_dump(FilterConfig, 'Filter.clc', indent=3, ensure_ascii=False)
+

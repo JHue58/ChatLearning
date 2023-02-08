@@ -8,9 +8,9 @@ from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 
 
 def getconfig():
-    file = open('config.clc', 'r', encoding='utf-8-sig')
-    config = json_load(file)
-    file.close()
+
+    config = json_load('config.clc')
+
     #print(config)
     try:
         return config['merge'], config['mergetime'], config[
@@ -22,7 +22,7 @@ def getconfig():
 def Merge(Mergedict, filename):
     version_error = 0
     repeatquestion_num = 0
-    cldict = pickle_load(open('WordStock/' + filename, 'rb'))
+    cldict = pickle_load('WordStock/' + filename)
     #print(Mergedict)
     try:
         repeatquestion = Mergedict.keys() & cldict.keys()
@@ -76,7 +76,7 @@ def getfile():
             pass
         if not (i[:-3] in tagdict.keys()):
             Mergedict = Merge(Mergedict, i)
-    pickle_dump(Mergedict, open('WordStock/' + 'Merge.cl', 'wb'))
+    pickle_dump(Mergedict, 'WordStock/' + 'Merge.cl')
     for i in Taglist:
         print('Tag:{} 合并'.format(i))
         Mergedict_Tag = {}
@@ -84,8 +84,7 @@ def getfile():
             if k[:-3] in str(tagdict.keys()):
                 if i in tagdict[k[:-3]]:
                     Mergedict_Tag = Merge(Mergedict_Tag, k)
-        pickle_dump(Mergedict_Tag, open('WordStock/' + '{}.cl'.format(i),
-                                        'wb'))
+        pickle_dump(Mergedict_Tag, 'WordStock/' + '{}.cl'.format(i))
 
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '词库合并完成')
     #print('->',end='')
