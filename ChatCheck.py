@@ -20,7 +20,7 @@ def getallconfig():
 def checkversion():
     url = 'http://124.222.165.166:19630/Update'
     try:
-        res = requests.request('get', url=url, timeout=20)
+        res = requests.request('get', url=url, timeout=5)
         res = json.loads(res.text)
     except:
         return None
@@ -166,14 +166,15 @@ def main(data, fromchat):
         singlevoicereplytip = singlevoicereplytip + '群{}：{}%\n'.format(
             i, voicereplydict[i])
     check_version = checkversion()
-    if check_version[0] == 1:
+    if check_version == None:
+        versiontip = "未连接至ChatLearning服务器"
+    elif check_version[0] == 1:
         versiontip = "已连接至ChatLearning服务器\n检测到有新版本：{}\n当前版本：{}".format(
             check_version[1], check_version[2])
     elif check_version[0] == 0:
         versiontip = "已连接至ChatLearning服务器\n当前已是最新版本：{}".format(
             check_version[1])
-    else:
-        versiontip = "未连接至ChatLearning服务器"
+
     situation = learningtip + '\n' + replytip + '\n' + voicereplytip + '\n' + golbetip + '\n' +cosmatchtip+'\n'+atreplytip+'\n'+ replychancetip + '\n' + replywaittip + '\n' + replycdtip + '\n' +cosmatchingtip+'\n'+ voicereplychancetip + '\n' + synthesizertip + '\n' + mergetimetip + '\n' + intervaltip + '\n' + blackfreqtip + '\n' + tempmessagenumtip + '\n' + botnametip + '\n' + replylengthtip
     situationchain = [{'type': 'Plain', 'text': situation}]
     typefreq_message = [{'type': 'Plain', 'text': typefreqtip}]

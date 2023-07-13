@@ -2155,6 +2155,9 @@ if __name__ == '__main__':
     elif system == 'Linux':
         my_name = my_path[my_path.rfind('/') + 1:]
         exelist = glob.glob("*")
+    else:
+        my_name = my_path[my_path.rfind(os.sep)+1:]
+        exelist = glob.glob("*")
     #print(exelist)
     #print(my_name)
 
@@ -2220,7 +2223,8 @@ if __name__ == '__main__':
     platforms = ChatClass.Platform()
 
     TaskDict = GetAutoTask()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(getcommand_tui())
 
     
