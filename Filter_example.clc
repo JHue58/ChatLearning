@@ -1,0 +1,11 @@
+﻿{
+   "filter": [{"type": "Plain", "text": "chat"}, {"type": "Plain", "text": "兔兔"}],
+   "sensitive": [],
+   "blackdict": {},
+   "type": [
+      "At",
+      "AtAll",
+      "Quote",
+      "Poke"
+   ]
+}
