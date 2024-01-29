@@ -18,7 +18,7 @@ import requests
 
 import simuse
 
-version = '3.0.3'
+version = '3.0.4'
 
 lock = threading.Lock()
 
@@ -81,7 +81,7 @@ class commandclass():
     commandtips = {}
     commandtips['learning'] = '#开启/关闭记录'
     commandtips['reply'] = '#开启/关闭回复'
-    commandtips['voicereply'] = '#开启/关闭文字转语音回复'
+    # commandtips['voicereply'] = '#开启/关闭文字转语音回复'
     commandtips['cosmatch'] = '#开启/关闭问题余弦相似度计算'
     commandtips['learning <秒>'] = '#设定词库链间隔时间'
     commandtips['reply <％>'] = '#设定回复的触发几率'
@@ -91,9 +91,9 @@ class commandclass():
     commandtips['replywait <基准时间> <浮动时间>'] = '#设定回复的等待时间'
     commandtips['replycd <秒>'] = '#设定回复的冷却时间'
     commandtips['replylength <字数>'] = '#设定回复答案的最大长度'
-    commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
-    commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
-    commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
+    # commandtips['voicereply <％>'] = '#设定文字转语音回复几率'
+    # commandtips['voicereply -s <％> <群号>'] = '#单独设定文字转语音触发几率'
+    # commandtips['voicereply -d <群号>'] = '#清除单独设定的文字转语音触发几率'
     commandtips['cosmatch <匹配率>'] = '#设定问题余弦相似度计算匹配率阈值'
     commandtips['merge <秒>'] = '#设定总词库更新时间'
     commandtips['typefreq <消息类型> <次数>'] = '#设定消息发送阈值'
@@ -117,10 +117,10 @@ class commandclass():
     commandtips['globe'] = '#开启/关闭全局模式'
     commandtips['setadmin <QQ号>'] = '#设置管理员QQ号'
     commandtips['setbotname <昵称>'] = '#设置bot昵称,空格隔开可设置多个'
-    commandtips['setvoicept <训练集>'] = '#设置文字转语音回复的训练集'
+    # commandtips['setvoicept <训练集>'] = '#设置文字转语音回复的训练集'
     commandtips['settemp <条数>'] = '#设置单个群中消息缓存最大数目'
     commandtips['blackfreq <次数>'] = '#设置黑名单容错次数'
-    commandtips['uploadwav'] = '#上传源音频文件'
+    # commandtips['uploadwav'] = '#上传源音频文件'
     commandtips['importstock <文件名>'] = '#导入词库'
     commandtips['autotaskcommand'] = '#查看定时任务的特殊指令'
     commandtips['admin'] = '#进入管理模式'
