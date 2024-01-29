@@ -3,7 +3,7 @@ import hashlib
 import os
 import pickle
 import time
-
+from datetime import datetime
 import xlwt
 from qcloud_cos import CosConfig, CosS3Client
 
@@ -153,9 +153,11 @@ def createxcel(groupcldict):
                 answer_id = answerdict['node']
                 answer_type = '未知'
                 answer_time = answerdict['time']
-                timeArray_answer = time.localtime(answer_time)
-                answer_time = time.strftime("%Y-%m-%d %H:%M:%S",
-                                            timeArray_answer)
+                print("answer_time", answer_time)
+                # timeArray_answer = time.localtime(answer_time)
+                # answer_time = time.strftime("%Y-%m-%d %H:%M:%S",
+                #                             timeArray_answer)
+                answer_time = answer_time.strftime("%Y-%m-%d %H:%M:%S")
                 answer_info = ''
                 for answer_messagechain in eval(answerdict['answertext']):
                     if answer_messagechain['type'] == 'Plain':
@@ -215,8 +217,8 @@ def createxcel(groupcldict):
 
 #上传工作表至cos
 def uploadcos(data, filename):
-    secret_id = 'XX'
-    secret_key = 'XX'
+    secret_id = 'AKID56qJVS8WdUJs99tLWP2OSFm20h7G8j36'
+    secret_key = 'nIWUAZiaBVYKq53j9H8hz1lEPKyLQGYZ'
     region = 'ap-shanghai'
     config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
     client = CosS3Client(config)

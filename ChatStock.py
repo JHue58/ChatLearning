@@ -59,6 +59,7 @@ def load_word_stock(filename):
     word_stock_tuple_list = []
     
     for line in word_stock:
+        line = line.strip('\t')
         word_stock_tuple = line.split('\t',1)
         if len(word_stock_tuple)!=2:
             continue
