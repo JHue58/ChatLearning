@@ -330,15 +330,13 @@ def sensitivecheck(question, sender, group):
         for i in question:
             if i['type'] == 'Plain':
                 for k in Filterconfig['sensitive']:
-                    k = eval(k)
-                    for j in k:
-                        if j['type'] == 'Plain':
-                            if i['text'].find(j['text']) != -1:
-                                creatblack(sender)
-                                print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单',
-                                      '发送者{}'.format(sender),
-                                      '来自群{}'.format(group))
-                                return 0
+                    if k['type'] == 'Plain':
+                        if i['text'].find(k['text']) != -1:
+                            creatblack(sender)
+                            print('已过滤，原因：与敏感问题匹配，已将发送者加入黑名单',
+                                    '发送者{}'.format(sender),
+                                    '来自群{}'.format(group))
+                            return 0
     if sender in Filterconfig['blackdict'].keys():
         num = Filterconfig['blackdict']
         if num[sender] >= getconfig():
@@ -366,19 +364,17 @@ def filtercheck(question, sender='|回复过滤', group='|回复过滤', display
         if i['type'] == 'Plain':
             text = i['text']
             for k in Filterconfig['filter']:
-                k = eval(k)
-                for j in k:
-                    if j['type'] == 'Plain':
-                        try:
-                            accurated =  Accuratedict[str(k)]
-                        except:
-                            accurated = False
-                        if i['text'].find(j['text']) != -1 and accurated==False:
-                            if display == True:
-                                print('已过滤，原因：与过滤字典模糊匹配',
-                                      '发送者{}'.format(sender),
-                                      '来自群{}'.format(group))
-                            return 0
+                if k['type'] == 'Plain':
+                    try:
+                        accurated =  Accuratedict[str(i)]
+                    except:
+                        accurated = False
+                    if i['text'].find(k['text']) != -1 and accurated==False:
+                        if display == True:
+                            print('已过滤，原因：与过滤字典模糊匹配',
+                                    '发送者{}'.format(sender),
+                                    '来自群{}'.format(group))
+                        return 0
     if str(question) in Filterconfig['filter']:
         if display == True:
             print('已过滤，原因：与过滤字典精确匹配', '发送者{}'.format(sender),

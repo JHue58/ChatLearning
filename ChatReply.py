@@ -21,7 +21,7 @@ from ChatClass import json_dump, json_load, pickle_dump, pickle_load
 from functools import wraps
 
 nowtime = time.time()
-max_cosmath_length = 35
+max_cosmath_length = 50
 
 
 def fn_timer(function):

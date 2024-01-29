@@ -3,8 +3,6 @@ import copy
 import json
 import pickle
 import time
-from datetime import datetime
-from dateutil.tz import tzlocal
 from re import I
 
 import ChatAdmin
@@ -76,55 +74,52 @@ def creatanswer(question, answer, group):  # 记录答案
     answer = str(answer)
     filename = str(group) + ".cl"
     tempdict = pickle_load('WordStock/' + filename)  # 读取缓存的词库
-    # answertime = int(time.time())
-    local_tz = tzlocal()  # 获取系统本地时区
-    answertime = datetime.now().astimezone(local_tz)
+    answertime = int(time.time())
     answerdict = {"answertext": "", "time": ""}
     answerdict["answertext"] = answer
     answerdict["time"] = answertime
     tempanswerdict = copy.deepcopy(answerdict)
     tempanswerdict['answertext'] = eval(tempanswerdict['answertext'])
-    questiondict = {}
-    if question:
-        questiondict = tempdict[question]# 找到问题，将答案添加进“answer”属性
-        #print(questiondict["answer"])
-        if str(questiondict.get("answer")) != '[]':  # 判断答案列表是否为空
-            isbreak = 0
-            for i in questiondict["answer"]:  # 答案列表不为空则寻找相同的答案，有相同则记录相同次数'same'，无相同则记录新答案
-                tempi = copy.deepcopy(i)
-                tempi['answertext'] = eval(tempi['answertext'])
-                #print(tempi)
-                for k in tempanswerdict['answertext']:  # 去除作为答案中的变动因素"url"
-                    #print(k)
-                    try:
-                        k.pop('url')
-                    except:
-                        continue
-                for k in tempi['answertext']:  # 去除作为答案中的变动因素"url"
-                    #print(k)
-                    try:
-                        k.pop('url')
-                    except:
-                        continue
-                #print(tempi['answertext'])
-                #print(tempanswerdict['answertext'])
-                if tempi['answertext'] == tempanswerdict['answertext']:  # 判断答案是否相同
-                    i['time'] = answerdict['time']
-                    if not ('same' in i.keys()):  # 检测是否记录过相同次数，有则+1，无则记录相同次数为1
-                        i['same'] = 1
-                    else:
-                        i['same'] += 1
-                    print('检测到答案重复，重复次数已记录', end='')  # 相同则记录相同，然后结束循环，将循环结束判断符置1
-                    isbreak = 1
-                    break
-            if isbreak == 0:  # 只有遍历完整个答案list无相同，才会记录
-                questiondict["answer"].append(answerdict.copy())
-        else:  # 答案列表为空时一定是新答案，所以直接记录
+    questiondict = tempdict[question]  # 找到问题，将答案添加进“answer”属性
+    #print(questiondict["answer"])
+    if str(questiondict["answer"]) != '[]':  # 判断答案列表是否为空
+        isbreak = 0
+        for i in questiondict[
+                "answer"]:  # 答案列表不为空则寻找相同的答案，有相同则记录相同次数'same'，无相同则记录新答案
+            tempi = copy.deepcopy(i)
+            tempi['answertext'] = eval(tempi['answertext'])
+            #print(tempi)
+            for k in tempanswerdict['answertext']:  # 去除作为答案中的变动因素"url"
+                #print(k)
+                try:
+                    k.pop('url')
+                except:
+                    continue
+            for k in tempi['answertext']:  # 去除作为答案中的变动因素"url"
+                #print(k)
+                try:
+                    k.pop('url')
+                except:
+                    continue
+            #print(tempi['answertext'])
+            #print(tempanswerdict['answertext'])
+            if tempi['answertext'] == tempanswerdict['answertext']:  # 判断答案是否相同
+                i['time'] = answerdict['time']
+                if not ('same' in i.keys()):  # 检测是否记录过相同次数，有则+1，无则记录相同次数为1
+                    i['same'] = 1
+                else:
+                    i['same'] += 1
+                print('检测到答案重复，重复次数已记录', end='')  # 相同则记录相同，然后结束循环，将循环结束判断符置1
+                isbreak = 1
+                break
+        if isbreak == 0:  # 只有遍历完整个答案list无相同，才会记录
             questiondict["answer"].append(answerdict.copy())
-        tempdict[question] = questiondict
-        pickle_dump(tempdict, 'WordStock/' + filename)
-        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
-            filename)
+    else:  # 答案列表为空时一定是新答案，所以直接记录
+        questiondict["answer"].append(answerdict.copy())
+    tempdict[question] = questiondict
+    pickle_dump(tempdict, 'WordStock/' + filename)
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "\n答案已记录",
+          filename)
 
 
 def extractmessage(data, tempdict):  # 将消息链转化为字典格式（key为群号，value为消息链）

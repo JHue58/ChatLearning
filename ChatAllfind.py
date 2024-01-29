@@ -3,7 +3,7 @@ import hashlib
 import os
 import pickle
 import time
-from datetime import datetime
+
 import xlwt
 from qcloud_cos import CosConfig, CosS3Client
 
@@ -153,11 +153,9 @@ def createxcel(groupcldict):
                 answer_id = answerdict['node']
                 answer_type = '未知'
                 answer_time = answerdict['time']
-                # print("answer_time", answer_time)
-                # timeArray_answer = time.localtime(answer_time)
-                # answer_time = time.strftime("%Y-%m-%d %H:%M:%S",
-                #                             timeArray_answer)
-                answer_time = answer_time.strftime("%Y-%m-%d %H:%M:%S")
+                timeArray_answer = time.localtime(answer_time)
+                answer_time = time.strftime("%Y-%m-%d %H:%M:%S",
+                                            timeArray_answer)
                 answer_info = ''
                 for answer_messagechain in eval(answerdict['answertext']):
                     if answer_messagechain['type'] == 'Plain':

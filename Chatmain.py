@@ -638,13 +638,7 @@ def setbotname(data,botname,fromchat=0):
 
 
 def importstock(data,filename,fromchat=0):
-    try:
-        res = ChatStock.load_word_stock(filename)
-    except:
-        print('打开错误，请检查是否为utf-8格式，如果是cl词库请直接移至WordStock文件夹即可')
-        if fromchat != 0:
-            simuse.Send_Message(data, fromchat, 2, '打开错误，请检查是否为utf-8格式，如果是cl词库请直接移至WordStock文件夹即可', 1)
-        return
+    res = ChatStock.load_word_stock(filename)
     if res == None:
         print(f'未找到文件"{filename}"')
         if fromchat != 0:
@@ -2161,6 +2155,9 @@ if __name__ == '__main__':
     elif system == 'Linux':
         my_name = my_path[my_path.rfind('/') + 1:]
         exelist = glob.glob("*")
+    else:
+        my_name = my_path[my_path.rfind(os.sep)+1:]
+        exelist = glob.glob("*")
     #print(exelist)
     #print(my_name)
 
@@ -2226,7 +2223,8 @@ if __name__ == '__main__':
     platforms = ChatClass.Platform()
 
     TaskDict = GetAutoTask()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(getcommand_tui())
 
     
