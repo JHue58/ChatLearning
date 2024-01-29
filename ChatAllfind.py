@@ -153,7 +153,7 @@ def createxcel(groupcldict):
                 answer_id = answerdict['node']
                 answer_type = '未知'
                 answer_time = answerdict['time']
-                print("answer_time", answer_time)
+                # print("answer_time", answer_time)
                 # timeArray_answer = time.localtime(answer_time)
                 # answer_time = time.strftime("%Y-%m-%d %H:%M:%S",
                 #                             timeArray_answer)
